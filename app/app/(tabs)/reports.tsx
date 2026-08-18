@@ -88,7 +88,9 @@ export default function ReportsScreen() {
           <Text style={styles.cardTitle}>Training volume</Text>
           <Text style={styles.statBig}>{(currentDay - 1) * 9} min</Text>
           <Text style={styles.meta}>Total guided minutes</Text>
-          <ProgressBar progress={(currentDay - 1) / 30} height={6} />
+          <View style={styles.volumeBar}>
+            <ProgressBar progress={(currentDay - 1) / 30} height={6} />
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -108,11 +110,13 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', alignItems: 'center' },
   cardTitle: { ...typography.section, color: colors.black },
-  meta: { ...typography.caption, color: colors.textSecondary, marginTop: 6, marginBottom: 12 },
-  calendar: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  meta: { ...typography.caption, color: colors.textSecondary, marginTop: 6, marginBottom: 0 },
+  calendar: { flexDirection: 'row', flexWrap: 'nowrap', justifyContent: 'space-between', gap: 4, marginTop: 14 },
   dayDot: {
-    width: 18,
-    height: 18,
+    flex: 1,
+    maxWidth: 18,
+    aspectRatio: 1,
+    height: undefined,
     borderRadius: 9,
     backgroundColor: colors.softBg,
   },
@@ -135,7 +139,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.softBg,
     padding: 14,
     borderRadius: radii.lg,
-    marginTop: 4,
+    marginTop: 12,
+    textAlign: 'center',
   },
   chart: { flexDirection: 'row', alignItems: 'flex-end', height: 110, gap: 8 },
   barWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },
@@ -146,5 +151,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   barLabel: { fontSize: 10, color: colors.textSecondary, fontWeight: '600' },
-  statBig: { fontSize: 36, fontWeight: '800', color: colors.primary, marginTop: 4 },
+  statBig: { fontSize: 36, fontWeight: '800', color: colors.primary, marginTop: 12, marginBottom: 6, lineHeight: 40 },
+  volumeBar: { marginTop: 14 },
 });
