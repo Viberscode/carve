@@ -1513,22 +1513,30 @@ button {
 
 .stats {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
   margin-bottom: 16px;
   text-align: center;
 }
 .stats-split {
   align-items: center;
   padding: 4px 0 8px;
+  max-width: 300px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .stats-divider {
   width: 1px;
   height: 28px;
   background: var(--border);
-  flex: 0 0 auto;
+  flex: 0 0 1px;
+  align-self: center;
+  margin: 0 18px;
 }
-.stats div {
-  flex: 1;
+.stats > div:not(.stats-divider) {
+  flex: 0 1 auto;
+  min-width: 64px;
 }
 .stats strong {
   display: block;
