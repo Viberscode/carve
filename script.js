@@ -688,6 +688,15 @@ function roadmapToSessionItem(str) {
   };
 }
 
+const STORAGE_KEY = "carve-web-v1";
+
+const defaultSettings = {
+  mirror: true,
+  coachVoice: true,
+  music: false,
+  reminders: true,
+};
+
 const state = {
   track: null,
   days: buildDays("face"),
@@ -704,10 +713,102 @@ const state = {
   modalIndex: 0,
   modalTab: "animation",
   stack: ["landing"],
+  settings: { ...defaultSettings },
+  toastTimer: null,
 };
 
 const $ = (sel, el = document) => el.querySelector(sel);
 const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
+
+function trackMeta() {
+  return TRACKS[state.track || "face"];
+}
+
+function focusLabelForTrack() {
+  if (state.track === "voice") return "Voice";
+  if (state.track === "both") return "Both";
+  return "Face";
+}
+
+function difficultyHtml() {
+  return `<span>⚡</span> Beginner`;
+}
+
+function saveState() {
+  if (!state.track) return;
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        track: state.track,
+        days: state.days,
+        currentDay: state.currentDay,
+        streak: state.streak,
+        settings: state.settings,
+      })
+    );
+  } catch (_) {
+    /* storage full or blocked */
+  }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data.track) return false;
+    state.track = data.track;
+    state.days = data.days || buildDays(data.track);
+    state.currentDay = data.currentDay || 1;
+    state.streak = data.streak || 0;
+    state.settings = { ...defaultSettings, ...(data.settings || {}) };
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function showToast(message, ms = 2600) {
+  const el = $("#toast");
+  if (!el) return;
+  el.textContent = message;
+  el.hidden = false;
+  requestAnimationFrame(() => el.classList.add("show"));
+  if (state.toastTimer) clearTimeout(state.toastTimer);
+  state.toastTimer = setTimeout(() => {
+    el.classList.remove("show");
+    setTimeout(() => {
+      el.hidden = true;
+    }, 250);
+  }, ms);
+}
+
+function applySettingsUi() {
+  const s = state.settings;
+  const mirror = $("#set-mirror");
+  const coach = $("#set-coach");
+  const music = $("#set-music");
+  const reminders = $("#set-reminders");
+  if (mirror) mirror.checked = s.mirror;
+  if (coach) coach.checked = s.coachVoice;
+  if (music) music.checked = s.music;
+  if (reminders) reminders.checked = s.reminders;
+}
+
+function openSettingsTab() {
+  applySettingsUi();
+  state.stack = ["me"];
+  showView("me");
+}
+
+function highlightPracticeSettings() {
+  const row = $("#btn-practice-settings");
+  if (!row) return;
+  row.classList.add("highlight");
+  row.scrollIntoView({ behavior: "smooth", block: "center" });
+  setTimeout(() => row.classList.remove("highlight"), 1400);
+}
 
 function formatMetric(ex) {
   if (ex.duration != null) {
@@ -772,6 +873,7 @@ function selectTrack(track) {
     state.streak = 0;
     refreshHome();
     renderDayList();
+    saveState();
     state.stack = ["home"];
     showView("home");
 
@@ -789,8 +891,62 @@ function selectTrack(track) {
 
 function renderProgressBox() {
   const box = $("#progress-box");
-  // Same home layout for all tracks: no days progress box
-  if (box) box.hidden = true;
+  const rail = $("#day-rail");
+  const preview = $("#day-preview");
+  if (!box || !rail || !preview) return;
+
+  if (!state.track) {
+    box.hidden = true;
+    return;
+  }
+
+  box.hidden = false;
+  rail.innerHTML = "";
+  preview.innerHTML = "";
+
+  state.days.forEach((d) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "day-chip";
+    chip.setAttribute("role", "listitem");
+    if (d.status === "done") chip.classList.add("done");
+    if (d.n === state.currentDay && d.status !== "done") chip.classList.add("active");
+    if (d.rest) chip.classList.add("rest");
+
+    const label =
+      d.rest ? "Rest" : d.status === "done" ? "Done" : d.n === state.currentDay ? "Today" : "Day";
+    chip.innerHTML = `<strong>${d.n}</strong>${label}`;
+
+    if (d.status !== "locked") {
+      chip.addEventListener("click", () => openDay(d.n));
+    } else {
+      chip.disabled = true;
+    }
+    rail.appendChild(chip);
+  });
+
+  const today = state.days.find((d) => d.n === state.currentDay);
+  if (!today) return;
+
+  const count = dayItemCount(today);
+  const done = dayDoneCount(today);
+  const card = document.createElement("button");
+  card.type = "button";
+  card.className = "day-card";
+  if (today.status === "active") card.classList.add("active");
+
+  let sub = `${count} exercises`;
+  if (today.status === "done") sub = "Finished";
+  else if (done > 0) sub = `${Math.round((done / Math.max(count, 1)) * 100)}% done`;
+
+  const right =
+    today.status === "done"
+      ? `<span class="check">✓</span>`
+      : `<span class="cta">${done > 0 ? "CONTINUE" : "START"}</span>`;
+
+  card.innerHTML = `<span><strong>Day ${today.n}</strong><small>${sub}</small></span>${right}`;
+  card.addEventListener("click", () => openDay(today.n));
+  preview.appendChild(card);
 }
 
 function renderTrackExtras() {
@@ -932,7 +1088,7 @@ function renderTrackExtras() {
 }
 
 function refreshHome() {
-  const meta = TRACKS[state.track || "face"];
+  const meta = trackMeta();
   const sessionsDone = Math.max(0, state.currentDay - 1);
   $("#hero-day").textContent = `Day ${state.currentDay}`;
   $("#days-done").textContent = String(sessionsDone);
@@ -953,9 +1109,13 @@ function refreshHome() {
   $("#volume-bar").style.width = `${pct}%`;
   $("#hero-sub").textContent = meta.subtitle;
   $("#hero-art").textContent = meta.art;
+  const heroDiff = $("#hero-diff");
+  if (heroDiff) heroDiff.innerHTML = difficultyHtml();
   $("#plan-title").textContent = meta.planTitle;
   $("#plan-tags").textContent = meta.tags;
   $("#plan-art").textContent = meta.art;
+  const planDiff = $("#plan-diff");
+  if (planDiff) planDiff.innerHTML = difficultyHtml();
   $("#home-disclaimer").textContent = meta.disclaimer;
   const today = state.days.find((d) => d.n === state.currentDay);
   const heroStart = $("#hero-start-label");
@@ -963,13 +1123,21 @@ function refreshHome() {
     heroStart.textContent =
       today.status !== "done" && (today.doneCount || today.percent) > 0 ? "CONTINUE" : "START";
   }
-  const profileMeta = document.querySelector(".profile .muted");
-  if (profileMeta) profileMeta.textContent = meta.planTitle;
+  const profilePlan = $("#profile-plan");
+  if (profilePlan) profilePlan.textContent = meta.planTitle;
+  const profileAvatar = $("#profile-avatar");
+  if (profileAvatar) profileAvatar.textContent = meta.art;
+  const progressSub = $("#progress-sub");
+  if (progressSub) {
+    const left = Math.max(0, 30 - sessionsDone);
+    progressSub.textContent = left === 0 ? "Arc complete" : `${left} days left in your arc`;
+  }
   renderProgressBox();
   renderTrackExtras();
 }
 
 function renderReports() {
+  const meta = trackMeta();
   const cal = $("#streak-cal");
   cal.innerHTML = "";
   for (let i = 0; i < 14; i++) {
@@ -980,7 +1148,16 @@ function renderReports() {
     if (isToday) s.classList.add("today");
     cal.appendChild(s);
   }
+
+  const pitchCard = $("#pitch-card");
+  const reportsDisclaimer = $("#reports-disclaimer");
+  const isVoiceTrack = state.track === "voice" || state.track === "both";
+  if (pitchCard) pitchCard.hidden = !isVoiceTrack;
+  if (reportsDisclaimer) reportsDisclaimer.textContent = meta.disclaimer;
+
   const chart = $("#pitch-chart");
+  if (!isVoiceTrack || !chart) return;
+
   chart.innerHTML = "";
   if (state.streak === 0) {
     chart.classList.add("empty");
@@ -1058,6 +1235,7 @@ function saveSessionProgress() {
   if (!len) return;
   day.doneCount = Math.max(day.doneCount || 0, state.sessionIndex);
   day.percent = Math.round((day.doneCount / len) * 100);
+  saveState();
 }
 
 function updateStartCta(day) {
@@ -1112,17 +1290,17 @@ function renderDayView(n, { push } = { push: true }) {
   }
 
   $("#day-title").textContent = `Day ${n}`;
+  const meta = trackMeta();
+  const dayDiff = $("#day-diff");
+  if (dayDiff) dayDiff.innerHTML = difficultyHtml();
+  const dayArt = $("#day-art");
+  if (dayArt) dayArt.textContent = meta.art;
   $("#stat-ex").textContent = String(items.length);
   const secs = items.reduce((sum, ex) => sum + (ex.duration || (ex.reps || 0) * 3 || 30), 0);
   const mins = Math.max(1, Math.round(secs / 60));
   $("#stat-time").textContent = `${mins} min`;
-  const effort = (items.length * 4.2 + mins * 2.1).toFixed(1);
-  $("#stat-kcal").textContent = `${effort}`;
-  const focusEl = $("#stat-focus");
-  if (focusEl) {
-    focusEl.textContent =
-      state.track === "voice" ? "Voice" : state.track === "both" ? "Both" : "Face";
-  }
+  const focusVal = $("#stat-focus-val");
+  if (focusVal) focusVal.textContent = focusLabelForTrack();
 
   const done = dayDoneCount(day);
   const progressEl = $("#ex-progress");
@@ -1259,6 +1437,7 @@ function nextExercise() {
   if (day && day.status !== "done") {
     day.doneCount = Math.max(day.doneCount || 0, state.sessionIndex + 1);
     day.percent = Math.round((day.doneCount / len) * 100);
+    saveState();
   }
   if (state.sessionIndex >= len - 1) {
     finishDay();
@@ -1295,8 +1474,10 @@ function finishDay() {
   }
   refreshHome();
   renderDayList();
-  state.stack = ["home", "plan"];
-  showView("plan");
+  saveState();
+  showToast("Day complete — small wins stack.");
+  state.stack = ["home"];
+  showView("home");
 }
 
 /* Modal */
@@ -1330,15 +1511,22 @@ function renderModal() {
   startCoachPlayer($("#modal-coach"), ex);
   const hint = $("#modal-media-hint");
   if (hint) {
-    hint.textContent =
-      state.modalTab === "muscle"
-        ? ex.voice
-          ? "Vocal tract focus — match the coach"
-          : "Face muscle focus — match the coach"
-        : "Looping coach demo — copy this person";
+    if (state.modalTab === "muscle") {
+      hint.textContent = ex.voice
+        ? "Vocal tract focus — match the coach"
+        : "Face muscle focus — match the coach";
+    } else if (state.modalTab === "howto") {
+      hint.textContent = "Step-by-step — go slow, stay gentle";
+    } else {
+      hint.textContent = "Looping coach demo — copy this person";
+    }
   }
 
-  const metricLabel = ex.dosage ? "DOSAGE" : ex.reps != null ? `REPEATS${ex.eachSide ? " (each side)" : ""}` : "DURATION";
+  const metricLabel = ex.dosage
+    ? "DOSAGE"
+    : ex.reps != null
+      ? `REPEATS${ex.eachSide ? " (each side)" : ""}`
+      : "DURATION";
   const metricValue = ex.dosage || (ex.reps != null ? `x${ex.reps}` : formatMetric(ex));
   const steps = ex.steps || [];
   const mistakes = ex.mistakes || [];
@@ -1346,28 +1534,51 @@ function renderModal() {
   const focus = ex.focus || ["Face"];
 
   let html = "";
-  if (state.modalTab !== "muscle") {
+
+  if (state.modalTab === "animation") {
     html += `
       <div class="sheet-section row-between">
         <h3 style="margin:0">${metricLabel}</h3>
-        <div class="stepper"><button type="button" data-step="-">−</button><span>${metricValue}</span><button type="button" data-step="+">+</button></div>
+        <span class="pill-soft">${metricValue}</span>
       </div>
-      <div class="sheet-section"><h3>INSTRUCTIONS</h3><p>${ex.instructions}</p>
-        ${steps.map((s, i) => `<p>${i + 1}. ${s}</p>`).join("")}
-      </div>`;
+      <div class="sheet-section"><h3>OVERVIEW</h3><p>${ex.instructions}</p></div>`;
   }
-  html += `<div class="sheet-section"><h3>FOCUS AREA</h3><div class="chips">${focus
-    .map((f, i) => `<span class="chip"><i style="background:${i ? "var(--blue-mid)" : "var(--indigo)"}"></i>${f}</span>`)
-    .join("")}</div>
-    ${state.modalTab === "muscle" ? `<p style="margin-top:10px">Highlighted soft tissue & habits — tone and posture, not bone structure.</p>` : ""}
-  </div>`;
-  html += `<div class="sheet-section"><h3>COMMON MISTAKES</h3>${mistakes
-    .map(
-      (m, i) =>
-        `<div class="mistake"><span class="num">${i + 1}</span><div><strong>${m.title}</strong><p>${m.description}</p></div></div>`
-    )
-    .join("")}</div>`;
-  html += `<div class="sheet-section"><h3>BREATHING TIPS</h3>${breathing.map((t) => `<div class="tip">${t}</div>`).join("")}</div>`;
+
+  if (state.modalTab === "howto") {
+    html += `<div class="sheet-section"><h3>STEPS</h3>
+      ${steps.length ? steps.map((s, i) => `<p><strong>${i + 1}.</strong> ${s}</p>`).join("") : `<p>${ex.instructions}</p>`}
+    </div>`;
+    html += `<div class="sheet-section"><h3>BREATHING</h3>${breathing
+      .map((t) => `<div class="tip">${t}</div>`)
+      .join("")}</div>`;
+  }
+
+  if (state.modalTab === "muscle") {
+    html += `<div class="sheet-section"><h3>FOCUS AREA</h3><div class="chips">${focus
+      .map(
+        (f, i) =>
+          `<span class="chip"><i style="background:${i ? "var(--blue-mid)" : "var(--indigo)"}"></i>${f}</span>`
+      )
+      .join("")}</div>
+      <p style="margin-top:10px">Highlighted soft tissue & habits — tone and posture, not bone structure.</p>
+    </div>`;
+  }
+
+  if (state.modalTab !== "howto") {
+    html += `<div class="sheet-section"><h3>COMMON MISTAKES</h3>${mistakes
+      .map(
+        (m, i) =>
+          `<div class="mistake"><span class="num">${i + 1}</span><div><strong>${m.title}</strong><p>${m.description}</p></div></div>`
+      )
+      .join("")}</div>`;
+  }
+
+  if (state.modalTab === "animation") {
+    html += `<div class="sheet-section"><h3>QUICK STEPS</h3>
+      ${steps.length ? steps.slice(0, 3).map((s, i) => `<p>${i + 1}. ${s}</p>`).join("") : `<p>${ex.instructions}</p>`}
+    </div>`;
+  }
+
   $("#modal-content").innerHTML = html;
 }
 
@@ -1417,7 +1628,34 @@ function bind() {
 
   $("#btn-start-session").addEventListener("click", startSession);
   $("#btn-adjust")?.addEventListener("click", () => {
-    /* placeholder — adjust flow later */
+    highlightPracticeSettings();
+    showToast("Adjust music, coach, and timer in practice settings.");
+  });
+  $("#btn-practice-settings")?.addEventListener("click", openSettingsTab);
+  $("#btn-day-more")?.addEventListener("click", () => {
+    showToast("More options coming soon.");
+  });
+  $("#btn-player-settings")?.addEventListener("click", openSettingsTab);
+  $("#btn-player-mirror")?.addEventListener("click", () => {
+    state.settings.mirror = !state.settings.mirror;
+    applySettingsUi();
+    saveState();
+    showToast(state.settings.mirror ? "Mirror mode on" : "Mirror mode off");
+  });
+
+  ["set-mirror", "set-coach", "set-music", "set-reminders"].forEach((id) => {
+    $("#" + id)?.addEventListener("change", (e) => {
+      const key =
+        id === "set-mirror"
+          ? "mirror"
+          : id === "set-coach"
+            ? "coachVoice"
+            : id === "set-music"
+              ? "music"
+              : "reminders";
+      state.settings[key] = e.target.checked;
+      saveState();
+    });
   });
   $("#btn-skip").addEventListener("click", () => {
     clearPlayerTimer();
@@ -1457,6 +1695,18 @@ function bind() {
   );
 }
 
-bind();
-preloadCoachFrames();
-showView("landing");
+function init() {
+  bind();
+  preloadCoachFrames();
+  if (loadState()) {
+    refreshHome();
+    renderDayList();
+    applySettingsUi();
+    state.stack = ["home"];
+    showView("home");
+  } else {
+    showView("landing");
+  }
+}
+
+init();
