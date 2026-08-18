@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=dayui2" />
+  <link rel="stylesheet" href="styles.css?v=dayui4" />
 </head>
 <body>
   <div class="device">
@@ -72,10 +72,17 @@
           </div>
 
           <footer class="landing-foot">
-            <div class="landing-mark" aria-hidden="true">C</div>
+            <div class="landing-mark" aria-hidden="true">
+              <svg viewBox="0 0 32 32" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="13" cy="16" rx="8.5" ry="10.5" stroke="currentColor" stroke-width="1.75"/>
+                <path d="M9.5 12.5Q13 10.5 16.5 12.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.55"/>
+                <path d="M21 13.5C24.5 16 24.5 20 21 22.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+                <path d="M23.5 11.5C28 15.5 28 21.5 23.5 25.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" opacity="0.5"/>
+              </svg>
+            </div>
             <div>
-              <p class="landing-foot-title">PRESENCE OVER PRESSURE</p>
-              <p class="landing-foot-sub">TRAIN THE LOOK. TRAIN THE SOUND.</p>
+              <p class="landing-foot-title">Presence over pressure</p>
+              <p class="landing-foot-sub">Train the look. Train the sound.</p>
             </div>
           </footer>
         </div>
@@ -94,37 +101,23 @@
         </header>
 
         <div class="scroll">
-          <div class="hero-card">
-            <button type="button" class="hero-open" id="btn-open-plan" aria-label="Open 30-day plan">
-              <div class="hero-dots" aria-hidden="true"></div>
-              <div class="hero-copy">
-                <p class="hero-sub" id="hero-sub">Jawline Focus</p>
-                <p class="hero-diff" id="hero-diff"><span>⚡</span> Beginner</p>
-                <p class="hero-day" id="hero-day">Day 1</p>
-                <p class="hero-progress-label"><span id="days-done">0</span>/30 Days</p>
-                <div class="bar bar-light"><div class="bar-fill" id="hero-bar" style="width:0%"></div></div>
-              </div>
-              <div class="hero-art" id="hero-art" aria-hidden="true">🪞</div>
-            </button>
-            <button type="button" class="pill pill-white hero-cta" id="btn-start-today">
-              <span id="hero-start-label">START</span>
-            </button>
-          </div>
-
-          <!-- Day progress (all tracks) -->
-          <div class="progress-box" id="progress-box">
-            <div class="progress-box-head">
-              <div>
-                <h2 class="section-title tight" id="progress-title">Your days</h2>
-                <p class="muted" id="progress-sub">30-day arc</p>
-              </div>
-              <button type="button" class="link-btn" id="btn-see-all-days">See all</button>
+          <button type="button" class="hero-card" id="btn-start-today" aria-label="Start today's practice">
+            <div class="hero-dots" aria-hidden="true"></div>
+            <div class="hero-copy">
+              <p class="hero-sub" id="hero-sub">Jawline Focus</p>
+              <p class="hero-diff" id="hero-diff"><span>⚡</span> Beginner</p>
+              <p class="hero-day" id="hero-day">Day 1</p>
+              <p class="hero-progress-label"><span id="days-done">0</span>/30 Days</p>
+              <div class="bar bar-light"><div class="bar-fill" id="hero-bar" style="width:0%"></div></div>
             </div>
-            <div class="day-rail" id="day-rail" role="list"></div>
-            <div class="day-preview" id="day-preview"></div>
-          </div>
+            <div class="hero-art" id="hero-art" aria-hidden="true">🪞</div>
+            <span class="pill pill-white hero-cta" id="hero-start-label">START</span>
+          </button>
+          <p class="hero-plan-link">
+            <button type="button" class="link-btn" id="btn-open-plan">View 30-day plan</button>
+          </p>
 
-          <!-- Track-specific content below progress -->
+          <!-- Track-specific content -->
           <div id="track-extras"></div>
 
           <p class="disclaimer" id="home-disclaimer">
@@ -357,6 +350,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=coach8"></script>
-  <script src="script.js?v=dayui2"></script>
+  <script src="script.js?v=dayui3"></script>
 </body>
 </html>

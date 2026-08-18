@@ -890,63 +890,7 @@ function selectTrack(track) {
 }
 
 function renderProgressBox() {
-  const box = $("#progress-box");
-  const rail = $("#day-rail");
-  const preview = $("#day-preview");
-  if (!box || !rail || !preview) return;
-
-  if (!state.track) {
-    box.hidden = true;
-    return;
-  }
-
-  box.hidden = false;
-  rail.innerHTML = "";
-  preview.innerHTML = "";
-
-  state.days.forEach((d) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "day-chip";
-    chip.setAttribute("role", "listitem");
-    if (d.status === "done") chip.classList.add("done");
-    if (d.n === state.currentDay && d.status !== "done") chip.classList.add("active");
-    if (d.rest) chip.classList.add("rest");
-
-    const label =
-      d.rest ? "Rest" : d.status === "done" ? "Done" : d.n === state.currentDay ? "Today" : "Day";
-    chip.innerHTML = `<strong>${d.n}</strong>${label}`;
-
-    if (d.status !== "locked") {
-      chip.addEventListener("click", () => openDay(d.n));
-    } else {
-      chip.disabled = true;
-    }
-    rail.appendChild(chip);
-  });
-
-  const today = state.days.find((d) => d.n === state.currentDay);
-  if (!today) return;
-
-  const count = dayItemCount(today);
-  const done = dayDoneCount(today);
-  const card = document.createElement("button");
-  card.type = "button";
-  card.className = "day-card";
-  if (today.status === "active") card.classList.add("active");
-
-  let sub = `${count} exercises`;
-  if (today.status === "done") sub = "Finished";
-  else if (done > 0) sub = `${Math.round((done / Math.max(count, 1)) * 100)}% done`;
-
-  const right =
-    today.status === "done"
-      ? `<span class="check">✓</span>`
-      : `<span class="cta">${done > 0 ? "CONTINUE" : "START"}</span>`;
-
-  card.innerHTML = `<span><strong>Day ${today.n}</strong><small>${sub}</small></span>${right}`;
-  card.addEventListener("click", () => openDay(today.n));
-  preview.appendChild(card);
+  /* Home uses hero card only — day rail lives on plan screen */
 }
 
 function renderTrackExtras() {
@@ -1127,12 +1071,6 @@ function refreshHome() {
   if (profilePlan) profilePlan.textContent = meta.planTitle;
   const profileAvatar = $("#profile-avatar");
   if (profileAvatar) profileAvatar.textContent = meta.art;
-  const progressSub = $("#progress-sub");
-  if (progressSub) {
-    const left = Math.max(0, 30 - sessionsDone);
-    progressSub.textContent = left === 0 ? "Arc complete" : `${left} days left in your arc`;
-  }
-  renderProgressBox();
   renderTrackExtras();
 }
 
@@ -1609,19 +1547,13 @@ function bind() {
     navigate("plan");
   });
 
-  $("#btn-start-today")?.addEventListener("click", (e) => {
-    e.stopPropagation();
+  $("#btn-start-today")?.addEventListener("click", () => {
     const day = state.days.find((d) => d.n === state.currentDay);
     if (day && day.status !== "locked") openDay(day.n);
     else {
       renderDayList();
       navigate("plan");
     }
-  });
-
-  $("#btn-see-all-days")?.addEventListener("click", () => {
-    renderDayList();
-    navigate("plan");
   });
 
   $$("[data-back]").forEach((b) => b.addEventListener("click", goBack));

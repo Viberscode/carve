@@ -230,30 +230,35 @@ button {
 }
 
 .landing-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: var(--grad);
+  color: var(--white);
   display: grid;
   place-items: center;
-  font-weight: 900;
-  font-size: 16px;
-  letter-spacing: 0;
   flex-shrink: 0;
+  box-shadow: 0 6px 18px #1e3fe055;
+}
+
+.landing-mark svg {
+  display: block;
 }
 
 .landing-foot-title {
   font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 .landing-foot-sub {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  color: #ffffff99;
-  margin-top: 2px;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: #ffffffa8;
+  margin-top: 3px;
 }
 
 .brand-btn {
@@ -412,23 +417,20 @@ button {
   background: var(--grad);
   color: var(--white);
   overflow: hidden;
-  margin-bottom: 28px;
+  margin-bottom: 8px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   transition: transform 0.15s ease;
 }
 
-.hero-open {
-  display: block;
-  width: 100%;
-  color: inherit;
-  text-align: left;
-  flex: 1;
+.hero-card:active {
+  transform: scale(0.985);
 }
 
-.hero-open:active {
-  opacity: 0.92;
+.hero-plan-link {
+  text-align: center;
+  margin: 0 0 24px;
 }
 
 .hero-dots {
