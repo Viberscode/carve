@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#1E3FE0" />
+  <meta name="description" content="CARVE — face & voice training. Tone muscles, posture, and vocal habits — never bone structure." />
+  <title>CARVE APP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=dayui1" />
+</head>
+<body>
+  <div class="device">
+    <div id="app" class="app tabs-hidden">
+
+      <!-- ========== LANDING: choose track ========== -->
+      <section id="view-landing" class="view view-active landing" aria-label="Choose your path">
+        <div class="landing-bg" aria-hidden="true"></div>
+        <div class="landing-veil" aria-hidden="true"></div>
+        <div class="landing-inner">
+          <p class="landing-kicker">Begin your practice</p>
+          <h1 class="landing-brand">CARVE</h1>
+          <p class="landing-tag">Tone the face. Shape the voice.<br />Never the bone.</p>
+
+          <div class="track-choices" role="group" aria-label="Training path">
+            <button type="button" class="track-card" data-track="face">
+              <span class="track-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="28" height="28" fill="none">
+                  <circle cx="24" cy="22" r="12" stroke="currentColor" stroke-width="2"/>
+                  <path d="M14 38c2.5-6 7-9 10-9s7.5 3 10 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M18 20h2M28 20h2M20 27c1.2 1.4 2.8 2 4 2s2.8-.6 4-2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="track-copy">
+                <span class="track-name">Face Form</span>
+                <span class="track-desc">Jawline tone, eyes, posture &amp; expression — soft tissue and habits only</span>
+              </span>
+              <span class="track-arrow" aria-hidden="true">→</span>
+            </button>
+
+            <button type="button" class="track-card" data-track="voice">
+              <span class="track-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="28" height="28" fill="none">
+                  <rect x="18" y="8" width="12" height="20" rx="6" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 22a12 12 0 0 0 24 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M24 34v6M18 40h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="track-copy">
+                <span class="track-name">Voice Grain</span>
+                <span class="track-desc">Breath, resonance &amp; speaking presence — habitual pitch, not larynx size</span>
+              </span>
+              <span class="track-arrow" aria-hidden="true">→</span>
+            </button>
+
+            <button type="button" class="track-card track-card-both" data-track="both">
+              <span class="track-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="28" height="28" fill="none">
+                  <circle cx="18" cy="22" r="9" stroke="currentColor" stroke-width="2"/>
+                  <rect x="28" y="12" width="9" height="15" rx="4.5" stroke="currentColor" stroke-width="2"/>
+                  <path d="M12 36c1.5-4 4.5-6 6-6M33 32v4M29 36h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="track-copy">
+                <span class="track-name">Full Presence</span>
+                <span class="track-desc">Face + voice together — look sharper, sound fuller, one daily practice</span>
+              </span>
+              <span class="track-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+
+          <footer class="landing-foot">
+            <div class="landing-mark" aria-hidden="true">C</div>
+            <div>
+              <p class="landing-foot-title">PRESENCE OVER PRESSURE</p>
+              <p class="landing-foot-sub">TRAIN THE LOOK. TRAIN THE SOUND.</p>
+            </div>
+          </footer>
+        </div>
+      </section>
+
+      <!-- ========== TRAINING HOME ========== -->
+      <section id="view-home" class="view" data-tab="training" hidden>
+        <header class="topbar">
+          <button type="button" class="brand-btn" id="btn-change-track" title="Change path">
+            <h1 class="brand">CARVE</h1>
+          </button>
+          <div class="streak" id="streak-badge" title="Streak">
+            <span class="flame" aria-hidden="true">🔥</span>
+            <span id="streak-count">0</span>
+          </div>
+        </header>
+
+        <div class="scroll">
+          <div class="hero-card">
+            <button type="button" class="hero-open" id="btn-open-plan" aria-label="Open 30-day plan">
+              <div class="hero-dots" aria-hidden="true"></div>
+              <div class="hero-copy">
+                <p class="hero-sub" id="hero-sub">Jawline Focus</p>
+                <p class="hero-diff"><span>⚡</span> Beginner</p>
+                <p class="hero-day" id="hero-day">Day 1</p>
+                <p class="hero-progress-label"><span id="days-done">0</span>/30 Days</p>
+                <div class="bar bar-light"><div class="bar-fill" id="hero-bar" style="width:0%"></div></div>
+              </div>
+              <div class="hero-art" id="hero-art" aria-hidden="true">🪞</div>
+            </button>
+            <button type="button" class="pill pill-white hero-cta" id="btn-start-today">
+              <span id="hero-start-label">START</span>
+            </button>
+          </div>
+
+          <!-- Day progress (all tracks) -->
+          <div class="progress-box" id="progress-box">
+            <div class="progress-box-head">
+              <div>
+                <h2 class="section-title tight" id="progress-title">Your days</h2>
+                <p class="muted" id="progress-sub">30-day arc</p>
+              </div>
+              <button type="button" class="link-btn" id="btn-see-all-days">See all</button>
+            </div>
+            <div class="day-rail" id="day-rail" role="list"></div>
+            <div class="day-preview" id="day-preview"></div>
+          </div>
+
+          <!-- Track-specific content below progress -->
+          <div id="track-extras"></div>
+
+          <p class="disclaimer" id="home-disclaimer">
+            CARVE trains muscles, posture, habits, skin tone, and vocal technique — never bone structure.
+          </p>
+        </div>
+      </section>
+
+      <!-- ========== REPORTS ========== -->
+      <section id="view-reports" class="view" data-tab="reports" hidden>
+        <header class="topbar">
+          <h1 class="page-title">Reports</h1>
+        </header>
+        <div class="scroll">
+          <div class="card">
+            <h2 class="card-title">🔥 <span id="reports-streak">0</span>-day streak</h2>
+            <p class="muted" id="reports-sessions">No sessions yet · start Day 1</p>
+            <div class="cal" id="streak-cal"></div>
+          </div>
+          <div class="card">
+            <h2 class="card-title">Voice pitch trend</h2>
+            <p class="muted">Avg speaking pitch (Hz) — habitual range only</p>
+            <div class="chart" id="pitch-chart"></div>
+          </div>
+          <div class="card">
+            <h2 class="card-title">Training volume</h2>
+            <p class="stat-big" id="minutes-trained">0 min</p>
+            <p class="muted">Total guided minutes</p>
+            <div class="bar"><div class="bar-fill" id="volume-bar" style="width:0%"></div></div>
+          </div>
+          <p class="disclaimer">Voice drills change habitual pitch & resonance with practice — not larynx size.</p>
+        </div>
+      </section>
+
+      <!-- ========== ME ========== -->
+      <section id="view-me" class="view" data-tab="me" hidden>
+        <header class="topbar">
+          <h1 class="page-title">Me</h1>
+        </header>
+        <div class="scroll">
+          <div class="profile">
+            <div class="avatar">🪞</div>
+            <div>
+              <p class="profile-name">CARVE Athlete</p>
+              <p class="muted">Sculpted Jaw in 30 Days</p>
+            </div>
+          </div>
+          <h2 class="label-blue">Preferences</h2>
+          <label class="setting"><span>Front-camera mirror mode</span><input type="checkbox" checked /></label>
+          <label class="setting"><span>Coach voice</span><input type="checkbox" checked /></label>
+          <label class="setting"><span>Background music</span><input type="checkbox" /></label>
+          <label class="setting"><span>Daily reminders</span><input type="checkbox" checked /></label>
+          <div class="privacy">
+            <strong>Privacy</strong>
+            <p>Photos and voice recordings stay on this device. CARVE never claims to change bone structure.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PLAN DETAIL ========== -->
+      <section id="view-plan" class="view view-stack" hidden>
+        <div class="stack-hero">
+          <button type="button" class="icon-btn light" data-back aria-label="Back">‹</button>
+          <p class="hero-diff light"><span>⚡</span> Beginner</p>
+          <h1 class="stack-title" id="plan-title">Sculpted Jaw in 30 Days</h1>
+          <p class="stack-tags" id="plan-tags">Jawline · Puffiness · Symmetry</p>
+          <span class="stack-art" id="plan-art" aria-hidden="true">🪞</span>
+        </div>
+        <div class="stack-sheet">
+          <p class="days-left"><span id="days-left">30</span> days left</p>
+          <div class="bar"><div class="bar-fill" id="plan-bar" style="width:0%"></div></div>
+          <div class="day-list" id="day-list"></div>
+        </div>
+      </section>
+
+      <!-- ========== DAY DETAIL ========== -->
+      <section id="view-day" class="view view-stack" hidden>
+        <div class="stack-hero compact day-hero">
+          <div class="row-between">
+            <button type="button" class="icon-btn light" data-back aria-label="Back">‹</button>
+            <button type="button" class="icon-btn ghost" aria-label="More">⋮</button>
+          </div>
+          <h1 class="stack-title" id="day-title">Day 1</h1>
+          <p class="hero-diff light" id="day-diff"><span>⚡</span><span>⚡</span> Beginner</p>
+          <p class="day-hero-lead">Small wins stack</p>
+          <span class="stack-art" id="day-art" aria-hidden="true">🪞</span>
+        </div>
+        <div class="stack-sheet day-sheet">
+          <div class="day-scroll">
+            <p class="day-kicker">Keep it gentle — tone, posture, and habit.</p>
+            <div class="stats stats-split">
+              <div><strong id="stat-ex">11</strong><span>Exercises</span></div>
+              <div class="stats-divider" aria-hidden="true"></div>
+              <div><strong id="stat-time">5 min</strong><span>Time</span></div>
+              <div class="stats-divider" aria-hidden="true"></div>
+              <div><strong id="stat-kcal">—</strong><span>Effort</span></div>
+            </div>
+            <div class="day-progress-wrap">
+              <div class="bar"><div class="bar-fill" id="day-bar" style="width:0%"></div></div>
+            </div>
+            <button type="button" class="settings-row">
+              <span>
+                <strong>Practice settings</strong>
+                <small>Music, coach cues, and timer</small>
+              </span>
+              <span class="chev">›</span>
+            </button>
+            <div class="row-between exercise-head">
+              <h2>Today’s sequence</h2>
+              <span class="muted" id="ex-progress">0/11</span>
+            </div>
+            <div id="exercise-list" class="exercise-list"></div>
+          </div>
+          <div class="day-footer">
+            <button type="button" class="adjust-btn" id="btn-adjust" aria-label="Adjust sequence">
+              <span aria-hidden="true">📋</span> Adjust
+            </button>
+            <button type="button" class="pill pill-gradient" id="btn-start-session">
+              <span id="start-label">START</span>
+              <small id="start-sub">Easy pace · a few minutes</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PLAYER ========== -->
+      <section id="view-player" class="view" hidden>
+        <div class="player">
+          <div class="seg-bar" id="seg-bar"></div>
+          <div class="player-top">
+            <button type="button" class="icon-btn" data-back aria-label="Back">‹</button>
+            <div class="player-tools">
+              <button type="button" class="icon-btn sm" aria-label="Settings">⚙</button>
+              <button type="button" class="icon-btn sm" aria-label="Camera">📷</button>
+              <button type="button" class="icon-btn sm" aria-label="Music">♪</button>
+            </div>
+          </div>
+          <div class="player-stage">
+            <div class="coach-player stage" id="player-coach" data-coach-set="jaw_release"></div>
+            <span class="countdown" id="countdown" hidden>3</span>
+          </div>
+          <div id="player-ready" class="player-ready">
+            <p class="ready-label">READY TO GO</p>
+            <div class="name-row">
+              <h2 id="ready-name">JAW RELEASE</h2>
+              <button type="button" class="help" id="btn-detail-ready" aria-label="Details">?</button>
+            </div>
+            <button type="button" class="pill pill-muted" id="btn-skip">Skip</button>
+          </div>
+          <div id="player-active" class="player-active" hidden>
+            <div class="active-row">
+              <div>
+                <p class="timer" id="timer">00:20</p>
+                <div class="name-row left">
+                  <h2 id="active-name">JAW RELEASE</h2>
+                  <button type="button" class="help" id="btn-detail-active" aria-label="Details">?</button>
+                </div>
+              </div>
+              <div class="feedback">
+                <button type="button" class="icon-btn sm" aria-label="Dislike">👎</button>
+                <button type="button" class="icon-btn sm" aria-label="Like">👍</button>
+              </div>
+            </div>
+            <div class="controls">
+              <button type="button" class="icon-btn" id="btn-prev" aria-label="Previous">⏮</button>
+              <button type="button" class="pause-pill" id="btn-pause">
+                <span class="pause-progress" id="pause-progress"></span>
+                <span id="pause-icon">⏸</span>
+              </button>
+              <button type="button" class="icon-btn" id="btn-next" aria-label="Next">⏭</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom tabs (home-level only) -->
+      <nav class="tabbar" id="tabbar" aria-label="Main">
+        <button type="button" class="tab active" data-tab="training">
+          <span class="tab-icon">▦</span>
+          <span>Training</span>
+        </button>
+        <button type="button" class="tab" data-tab="reports">
+          <span class="tab-icon">▮</span>
+          <span>Reports</span>
+        </button>
+        <button type="button" class="tab" data-tab="me">
+          <span class="tab-icon">☺</span>
+          <span>Me</span>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Exercise detail modal -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="sheet-handle"></div>
+      <header class="sheet-head">
+        <h2 id="modal-title">JAW RELEASE</h2>
+        <button type="button" class="replace-btn" aria-label="Replace">
+          <span>↻</span>
+          Replace
+        </button>
+      </header>
+      <div class="sheet-body">
+        <div class="media" id="modal-media">
+          <div class="coach-player card" id="modal-coach" data-coach-set="jaw_release"></div>
+          <p class="muted" id="modal-media-hint">Copy this person — looping demo</p>
+        </div>
+        <div class="tabs-pill" role="tablist">
+          <button type="button" class="tab-pill active" data-mtab="animation">Animation</button>
+          <button type="button" class="tab-pill" data-mtab="muscle">Muscle</button>
+          <button type="button" class="tab-pill" data-mtab="howto">How to do</button>
+        </div>
+        <div id="modal-content"></div>
+      </div>
+      <footer class="sheet-foot">
+        <div class="pager">
+          <button type="button" class="icon-btn blue" id="modal-prev">‹</button>
+          <span id="modal-pager">1/7</span>
+          <button type="button" class="icon-btn blue" id="modal-next">›</button>
+        </div>
+        <button type="button" class="pill pill-gradient" data-close-modal>CLOSE</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="data.js?v=coach8"></script>
+  <script src="script.js?v=dayui1"></script>
+</body>
+</html>
