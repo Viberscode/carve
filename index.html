@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=dayui5" />
+  <link rel="stylesheet" href="styles.css?v=dayui7" />
 </head>
 <body>
   <div class="device">
@@ -221,13 +221,6 @@
             <div class="day-progress-wrap">
               <div class="bar"><div class="bar-fill" id="day-bar" style="width:0%"></div></div>
             </div>
-            <button type="button" class="settings-row" id="btn-practice-settings">
-              <span>
-                <strong>Practice settings</strong>
-                <small>Music, coach cues, and timer</small>
-              </span>
-              <span class="chev">›</span>
-            </button>
             <div class="row-between exercise-head">
               <h2>Today’s sequence</h2>
               <span class="muted" id="ex-progress">0/11</span>
@@ -297,15 +290,34 @@
       <!-- Bottom tabs (home-level only) -->
       <nav class="tabbar" id="tabbar" aria-label="Main">
         <button type="button" class="tab active" data-tab="training">
-          <span class="tab-icon">▦</span>
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/>
+              <rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>
+            </svg>
+          </span>
           <span>Training</span>
         </button>
         <button type="button" class="tab" data-tab="reports">
-          <span class="tab-icon">▮</span>
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M4.5 19.5V12.5"/>
+              <path d="M10 19.5V7.5"/>
+              <path d="M15.5 19.5V10.5"/>
+              <path d="M21 19.5V4.5"/>
+            </svg>
+          </span>
           <span>Reports</span>
         </button>
         <button type="button" class="tab" data-tab="me">
-          <span class="tab-icon">☺</span>
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="3.2"/>
+              <path d="M5.5 19c1.2-3.2 3.5-4.8 6.5-4.8S16.8 15.8 18 19" stroke-linecap="round"/>
+            </svg>
+          </span>
           <span>Me</span>
         </button>
       </nav>
@@ -350,6 +362,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=coach8"></script>
-  <script src="script.js?v=dayui3"></script>
+  <script src="script.js?v=dayui8"></script>
 </body>
 </html>

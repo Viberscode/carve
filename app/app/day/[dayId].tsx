@@ -99,14 +99,6 @@ export default function DayDetailScreen() {
             <ProgressBar progress={exercises.length ? doneCount / exercises.length : 0} height={5} />
           </View>
 
-          <Pressable style={styles.settingsRow}>
-            <View>
-              <Text style={styles.settingsTitle}>Practice settings</Text>
-              <Text style={styles.settingsSub}>Music, coach cues, and timer</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-          </Pressable>
-
           <View style={styles.exerciseHeader}>
             <Text style={styles.exerciseTitle}>Today’s sequence</Text>
             <Text style={styles.exerciseCount}>
@@ -233,18 +225,6 @@ const styles = StyleSheet.create({
   statValue: { fontWeight: '800', fontSize: 16, color: colors.black },
   statLabel: { ...typography.caption, color: colors.textSecondary, marginTop: 4 },
   progressWrap: { marginBottom: 16 },
-  settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    marginBottom: 16,
-  },
-  settingsTitle: { fontWeight: '700', fontSize: 15, color: '#2A2A2E' },
-  settingsSub: { ...typography.caption, color: colors.textSecondary, marginTop: 2 },
   exerciseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',

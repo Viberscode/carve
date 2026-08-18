@@ -802,13 +802,6 @@ function openSettingsTab() {
   showView("me");
 }
 
-function highlightPracticeSettings() {
-  const row = $("#btn-practice-settings");
-  if (!row) return;
-  row.classList.add("highlight");
-  row.scrollIntoView({ behavior: "smooth", block: "center" });
-  setTimeout(() => row.classList.remove("highlight"), 1400);
-}
 
 function formatMetric(ex) {
   if (ex.duration != null) {
@@ -1560,10 +1553,9 @@ function bind() {
 
   $("#btn-start-session").addEventListener("click", startSession);
   $("#btn-adjust")?.addEventListener("click", () => {
-    highlightPracticeSettings();
-    showToast("Adjust music, coach, and timer in practice settings.");
+    openSettingsTab();
+    showToast("Music, coach, and timer live in Me → Preferences.");
   });
-  $("#btn-practice-settings")?.addEventListener("click", openSettingsTab);
   $("#btn-day-more")?.addEventListener("click", () => {
     showToast("More options coming soon.");
   });
@@ -1630,15 +1622,10 @@ function bind() {
 function init() {
   bind();
   preloadCoachFrames();
-  if (loadState()) {
-    refreshHome();
-    renderDayList();
-    applySettingsUi();
-    state.stack = ["home"];
-    showView("home");
-  } else {
-    showView("landing");
-  }
+  loadState();
+  applySettingsUi();
+  state.stack = ["landing"];
+  showView("landing");
 }
 
 init();
