@@ -896,31 +896,26 @@ function dateKey(d = new Date()) {
 function habitCatalog(track) {
   if (track === "voice") {
     return [
-      { id: "nasal", icon: "👃", title: "Nasal breathing only", sub: "Lips sealed, mouth closed", metric: "all day" },
-      { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Warm sips for easy voice", metric: "2 L" },
-      { id: "posture", icon: "🧍", title: "Tall posture", sub: "Open chest, soft neck", metric: "3 x" },
-      { id: "hum", icon: "🎵", title: "Easy hums", sub: "Feel buzz on lips & face", metric: "5 min" },
-      { id: "soft", icon: "🗣️", title: "Soft onsets", sub: "No hard glottal attacks", metric: "all day" },
-      { id: "rest", icon: "🌙", title: "Voice rest window", sub: "Quiet hour before sleep", metric: "1 h" },
+      { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Warm sips for easy voice", metric: "2 L", tint: "aqua" },
+      { id: "posture", icon: "🌿", title: "Tall posture", sub: "Open chest, soft neck", metric: "3 x", tint: "mint" },
+      { id: "hum", icon: "🎵", title: "Easy hums", sub: "Feel buzz on lips & face", metric: "5 min", tint: "lilac" },
+      { id: "soft", icon: "🗣️", title: "Soft onsets", sub: "No hard glottal attacks", metric: "all day", tint: "sky" },
+      { id: "rest", icon: "🌙", title: "Voice rest window", sub: "Quiet hour before sleep", metric: "1 h", tint: "sand" },
     ];
   }
   if (track === "both") {
     return [
-      { id: "tongue", icon: "👅", title: "Tongue on palate", sub: "Mewing throughout the day", metric: "4 h" },
-      { id: "nasal", icon: "👃", title: "Nasal breathing only", sub: "Lips sealed, mouth closed", metric: "all day" },
-      { id: "chew", icon: "🍪", title: "Balanced chewing", sub: "Both sides, mastic gum", metric: "15 min" },
-      { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Soft tissue + easy voice", metric: "2.5 L" },
-      { id: "posture", icon: "🧍", title: "Posture resets", sub: "Chin tucks every few hours", metric: "3 x" },
-      { id: "hum", icon: "🎵", title: "Resonance check", sub: "One easy hum after speaking", metric: "2 x" },
+      { id: "tongue", icon: "🧘", title: "Tongue on palate", sub: "Gentle mewing through the day", metric: "4 h", tint: "mint" },
+      { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Soft tissue + easy voice", metric: "2.5 L", tint: "aqua" },
+      { id: "posture", icon: "🌿", title: "Posture resets", sub: "Chin tucks every few hours", metric: "3 x", tint: "sky" },
+      { id: "hum", icon: "🎵", title: "Resonance check", sub: "One easy hum after speaking", metric: "2 x", tint: "lilac" },
     ];
   }
   return [
-    { id: "tongue", icon: "👅", title: "Tongue on palate", sub: "Mewing throughout the day", metric: "4 h" },
-    { id: "chew", icon: "🍪", title: "Balanced chewing", sub: "Both sides, mastic gum", metric: "15 min" },
-    { id: "nasal", icon: "👃", title: "Nasal breathing only", sub: "Lips sealed, mouth closed", metric: "all day" },
-    { id: "posture", icon: "🧍", title: "Posture resets", sub: "Chin tucks every few hours", metric: "3 x" },
-    { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Less bloat, sharper lines", metric: "2.5 L" },
-    { id: "sleep", icon: "😴", title: "Back sleeping", sub: "No face-down compression", metric: "7 h" },
+    { id: "tongue", icon: "🧘", title: "Tongue on palate", sub: "Gentle mewing through the day", metric: "4 h", tint: "mint" },
+    { id: "posture", icon: "🌿", title: "Posture resets", sub: "Chin tucks every few hours", metric: "3 x", tint: "sky" },
+    { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Less bloat, sharper lines", metric: "2.5 L", tint: "aqua" },
+    { id: "sleep", icon: "😴", title: "Back sleeping", sub: "No face-down compression", metric: "7 h", tint: "lilac" },
   ];
 }
 
@@ -1001,9 +996,9 @@ function focusInsight(track) {
 }
 
 function habitsLead(track) {
-  if (track === "voice") return "These drive 80% of voice presence. Tap to check off.";
-  if (track === "both") return "Face + voice habits compound. Tap to check off.";
-  return "These drive 80% of jawline results. Tap to check off.";
+  if (track === "voice") return "Small daily cues that keep your voice easy and clear.";
+  if (track === "both") return "Gentle face + voice cues. Tap to check off.";
+  return "Gentle daily cues for tone, posture, and recovery.";
 }
 
 function renderTrackExtras() {
@@ -1052,30 +1047,38 @@ function renderTrackExtras() {
       </section>
 
       <section class="home-panel habits-panel" aria-label="Daily habits">
-        <div class="habits-head">
-          <div class="habits-copy">
-            <h2 class="panel-title">Daily habits</h2>
-            <p class="panel-sub">${habitsLead(track)}</p>
+        <div class="habits-shell">
+          <div class="habits-head">
+            <div class="habits-copy">
+              <p class="habits-kicker">Wellness · today</p>
+              <h2 class="panel-title">Daily habits</h2>
+              <p class="panel-sub">${habitsLead(track)}</p>
+            </div>
+            <div class="habits-ring" style="--pct:${progressPct}" aria-label="${doneCount} of ${habits.length} complete">
+              <span class="habits-ring-value">${doneCount}<small>/${habits.length}</small></span>
+            </div>
           </div>
-          <span class="habits-count">${doneCount}/${habits.length}</span>
-        </div>
-        <div class="habits-progress" aria-hidden="true">
-          <div class="habits-progress-fill" style="width:${progressPct}%"></div>
-        </div>
-        <div class="habits-list">
-          ${habits
-            .map((h) => {
-              const on = Boolean(checks[h.id]);
-              return `<button type="button" class="habit-card${on ? " on" : ""}" data-habit-id="${h.id}" aria-pressed="${on}">
-                <span class="habit-icon" aria-hidden="true">${on ? "✓" : h.icon}</span>
-                <span class="habit-text">
-                  <strong>${h.title}</strong>
-                  <span>${h.sub}</span>
-                </span>
-                <span class="habit-metric">${h.metric}</span>
-              </button>`;
-            })
-            .join("")}
+          <div class="habits-progress" aria-hidden="true">
+            <div class="habits-progress-fill" style="width:${progressPct}%"></div>
+          </div>
+          <div class="habits-list">
+            ${habits
+              .map((h) => {
+                const on = Boolean(checks[h.id]);
+                return `<button type="button" class="habit-card tint-${h.tint}${on ? " on" : ""}" data-habit-id="${h.id}" aria-pressed="${on}">
+                  <span class="habit-icon" aria-hidden="true">${h.icon}</span>
+                  <span class="habit-text">
+                    <strong>${h.title}</strong>
+                    <span>${h.sub}</span>
+                  </span>
+                  <span class="habit-side">
+                    <span class="habit-metric">${h.metric}</span>
+                    <span class="habit-toggle" aria-hidden="true">${on ? "✓" : ""}</span>
+                  </span>
+                </button>`;
+              })
+              .join("")}
+          </div>
         </div>
       </section>
 
