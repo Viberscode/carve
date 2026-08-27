@@ -1049,6 +1049,91 @@ button {
   gap: 4px;
 }
 
+.care-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.care-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+}
+
+.care-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--blue-soft);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.care-text {
+  min-width: 0;
+}
+
+.care-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.care-text p {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.photo-check {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #eef1ff 0%, #f7f8ff 60%, #ffffff 100%);
+  border: 1.5px solid #d7defe;
+}
+
+.photo-check-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.photo-check-copy strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.photo-check-copy p {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.photo-check-btn {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+  padding: 8px 4px;
+}
+
 .drills-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
