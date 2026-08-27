@@ -1,21 +1,78 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useCallback, useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PillButton } from '@/components/ui/PillButton';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { colors, radii, typography } from '@/constants/theme';
-import { useCarveStore } from '@/store/useCarveStore';
+import {
+  getLastNDays,
+  getSessions,
+  getStreak,
+  getTotalMinutes,
+  hydrateSessions,
+  saveSession,
+  type DayActivity,
+} from '@/lib/sessions';
 
 const DUMMY_PITCH = [148, 145, 142, 140, 138, 136, 135];
 
+type ReportStats = {
+  streak: number;
+  totalMinutes: number;
+  sessionsCount: number;
+  days: DayActivity[];
+};
+
+function readStats(): ReportStats {
+  const sessions = getSessions();
+  return {
+    streak: getStreak(),
+    totalMinutes: getTotalMinutes(),
+    sessionsCount: sessions.length,
+    days: getLastNDays(14),
+  };
+}
+
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
-  const streak = useCarveStore((s) => s.streak);
-  const currentDay = useCarveStore((s) => s.currentDayNumber);
-  const sessionsDone = Math.max(0, currentDay - 1);
-  const isNewUser = streak === 0 && sessionsDone === 0;
+  const [stats, setStats] = useState<ReportStats>({
+    streak: 0,
+    totalMinutes: 0,
+    sessionsCount: 0,
+    days: getLastNDays(14),
+  });
+  const [ready, setReady] = useState(false);
+
+  const refresh = useCallback(() => {
+    setStats(readStats());
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await hydrateSessions();
+      if (!cancelled) {
+        refresh();
+        setReady(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [refresh]);
+
+  const handleCompleteSession = () => {
+    saveSession(10);
+    refresh();
+  };
+
+  const { streak, totalMinutes, sessionsCount, days } = stats;
+  const isNewUser = streak === 0 && sessionsCount === 0;
   const maxPitch = Math.max(...DUMMY_PITCH);
   const minPitch = Math.min(...DUMMY_PITCH);
+  const uniqueDays = days.filter((d) => d.active).length;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
@@ -25,20 +82,20 @@ export default function ReportsScreen() {
         <View style={styles.card}>
           <View style={styles.row}>
             <Ionicons name="flame" size={22} color={colors.streak} />
-            <Text style={styles.cardTitle}>  {streak}-day streak</Text>
+            <Text style={styles.cardTitle}>  {ready ? streak : 0}-day streak</Text>
           </View>
           <Text style={styles.meta}>
-            {sessionsDone === 0
+            {!ready || sessionsCount === 0
               ? 'No sessions yet · start Day 1'
-              : `${sessionsDone} sessions completed · keep going`}
+              : `${sessionsCount} sessions completed · keep going`}
           </Text>
           <View style={styles.calendar}>
-            {Array.from({ length: 14 }).map((_, i) => {
+            {days.map((day, i) => {
               const isToday = i === 13;
-              const done = streak > 0 && i >= 13 - streak && i < 13;
+              const done = day.active && !isToday;
               return (
                 <View
-                  key={i}
+                  key={day.date}
                   style={[styles.dayDot, done && styles.dayDotDone, isToday && styles.dayDotToday]}
                 />
               );
@@ -86,12 +143,19 @@ export default function ReportsScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Training volume</Text>
-          <Text style={styles.statBig}>{(currentDay - 1) * 9} min</Text>
+          <Text style={styles.statBig}>{ready ? totalMinutes : 0} min</Text>
           <Text style={styles.meta}>Total guided minutes</Text>
           <View style={styles.volumeBar}>
-            <ProgressBar progress={(currentDay - 1) / 30} height={6} />
+            <ProgressBar progress={Math.min(1, uniqueDays / 30)} height={6} />
           </View>
         </View>
+
+        <PillButton
+          title="Complete Session (10 min)"
+          onPress={handleCompleteSession}
+          variant="muted"
+          style={styles.testBtn}
+        />
       </ScrollView>
     </View>
   );
@@ -153,4 +217,5 @@ const styles = StyleSheet.create({
   barLabel: { fontSize: 10, color: colors.textSecondary, fontWeight: '600' },
   statBig: { fontSize: 36, fontWeight: '800', color: colors.primary, marginTop: 12, marginBottom: 6, lineHeight: 40 },
   volumeBar: { marginTop: 14 },
+  testBtn: { marginTop: 4 },
 });
