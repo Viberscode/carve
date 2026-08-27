@@ -1171,8 +1171,9 @@ function refreshHome() {
   $("#days-left").textContent = String(30 - sessionsDone);
   $("#minutes-trained").textContent = `${sessionsDone * 9} min`;
   $("#volume-bar").style.width = `${pct}%`;
-  $("#hero-sub").textContent = meta.subtitle;
-  $("#hero-art").textContent = meta.art;
+  $("#hero-art") && ($("#hero-art").textContent = meta.art);
+  const heroSub = $("#hero-sub");
+  if (heroSub) heroSub.textContent = meta.subtitle;
   const heroDiff = $("#hero-diff");
   if (heroDiff) heroDiff.innerHTML = difficultyHtml();
   $("#plan-title").textContent = meta.planTitle;
