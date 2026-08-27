@@ -19,6 +19,7 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
   --font: "Outfit", system-ui, sans-serif;
+  --font-display: "Playfair Display", "Times New Roman", Times, Georgia, serif;
   --grad: linear-gradient(135deg, #2a4de8 0%, #0b1f8f 100%);
 }
 
@@ -1011,10 +1012,10 @@ button {
 }
 
 .habits-shell .panel-title {
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   color: #12261f;
   line-height: 1.05;
 }
@@ -1071,9 +1072,9 @@ button {
 }
 
 .habits-ring-value {
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: 16px;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
   color: #16352a;
   line-height: 1;
 }
@@ -1200,10 +1201,10 @@ button {
 }
 
 .habit-text strong {
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   color: #152820;
   line-height: 1.15;
 }
@@ -1334,10 +1335,10 @@ button {
 }
 
 .care-shell .panel-title {
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
   color: #121a33;
   line-height: 1.05;
 }
@@ -1407,10 +1408,10 @@ button {
 
 .care-text strong {
   display: block;
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   color: #121a33;
   margin-bottom: 4px;
   line-height: 1.15;
@@ -1444,10 +1445,10 @@ button {
 
 .photo-check-copy strong {
   display: block;
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   color: #fff;
   margin-bottom: 3px;
 }
