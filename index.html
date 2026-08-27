@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=week3" />
+  <link rel="stylesheet" href="styles.css?v=reports1" />
 </head>
 <body>
   <div class="device">
@@ -141,28 +141,108 @@
       </section>
 
       <!-- ========== REPORTS ========== -->
-      <section id="view-reports" class="view" data-tab="reports" hidden>
+      <section id="view-reports" class="view reports-view" data-tab="reports" hidden>
         <header class="topbar">
           <h1 class="page-title">Reports</h1>
         </header>
-        <div class="scroll">
-          <div class="card">
-            <h2 class="card-title">🔥 <span id="reports-streak">0</span>-day streak</h2>
-            <p class="muted" id="reports-sessions">No sessions yet · start Day 1</p>
+        <div class="scroll reports-scroll">
+          <div class="reports-overview" id="reports-overview">
+            <div class="reports-stat">
+              <span class="reports-stat-label">Streak</span>
+              <strong id="reports-stat-streak">0</strong>
+              <span class="reports-stat-unit">days</span>
+            </div>
+            <div class="reports-stat">
+              <span class="reports-stat-label">Sessions</span>
+              <strong id="reports-stat-sessions">0</strong>
+              <span class="reports-stat-unit">done</span>
+            </div>
+            <div class="reports-stat">
+              <span class="reports-stat-label">Minutes</span>
+              <strong id="reports-stat-minutes">0</strong>
+              <span class="reports-stat-unit">total</span>
+            </div>
+          </div>
+
+          <div class="card reports-card">
+            <div class="panel-head">
+              <h2 class="card-title">🔥 <span id="reports-streak">0</span>-day streak</h2>
+              <span class="panel-meta" id="reports-sessions">No sessions yet</span>
+            </div>
             <div class="cal" id="streak-cal"></div>
           </div>
-          <div class="card" id="pitch-card">
+
+          <div class="card reports-card" id="reports-week-card">
+            <div class="panel-head">
+              <h2 class="card-title">This week</h2>
+              <span class="panel-meta" id="reports-week-meta">0 of 7 done</span>
+            </div>
+            <div id="reports-week-strip" class="week-strip"></div>
+            <p class="reports-habit-score" id="reports-habit-score">Today’s habits · 0/0</p>
+          </div>
+
+          <div class="card reports-card" id="reports-habits-card">
+            <div class="panel-head">
+              <h2 class="card-title">Habit breakdown</h2>
+              <span class="panel-meta" id="reports-habits-meta">Today</span>
+            </div>
+            <div id="reports-habits-list" class="reports-habits-list"></div>
+          </div>
+
+          <div class="card reports-card" id="reports-plan-card">
+            <div class="panel-head">
+              <h2 class="card-title">Plan progress</h2>
+              <span class="panel-meta" id="reports-plan-meta">Day 1 / 30</span>
+            </div>
+            <div class="reports-plan-row">
+              <div class="reports-plan-ring" id="reports-plan-ring" style="--pct:0">
+                <span id="reports-plan-pct">0%</span>
+              </div>
+              <div class="reports-plan-copy">
+                <strong id="reports-plan-next">Next up · Day 1</strong>
+                <p id="reports-plan-sub">Start your first guided session.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card reports-card" id="pitch-card">
             <h2 class="card-title">Voice pitch trend</h2>
             <p class="muted">Avg speaking pitch (Hz) — habitual range only</p>
             <div class="chart" id="pitch-chart"></div>
           </div>
-          <div class="card">
+
+          <div class="card reports-card">
             <h2 class="card-title">Training volume</h2>
             <p class="stat-big" id="minutes-trained">0 min</p>
             <p class="muted">Total guided minutes</p>
             <div class="bar"><div class="bar-fill" id="volume-bar" style="width:0%"></div></div>
+            <div class="reports-volume-bars" id="reports-volume-bars" aria-label="Last 7 days"></div>
           </div>
-          <p class="disclaimer" id="reports-disclaimer">Voice drills change habitual pitch & resonance with practice — not larynx size.</p>
+
+          <div class="card reports-card" id="reports-photos-card">
+            <div class="panel-head">
+              <h2 class="card-title">Progress photos</h2>
+              <span class="panel-meta">On-device only</span>
+            </div>
+            <p class="muted reports-photos-lead">Same angle, same light. Photos never leave this device.</p>
+            <div class="reports-photos" id="reports-photos"></div>
+            <input type="file" id="reports-photo-input" accept="image/*" hidden />
+          </div>
+
+          <div class="card reports-card reports-insight" id="reports-insight-card">
+            <p class="reports-insight-kicker">Recovery insight</p>
+            <div class="reports-insight-body">
+              <span class="reports-insight-icon" id="reports-insight-icon" aria-hidden="true">💧</span>
+              <div>
+                <strong id="reports-insight-title">Sip water now</strong>
+                <p id="reports-insight-body">Hydration unlocks softer tissue after massage and holds.</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="disclaimer" id="reports-disclaimer">
+            Face Form trains soft tissue, posture, habits, and skin tone — never bone structure.
+          </p>
         </div>
       </section>
 
@@ -465,6 +545,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="script.js?v=hero1"></script>
+  <script src="script.js?v=reports1"></script>
 </body>
 </html>

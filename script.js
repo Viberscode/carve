@@ -1142,7 +1142,11 @@ function bindTrackExtras() {
       return;
     }
     if (e.target.closest("[data-photo-check]")) {
-      showToast("Progress photos stay on-device — open Reports to manage them");
+      state.stack = ["reports"];
+      renderReports();
+      showView("reports");
+      $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "reports"));
+      showToast("Add weekly progress photos in Reports");
     }
   });
 }
@@ -1215,20 +1219,125 @@ function renderMe() {
 
 function renderReports() {
   const meta = trackMeta();
+  const track = state.track || "face";
+  const sessionsDone = Math.max(0, state.currentDay - 1);
+  const totalMinutes = sessionsDone * 9;
+  const habits = habitCatalog(track);
+  const checks = todayHabitMap();
+  const doneHabits = habits.filter((h) => checks[h.id]).length;
+  const week = getWeekDays();
+  const allHabitsDone = doneHabits === habits.length && habits.length > 0;
+  const weekDone = week.filter((d) => d.done).length + (allHabitsDone ? 1 : 0);
+  const planPct = Math.min(100, Math.round((sessionsDone / 30) * 100));
+  const today = state.days.find((d) => d.n === state.currentDay);
+
+  const setText = (id, value) => {
+    const el = $("#" + id);
+    if (el) el.textContent = value;
+  };
+
+  setText("reports-stat-streak", String(state.streak));
+  setText("reports-stat-sessions", String(sessionsDone));
+  setText("reports-stat-minutes", String(totalMinutes));
+  setText("reports-streak", String(state.streak));
+  setText(
+    "reports-sessions",
+    sessionsDone === 0 ? "No sessions yet · start Day 1" : `${sessionsDone} sessions completed`
+  );
+  setText("reports-week-meta", `${weekDone} of 7 done`);
+  setText("reports-habit-score", `Today’s habits · ${doneHabits}/${habits.length}`);
+  setText("reports-habits-meta", `${doneHabits}/${habits.length} today`);
+  setText("reports-plan-meta", `Day ${state.currentDay} / 30`);
+  setText("reports-plan-pct", `${planPct}%`);
+  setText("reports-plan-next", `Next up · Day ${state.currentDay}`);
+  setText(
+    "reports-plan-sub",
+    sessionsDone === 0
+      ? "Start your first guided session."
+      : today?.week
+        ? `Week ${today.week} · keep showing up gently.`
+        : "Keep the streak gentle and consistent."
+  );
+  setText("minutes-trained", `${totalMinutes} min`);
+
+  const planRing = $("#reports-plan-ring");
+  if (planRing) planRing.style.setProperty("--pct", String(planPct));
+
+  const volumeBar = $("#volume-bar");
+  if (volumeBar) volumeBar.style.width = `${planPct}%`;
+
   const cal = $("#streak-cal");
-  cal.innerHTML = "";
-  for (let i = 0; i < 14; i++) {
-    const s = document.createElement("span");
-    const isToday = i === 13;
-    const completed = state.streak > 0 && i >= 13 - state.streak && i < 13;
-    if (completed) s.classList.add("on");
-    if (isToday) s.classList.add("today");
-    cal.appendChild(s);
+  if (cal) {
+    cal.innerHTML = "";
+    for (let i = 0; i < 14; i++) {
+      const s = document.createElement("span");
+      const isToday = i === 13;
+      const completed = state.streak > 0 && i >= 13 - state.streak && i < 13;
+      if (completed) s.classList.add("on");
+      if (isToday) s.classList.add("today");
+      cal.appendChild(s);
+    }
   }
+
+  const weekStrip = $("#reports-week-strip");
+  if (weekStrip) {
+    weekStrip.innerHTML = week
+      .map((d) => {
+        let cls = "week-day";
+        if (d.done) cls += " done";
+        if (d.isToday) cls += " today";
+        if (d.isFuture) cls += " future";
+        const inner = d.done
+          ? `<span class="week-check" aria-hidden="true">✓</span>`
+          : `<span class="week-num">${d.dayNum}</span>`;
+        return `<div class="${cls}" role="listitem" title="${d.label}">
+          <span class="week-label">${d.label}</span>
+          <div class="week-circle">${inner}</div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  const habitsList = $("#reports-habits-list");
+  if (habitsList) {
+    if (!habits.length) {
+      habitsList.innerHTML = `<p class="muted">No habits for this path yet.</p>`;
+    } else {
+      habitsList.innerHTML = habits
+        .map((h) => {
+          const on = Boolean(checks[h.id]);
+          return `<button type="button" class="reports-habit${on ? " on" : ""}" data-report-habit="${h.id}">
+            <span class="reports-habit-icon" aria-hidden="true">${on ? "✓" : h.icon}</span>
+            <span class="reports-habit-text">
+              <strong>${h.title}</strong>
+              <span>${h.sub}</span>
+            </span>
+            <span class="reports-habit-metric">${h.metric}</span>
+          </button>`;
+        })
+        .join("");
+    }
+  }
+
+  const volumeBars = $("#reports-volume-bars");
+  if (volumeBars) {
+    const bars = week.map((d) => {
+      const active = d.done || (d.isToday && doneHabits > 0);
+      const height = active ? 70 + (d.isToday ? 20 : 0) : 18;
+      return `<div class="reports-vbar${active ? " on" : ""}" title="${d.label}">
+        <i style="height:${height}%"></i>
+        <span>${d.label}</span>
+      </div>`;
+    });
+    volumeBars.innerHTML = bars.join("");
+  }
+
+  renderReportPhotos();
+  renderReportInsight(track);
 
   const pitchCard = $("#pitch-card");
   const reportsDisclaimer = $("#reports-disclaimer");
-  const isVoiceTrack = state.track === "voice" || state.track === "both";
+  const isVoiceTrack = track === "voice" || track === "both";
   if (pitchCard) pitchCard.hidden = !isVoiceTrack;
   if (reportsDisclaimer) reportsDisclaimer.textContent = meta.disclaimer;
 
@@ -1236,7 +1345,7 @@ function renderReports() {
   if (!isVoiceTrack || !chart) return;
 
   chart.innerHTML = "";
-  if (state.streak === 0) {
+  if (state.streak === 0 && sessionsDone === 0) {
     chart.classList.add("empty");
     chart.innerHTML = `<p class="muted">Complete a voice session to see your pitch trend.</p>`;
     return;
@@ -1249,6 +1358,96 @@ function renderReports() {
     i.dataset.hz = hz;
     chart.appendChild(i);
   });
+}
+
+const PHOTO_STORAGE_KEY = "carve-report-photos-v1";
+
+function loadReportPhotos() {
+  try {
+    const raw = localStorage.getItem(PHOTO_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveReportPhotos(map) {
+  try {
+    localStorage.setItem(PHOTO_STORAGE_KEY, JSON.stringify(map));
+  } catch (_) {
+    showToast("Could not save photo on this device");
+  }
+}
+
+function renderReportPhotos() {
+  const root = $("#reports-photos");
+  if (!root) return;
+  const photos = loadReportPhotos();
+  const slots = ["Week 1", "Week 2", "Week 3", "Week 4"];
+  root.innerHTML = slots
+    .map((label, i) => {
+      const key = `week${i + 1}`;
+      const src = photos[key];
+      if (src) {
+        return `<button type="button" class="reports-photo has-image" data-photo-slot="${key}" aria-label="${label} photo">
+          <img src="${src}" alt="${label}" />
+          <span>${label}</span>
+        </button>`;
+      }
+      return `<button type="button" class="reports-photo" data-photo-slot="${key}" aria-label="Add ${label} photo">
+        <span class="reports-photo-plus" aria-hidden="true">＋</span>
+        <span>${label}</span>
+      </button>`;
+    })
+    .join("");
+}
+
+function renderReportInsight(track) {
+  const notes = careNotes(track || state.track || "face");
+  if (!notes.length) return;
+  const dayIndex = Math.max(0, (state.currentDay || 1) - 1) % notes.length;
+  const tip = notes[dayIndex];
+  const icon = $("#reports-insight-icon");
+  const title = $("#reports-insight-title");
+  const body = $("#reports-insight-body");
+  if (icon) icon.textContent = tip.icon;
+  if (title) title.textContent = tip.title;
+  if (body) body.textContent = tip.body;
+}
+
+function openReportsPhotoPicker(slot) {
+  const input = $("#reports-photo-input");
+  if (!input) return;
+  input.dataset.slot = slot;
+  input.value = "";
+  input.click();
+}
+
+function handleReportsPhotoSelected(file) {
+  const input = $("#reports-photo-input");
+  const slot = input?.dataset.slot;
+  if (!file || !slot) return;
+  if (!file.type.startsWith("image/")) {
+    showToast("Choose an image file");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = String(reader.result || "");
+    // Keep storage light — skip huge payloads
+    if (result.length > 900000) {
+      showToast("Photo too large — try a smaller image");
+      return;
+    }
+    const photos = loadReportPhotos();
+    photos[slot] = result;
+    saveReportPhotos(photos);
+    renderReportPhotos();
+    showToast("Progress photo saved on this device");
+  };
+  reader.readAsDataURL(file);
 }
 
 function renderDayList() {
@@ -1782,6 +1981,32 @@ function bind() {
   };
   Object.keys(meToasts).forEach((id) => {
     $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
+  });
+
+  const reportsRoot = $("#view-reports");
+  if (reportsRoot && reportsRoot.dataset.bound !== "1") {
+    reportsRoot.dataset.bound = "1";
+    reportsRoot.addEventListener("click", (e) => {
+      const habitBtn = e.target.closest("[data-report-habit]");
+      if (habitBtn) {
+        const id = habitBtn.dataset.reportHabit;
+        const map = todayHabitMap();
+        map[id] = !map[id];
+        saveState();
+        renderReports();
+        renderTrackExtras();
+        return;
+      }
+      const photoBtn = e.target.closest("[data-photo-slot]");
+      if (photoBtn) {
+        openReportsPhotoPicker(photoBtn.dataset.photoSlot);
+      }
+    });
+  }
+
+  $("#reports-photo-input")?.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) handleReportsPhotoSelected(file);
   });
   $("#btn-skip").addEventListener("click", () => {
     clearPlayerTimer();
