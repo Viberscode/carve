@@ -2190,6 +2190,119 @@ button {
   color: #5c6a7a;
 }
 
+.reports-photos-hero {
+  background:
+    radial-gradient(ellipse 80% 60% at 100% 0%, #c9d6ff66, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, #d9ffe966, transparent 50%),
+    linear-gradient(165deg, #ffffff 0%, #f5f8ff 100%);
+  border-color: #cfd8ff;
+  box-shadow: 0 14px 32px #1e3fe014;
+}
+
+.reports-photos-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 4px;
+}
+
+.reports-photos-lg {
+  gap: 12px;
+}
+
+.reports-photos-lg .reports-photo {
+  min-height: 140px;
+  border-radius: 20px;
+}
+
+.reports-photo strong {
+  font-size: 13px;
+  font-weight: 800;
+  color: #334155;
+}
+
+.reports-photo-hint {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.reports-photo-cta {
+  margin-top: 14px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #1e3fe0, #4a6cf0);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 24px #1e3fe044;
+}
+
+.reports-milestones {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reports-milestone {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #f7f9fc;
+  border: 1.5px solid #e8eef5;
+}
+
+.reports-milestone.on {
+  background: linear-gradient(135deg, #eefbf4, #f4f8ff);
+  border-color: #b7e4cb;
+}
+
+.reports-milestone-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.reports-milestone.on .reports-milestone-icon {
+  background: linear-gradient(145deg, #57e0a0, #1fa35a);
+  color: #fff;
+  font-weight: 800;
+}
+
+.reports-milestone-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.reports-milestone-text strong {
+  font-size: 14px;
+  font-weight: 800;
+  color: #152820;
+}
+
+.reports-milestone-text span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .reports-habits-list {
   display: flex;
   flex-direction: column;

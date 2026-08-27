@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=reports1" />
+  <link rel="stylesheet" href="styles.css?v=reports2" />
 </head>
 <body>
   <div class="device">
@@ -172,21 +172,31 @@
             <div class="cal" id="streak-cal"></div>
           </div>
 
-          <div class="card reports-card" id="reports-week-card">
+          <div class="card reports-card reports-photos-hero" id="reports-photos-card">
             <div class="panel-head">
-              <h2 class="card-title">This week</h2>
-              <span class="panel-meta" id="reports-week-meta">0 of 7 done</span>
+              <div>
+                <p class="reports-photos-kicker">Visual progress</p>
+                <h2 class="card-title">Progress photos</h2>
+              </div>
+              <span class="panel-meta">On-device only</span>
             </div>
-            <div id="reports-week-strip" class="week-strip"></div>
-            <p class="reports-habit-score" id="reports-habit-score">Today’s habits · 0/0</p>
+            <p class="muted reports-photos-lead">
+              Capture the same angle and light each week. Photos stay on this device — never uploaded.
+            </p>
+            <div class="reports-photos reports-photos-lg" id="reports-photos"></div>
+            <button type="button" class="reports-photo-cta" id="btn-reports-add-photo">
+              <span aria-hidden="true">📷</span>
+              Add this week’s photo
+            </button>
+            <input type="file" id="reports-photo-input" accept="image/*" hidden />
           </div>
 
-          <div class="card reports-card" id="reports-habits-card">
+          <div class="card reports-card" id="reports-milestones-card">
             <div class="panel-head">
-              <h2 class="card-title">Habit breakdown</h2>
-              <span class="panel-meta" id="reports-habits-meta">Today</span>
+              <h2 class="card-title">Milestones</h2>
+              <span class="panel-meta" id="reports-milestones-meta">0 / 4 unlocked</span>
             </div>
-            <div id="reports-habits-list" class="reports-habits-list"></div>
+            <div class="reports-milestones" id="reports-milestones"></div>
           </div>
 
           <div class="card reports-card" id="reports-plan-card">
@@ -217,16 +227,6 @@
             <p class="muted">Total guided minutes</p>
             <div class="bar"><div class="bar-fill" id="volume-bar" style="width:0%"></div></div>
             <div class="reports-volume-bars" id="reports-volume-bars" aria-label="Last 7 days"></div>
-          </div>
-
-          <div class="card reports-card" id="reports-photos-card">
-            <div class="panel-head">
-              <h2 class="card-title">Progress photos</h2>
-              <span class="panel-meta">On-device only</span>
-            </div>
-            <p class="muted reports-photos-lead">Same angle, same light. Photos never leave this device.</p>
-            <div class="reports-photos" id="reports-photos"></div>
-            <input type="file" id="reports-photo-input" accept="image/*" hidden />
           </div>
 
           <div class="card reports-card reports-insight" id="reports-insight-card">
@@ -545,6 +545,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="script.js?v=reports1"></script>
+  <script src="script.js?v=reports2"></script>
 </body>
 </html>

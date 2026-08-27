@@ -1226,10 +1226,10 @@ function renderReports() {
   const checks = todayHabitMap();
   const doneHabits = habits.filter((h) => checks[h.id]).length;
   const week = getWeekDays();
-  const allHabitsDone = doneHabits === habits.length && habits.length > 0;
-  const weekDone = week.filter((d) => d.done).length + (allHabitsDone ? 1 : 0);
   const planPct = Math.min(100, Math.round((sessionsDone / 30) * 100));
   const today = state.days.find((d) => d.n === state.currentDay);
+  const photos = loadReportPhotos();
+  const photoCount = Object.keys(photos).filter((k) => photos[k]).length;
 
   const setText = (id, value) => {
     const el = $("#" + id);
@@ -1244,9 +1244,6 @@ function renderReports() {
     "reports-sessions",
     sessionsDone === 0 ? "No sessions yet · start Day 1" : `${sessionsDone} sessions completed`
   );
-  setText("reports-week-meta", `${weekDone} of 7 done`);
-  setText("reports-habit-score", `Today’s habits · ${doneHabits}/${habits.length}`);
-  setText("reports-habits-meta", `${doneHabits}/${habits.length} today`);
   setText("reports-plan-meta", `Day ${state.currentDay} / 30`);
   setText("reports-plan-pct", `${planPct}%`);
   setText("reports-plan-next", `Next up · Day ${state.currentDay}`);
@@ -1279,46 +1276,6 @@ function renderReports() {
     }
   }
 
-  const weekStrip = $("#reports-week-strip");
-  if (weekStrip) {
-    weekStrip.innerHTML = week
-      .map((d) => {
-        let cls = "week-day";
-        if (d.done) cls += " done";
-        if (d.isToday) cls += " today";
-        if (d.isFuture) cls += " future";
-        const inner = d.done
-          ? `<span class="week-check" aria-hidden="true">✓</span>`
-          : `<span class="week-num">${d.dayNum}</span>`;
-        return `<div class="${cls}" role="listitem" title="${d.label}">
-          <span class="week-label">${d.label}</span>
-          <div class="week-circle">${inner}</div>
-        </div>`;
-      })
-      .join("");
-  }
-
-  const habitsList = $("#reports-habits-list");
-  if (habitsList) {
-    if (!habits.length) {
-      habitsList.innerHTML = `<p class="muted">No habits for this path yet.</p>`;
-    } else {
-      habitsList.innerHTML = habits
-        .map((h) => {
-          const on = Boolean(checks[h.id]);
-          return `<button type="button" class="reports-habit${on ? " on" : ""}" data-report-habit="${h.id}">
-            <span class="reports-habit-icon" aria-hidden="true">${on ? "✓" : h.icon}</span>
-            <span class="reports-habit-text">
-              <strong>${h.title}</strong>
-              <span>${h.sub}</span>
-            </span>
-            <span class="reports-habit-metric">${h.metric}</span>
-          </button>`;
-        })
-        .join("");
-    }
-  }
-
   const volumeBars = $("#reports-volume-bars");
   if (volumeBars) {
     const bars = week.map((d) => {
@@ -1333,6 +1290,7 @@ function renderReports() {
   }
 
   renderReportPhotos();
+  renderReportMilestones(sessionsDone, state.streak, photoCount, totalMinutes);
   renderReportInsight(track);
 
   const pitchCard = $("#pitch-card");
@@ -1398,9 +1356,60 @@ function renderReportPhotos() {
       }
       return `<button type="button" class="reports-photo" data-photo-slot="${key}" aria-label="Add ${label} photo">
         <span class="reports-photo-plus" aria-hidden="true">＋</span>
-        <span>${label}</span>
+        <strong>${label}</strong>
+        <span class="reports-photo-hint">Tap to add</span>
       </button>`;
     })
+    .join("");
+}
+
+function renderReportMilestones(sessionsDone, streak, photoCount, totalMinutes) {
+  const root = $("#reports-milestones");
+  if (!root) return;
+  const items = [
+    {
+      id: "first",
+      icon: "✦",
+      title: "First session",
+      sub: "Complete Day 1",
+      done: sessionsDone >= 1,
+    },
+    {
+      id: "streak3",
+      icon: "🔥",
+      title: "3-day spark",
+      sub: "Hold a 3-day streak",
+      done: streak >= 3,
+    },
+    {
+      id: "photo",
+      icon: "📷",
+      title: "First progress photo",
+      sub: "Save a weekly check-in shot",
+      done: photoCount >= 1,
+    },
+    {
+      id: "hour",
+      icon: "⏱",
+      title: "1 hour trained",
+      sub: "Reach 60 guided minutes",
+      done: totalMinutes >= 60,
+    },
+  ];
+  const unlocked = items.filter((i) => i.done).length;
+  const meta = $("#reports-milestones-meta");
+  if (meta) meta.textContent = `${unlocked} / ${items.length} unlocked`;
+
+  root.innerHTML = items
+    .map(
+      (m) => `<div class="reports-milestone${m.done ? " on" : ""}">
+        <span class="reports-milestone-icon" aria-hidden="true">${m.done ? "✓" : m.icon}</span>
+        <span class="reports-milestone-text">
+          <strong>${m.title}</strong>
+          <span>${m.sub}</span>
+        </span>
+      </div>`
+    )
     .join("");
 }
 
@@ -1987,19 +1996,17 @@ function bind() {
   if (reportsRoot && reportsRoot.dataset.bound !== "1") {
     reportsRoot.dataset.bound = "1";
     reportsRoot.addEventListener("click", (e) => {
-      const habitBtn = e.target.closest("[data-report-habit]");
-      if (habitBtn) {
-        const id = habitBtn.dataset.reportHabit;
-        const map = todayHabitMap();
-        map[id] = !map[id];
-        saveState();
-        renderReports();
-        renderTrackExtras();
-        return;
-      }
       const photoBtn = e.target.closest("[data-photo-slot]");
       if (photoBtn) {
         openReportsPhotoPicker(photoBtn.dataset.photoSlot);
+        return;
+      }
+      if (e.target.closest("#btn-reports-add-photo")) {
+        const photos = loadReportPhotos();
+        const weekNum = Math.min(4, Math.max(1, Math.ceil((state.currentDay || 1) / 7)));
+        const preferred = `week${weekNum}`;
+        const fallback = ["week1", "week2", "week3", "week4"].find((k) => !photos[k]) || preferred;
+        openReportsPhotoPicker(photos[preferred] ? fallback : preferred);
       }
     });
   }
