@@ -162,7 +162,7 @@ button {
 .track-choices {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 16px;
   margin-top: auto;
   margin-bottom: 20px;
   padding-top: 40px;
@@ -171,11 +171,12 @@ button {
 .track-card {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 16px;
   width: 100%;
   text-align: left;
-  padding: 14px 14px 14px 13px;
-  border-radius: 22px;
+  padding: 20px 18px;
+  min-height: 84px;
+  border-radius: 26px;
   background: var(--landing-glass);
   border: 1px solid var(--landing-glass-border);
   backdrop-filter: blur(22px) saturate(1.2);
@@ -210,9 +211,9 @@ button {
 }
 
 .track-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.14);
   display: grid;
@@ -222,25 +223,30 @@ button {
   box-shadow: none;
 }
 
+.track-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
 .track-copy {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
 }
 
 .track-name {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   letter-spacing: 0.01em;
   color: #ffffff;
 }
 
 .track-desc {
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.4;
   color: var(--landing-muted);
 }
 
@@ -991,7 +997,12 @@ button {
 .week-strip {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
+  padding: 12px 10px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #f7f9fc 0%, #eef2f8 100%);
+  border: 1px solid #e4eaf3;
+  box-shadow: inset 0 1px 0 #ffffffaa;
 }
 
 .week-day {
@@ -1004,34 +1015,53 @@ button {
 }
 
 .week-label {
+  font-family: "Montserrat", "Outfit", sans-serif;
   font-size: 11px;
-  font-weight: 700;
-  color: var(--muted);
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  color: #9aa3b2;
+  letter-spacing: 0.04em;
 }
 
 .week-circle {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
-  background: var(--white);
-  border: 1.5px solid transparent;
-  color: #c5c5c9;
-  font-size: 13px;
-  font-weight: 700;
+  background: #ffffff;
+  border: 1.5px solid #e7ecf3;
+  color: #6b7280;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px #1e3fe00a;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.week-num {
+  font-weight: 800;
 }
 
 .week-day.future .week-circle {
-  background: transparent;
-  color: #d1d1d6;
+  background: #f8fafc;
+  border-color: #edf1f6;
+  color: #c5cbd4;
+  box-shadow: none;
 }
 
 .week-day.today .week-circle {
   border-color: var(--blue);
   color: var(--blue);
-  background: var(--white);
+  background: #eef2ff;
+  box-shadow:
+    0 0 0 3px #1e3fe018,
+    0 8px 16px #1e3fe022;
+  transform: translateY(-1px);
 }
 
 .week-day.today .week-label {
@@ -1039,13 +1069,18 @@ button {
 }
 
 .week-day.done .week-circle {
-  background: var(--blue);
-  border-color: var(--blue);
+  background: linear-gradient(145deg, #4a6cf0, #1e3fe0);
+  border-color: transparent;
   color: var(--white);
+  box-shadow: 0 8px 16px #1e3fe044;
+}
+
+.week-day.done .week-label {
+  color: #4a5d7a;
 }
 
 .week-check {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1;
 }
