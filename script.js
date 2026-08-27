@@ -703,6 +703,8 @@ const state = {
   currentDay: 1,
   streak: 0,
   habitChecks: {},
+  profileName: "Priya",
+  memberSince: "Jul 2026",
   sessionIds: [],
   sessionItems: [],
   sessionIndex: 0,
@@ -746,6 +748,8 @@ function saveState() {
         currentDay: state.currentDay,
         streak: state.streak,
         habitChecks: state.habitChecks,
+        profileName: state.profileName,
+        memberSince: state.memberSince,
         settings: state.settings,
       })
     );
@@ -765,6 +769,8 @@ function loadState() {
     state.currentDay = data.currentDay || 1;
     state.streak = data.streak || 0;
     state.habitChecks = data.habitChecks && typeof data.habitChecks === "object" ? data.habitChecks : {};
+    state.profileName = data.profileName || "Priya";
+    state.memberSince = data.memberSince || "Jul 2026";
     state.settings = { ...defaultSettings, ...(data.settings || {}) };
     return true;
   } catch (_) {
@@ -803,6 +809,7 @@ function openSettingsTab() {
   applySettingsUi();
   state.stack = ["me"];
   showView("me");
+  renderMe();
 }
 
 
@@ -1169,11 +1176,29 @@ function refreshHome() {
     heroStart.textContent =
       today.status !== "done" && (today.doneCount || today.percent) > 0 ? "CONTINUE" : "START";
   }
-  const profilePlan = $("#profile-plan");
-  if (profilePlan) profilePlan.textContent = meta.planTitle;
-  const profileAvatar = $("#profile-avatar");
-  if (profileAvatar) profileAvatar.textContent = meta.art;
+  const profileName = $("#profile-name");
+  if (profileName) profileName.textContent = state.profileName || "Priya";
+  const profileMember = $("#profile-member");
+  if (profileMember) profileMember.textContent = `Member since ${state.memberSince || "Jul 2026"}`;
+  renderMe();
   renderTrackExtras();
+}
+
+function renderMe() {
+  const pct = Math.min(100, Math.max(0, ((state.currentDay - 1) / 30) * 100));
+  const ring = $("#me-progress-ring");
+  if (ring) ring.style.setProperty("--pct", String(pct));
+
+  const streakEl = $("#me-streak-text");
+  if (streakEl) {
+    streakEl.textContent = `${state.streak}-day streak · Day ${state.currentDay} of 30`;
+  }
+
+  $$("[data-me-track]").forEach((btn) => {
+    btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));
+  });
+
+  applySettingsUi();
 }
 
 function renderReports() {
@@ -1640,6 +1665,7 @@ function bind() {
       const id = map[tab.dataset.tab];
       state.stack = [id];
       if (id === "reports") renderReports();
+      if (id === "me") renderMe();
       showView(id);
     });
   });
@@ -1689,6 +1715,61 @@ function bind() {
       state.settings[key] = e.target.checked;
       saveState();
     });
+  });
+
+  $("#btn-edit-name")?.addEventListener("click", () => {
+    const next = window.prompt("Your name", state.profileName || "Priya");
+    if (next == null) return;
+    const cleaned = next.trim().slice(0, 24);
+    if (!cleaned) return;
+    state.profileName = cleaned;
+    saveState();
+    renderMe();
+    const el = $("#profile-name");
+    if (el) el.textContent = cleaned;
+  });
+
+  $("#btn-me-reports")?.addEventListener("click", () => {
+    state.stack = ["reports"];
+    renderReports();
+    showView("reports");
+    $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "reports"));
+  });
+
+  $$("[data-me-track]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const track = btn.dataset.meTrack;
+      if (!track || track === state.track) {
+        renderMe();
+        return;
+      }
+      state.track = track;
+      state.days = buildDays(track);
+      state.currentDay = 1;
+      state.streak = 0;
+      state.habitChecks = {};
+      saveState();
+      refreshHome();
+      renderDayList();
+      renderMe();
+      showToast(
+        track === "voice" ? "Switched to Voice Grain" : track === "both" ? "Switched to Full Presence" : "Switched to Face Form"
+      );
+    });
+  });
+
+  const meToasts = {
+    "btn-carve-plus": "CARVE Plus — coming soon",
+    "btn-reminder-time": "Reminder time — 7:30 PM",
+    "btn-export-data": "Export stays on-device — coming soon",
+    "btn-delete-data": "Delete data requires confirmation — coming soon",
+    "btn-sign-out": "Signed out of this device session",
+    "btn-help": "Help & FAQ — coming soon",
+    "btn-feedback": "Feedback — coming soon",
+    "btn-evidence": "Evidence policy — soft tissue & habits only",
+  };
+  Object.keys(meToasts).forEach((id) => {
+    $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
   });
   $("#btn-skip").addEventListener("click", () => {
     clearPlayerTimer();

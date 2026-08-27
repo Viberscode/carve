@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=habits9" />
+  <link rel="stylesheet" href="styles.css?v=me1" />
 </head>
 <body>
   <div class="device">
@@ -165,26 +165,115 @@
       </section>
 
       <!-- ========== ME ========== -->
-      <section id="view-me" class="view" data-tab="me" hidden>
-        <header class="topbar">
-          <h1 class="page-title">Me</h1>
-        </header>
-        <div class="scroll">
-          <div class="profile">
-            <div class="avatar" id="profile-avatar">🪞</div>
-            <div>
-              <p class="profile-name">CARVE Athlete</p>
-              <p class="muted" id="profile-plan">Sculpted Jaw in 30 Days</p>
+      <section id="view-me" class="view me-view" data-tab="me" hidden>
+        <div class="scroll me-scroll">
+          <p class="me-section-label">Me</p>
+          <div class="me-card me-profile-card">
+            <div class="me-profile-row">
+              <div class="me-avatar" id="profile-avatar" aria-hidden="true">◆</div>
+              <div class="me-profile-main">
+                <div class="me-name-row">
+                  <h1 class="me-name" id="profile-name">Priya</h1>
+                  <button type="button" class="me-edit-btn" id="btn-edit-name" aria-label="Edit name">✎</button>
+                </div>
+                <p class="me-member" id="profile-member">Member since Jul 2026</p>
+              </div>
+              <div class="me-progress-ring" id="me-progress-ring" style="--pct:0" aria-label="Plan progress">
+                <span class="me-progress-hole"></span>
+              </div>
             </div>
+            <p class="me-streak-line">
+              <span aria-hidden="true">🔥</span>
+              <span id="me-streak-text">0-day streak · Day 1 of 30</span>
+              <span class="me-dot">·</span>
+              <button type="button" class="me-link" id="btn-me-reports">full detail in Reports</button>
+            </p>
           </div>
-          <h2 class="label-blue">Preferences</h2>
-          <label class="setting"><span>Front-camera mirror mode</span><input type="checkbox" id="set-mirror" checked /></label>
-          <label class="setting"><span>Coach voice</span><input type="checkbox" id="set-coach" checked /></label>
-          <label class="setting"><span>Background music</span><input type="checkbox" id="set-music" /></label>
-          <label class="setting"><span>Daily reminders</span><input type="checkbox" id="set-reminders" checked /></label>
-          <div class="privacy">
-            <strong>Privacy</strong>
-            <p>Photos and voice recordings stay on this device. CARVE never claims to change bone structure.</p>
+
+          <p class="me-section-label blue">My program</p>
+          <div class="me-card me-program" role="group" aria-label="Training path">
+            <button type="button" class="me-track-btn" data-me-track="face">Face Form</button>
+            <button type="button" class="me-track-btn" data-me-track="voice">Voice Grain</button>
+            <button type="button" class="me-track-btn" data-me-track="both">Full Presence</button>
+          </div>
+
+          <button type="button" class="me-plus-card" id="btn-carve-plus">
+            <span class="me-plus-icon" aria-hidden="true">✦</span>
+            <span class="me-plus-copy">
+              <strong>CARVE Plus</strong>
+              <span>Renews Sep 24 · $12.99/mo</span>
+            </span>
+            <span class="me-chevron" aria-hidden="true">›</span>
+          </button>
+
+          <p class="me-section-label blue">Preferences</p>
+          <div class="me-card me-prefs">
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🪞</span>
+              <span class="me-pref-text">Front-camera mirror mode</span>
+              <input type="checkbox" id="set-mirror" checked />
+            </label>
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🎙️</span>
+              <span class="me-pref-text">Coach voice</span>
+              <input type="checkbox" id="set-coach" checked />
+            </label>
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🎵</span>
+              <span class="me-pref-text">Background music</span>
+              <input type="checkbox" id="set-music" />
+            </label>
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🔔</span>
+              <span class="me-pref-text">
+                Daily reminders
+                <small>Every day at <button type="button" class="me-inline-link" id="btn-reminder-time">7:30 PM ›</button></small>
+              </span>
+              <input type="checkbox" id="set-reminders" checked />
+            </label>
+          </div>
+
+          <p class="me-section-label blue">Account &amp; data</p>
+          <div class="me-card me-list">
+            <button type="button" class="me-row" id="btn-export-data">
+              <span class="me-row-icon" aria-hidden="true">📤</span>
+              <span>Export my data</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row danger" id="btn-delete-data">
+              <span class="me-row-icon" aria-hidden="true">🗑</span>
+              <span>Delete my data</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row" id="btn-sign-out">
+              <span class="me-row-icon" aria-hidden="true">↩</span>
+              <span>Sign out</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <p class="me-section-label blue">Support</p>
+          <div class="me-card me-list">
+            <button type="button" class="me-row" id="btn-help">
+              <span class="me-row-icon" aria-hidden="true">❓</span>
+              <span>Help &amp; FAQ</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row" id="btn-feedback">
+              <span class="me-row-icon" aria-hidden="true">💬</span>
+              <span>Send feedback</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <p class="me-section-label blue">Privacy &amp; claims</p>
+          <div class="me-card me-privacy">
+            <span class="me-lock" aria-hidden="true">🔒</span>
+            <p>
+              Photos and voice recordings never leave this device. CARVE trains soft tissue tone,
+              posture, and vocal habits — it makes no claim to change bone structure.
+            </p>
+            <button type="button" class="me-policy" id="btn-evidence">Read our evidence policy ›</button>
           </div>
         </div>
       </section>
@@ -374,6 +463,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="script.js?v=habits7"></script>
+  <script src="script.js?v=me1"></script>
 </body>
 </html>
