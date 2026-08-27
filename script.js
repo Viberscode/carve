@@ -931,6 +931,8 @@ function drillCatalog(track) {
       { id: "breath", icon: "🌬️", title: "Breath ladder", sub: "Nasal 4–6 cadence" },
       { id: "resonant", icon: "🎙️", title: "Resonance hold", sub: "Forward placement" },
       { id: "speak", icon: "🗣️", title: "Easy speak", sub: "Soft onset lines" },
+      { id: "siren", icon: "📈", title: "Soft sirens", sub: "Gentle pitch glide" },
+      { id: "count", icon: "🔢", title: "Count on air", sub: "Steady exhale speech" },
     ];
   }
   if (track === "both") {
@@ -939,6 +941,8 @@ function drillCatalog(track) {
       { id: "chin", icon: "🧍", title: "Chin tucks", sub: "Neck & posture" },
       { id: "hum", icon: "🎵", title: "Hum reset", sub: "Voice + face buzz" },
       { id: "breath", icon: "🌬️", title: "Breath reset", sub: "Nasal 4–6 cadence" },
+      { id: "eye", icon: "✨", title: "Eye brighten", sub: "Orbital soft holds" },
+      { id: "speak", icon: "🗣️", title: "Easy speak", sub: "Soft onset lines" },
     ];
   }
   return [
@@ -946,7 +950,34 @@ function drillCatalog(track) {
     { id: "chin", icon: "🧍", title: "Chin tucks", sub: "Neck & posture" },
     { id: "mew", icon: "👅", title: "Mewing hold", sub: "Tongue posture" },
     { id: "breath", icon: "🌬️", title: "Breath reset", sub: "Nasal 4–6 cadence" },
+    { id: "eye", icon: "✨", title: "Eye brighten", sub: "Orbital soft holds" },
+    { id: "neck", icon: "🦢", title: "Neckline glide", sub: "Long neck, soft chin" },
   ];
+}
+
+function drillStack(track) {
+  if (track === "voice") {
+    return {
+      title: "2-min voice stack",
+      sub: "Breath ladder → Hum reset. Easy air, easy pitch.",
+      label: "Start stack ›",
+      toast: "2-min voice stack — Breath ladder + Hum reset",
+    };
+  }
+  if (track === "both") {
+    return {
+      title: "2-min presence stack",
+      sub: "Jaw release → Breath reset. Soft face, open throat.",
+      label: "Start stack ›",
+      toast: "2-min presence stack — Jaw release + Breath reset",
+    };
+  }
+  return {
+    title: "2-min face stack",
+    sub: "Jaw release → Chin tucks. Soft tissue + posture in two minutes.",
+    label: "Start stack ›",
+    toast: "2-min face stack — Jaw release + Chin tucks",
+  };
 }
 
 function todayHabitMap() {
@@ -1010,6 +1041,7 @@ function renderTrackExtras() {
   const insight = focusInsight(track);
   const habits = habitCatalog(track);
   const drills = drillCatalog(track);
+  const stack = drillStack(track);
   const checks = todayHabitMap();
   const doneCount = habits.filter((h) => checks[h.id]).length;
   const week = getWeekDays();
@@ -1093,6 +1125,14 @@ function renderTrackExtras() {
             )
             .join("")}
         </div>
+        <button type="button" class="drill-stack" data-drill-stack="${stack.toast}">
+          <span class="drill-stack-badge" aria-hidden="true">⚡ 2 min</span>
+          <span class="drill-stack-copy">
+            <strong>${stack.title}</strong>
+            <span>${stack.sub}</span>
+          </span>
+          <span class="drill-stack-cta">${stack.label}</span>
+        </button>
       </section>
     </div>`;
 
@@ -1111,6 +1151,11 @@ function bindTrackExtras() {
       map[id] = !map[id];
       saveState();
       renderTrackExtras();
+      return;
+    }
+    const stackBtn = e.target.closest("[data-drill-stack]");
+    if (stackBtn) {
+      showToast(stackBtn.dataset.drillStack);
       return;
     }
     const drillBtn = e.target.closest("[data-drill]");
