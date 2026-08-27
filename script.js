@@ -829,6 +829,7 @@ function formatTime(sec) {
 }
 
 function showView(id) {
+  if (id !== "reports") stopFaceCamera();
   $$(".view").forEach((v) => {
     v.hidden = true;
     v.classList.remove("view-active");
@@ -1428,15 +1429,20 @@ function renderReportInsight(track) {
 }
 
 function setFaceAnalysisView(mode, errorMsg) {
-  const upload = $("#face-analysis-upload");
+  const idle = $("#face-analysis-idle");
+  const camera = $("#face-analysis-camera");
   const loading = $("#face-analysis-loading");
   const results = $("#face-analysis-results");
   const error = $("#face-analysis-error");
-  if (upload) upload.hidden = mode !== "upload";
+  if (idle) idle.hidden = mode !== "idle";
+  if (camera) camera.hidden = mode !== "camera";
   if (loading) loading.hidden = mode !== "loading";
   if (results) results.hidden = mode !== "results";
   if (error) {
     if (mode === "error" && errorMsg) {
+      error.hidden = false;
+      error.textContent = errorMsg;
+    } else if (errorMsg && (mode === "idle" || mode === "camera" || mode === "results")) {
       error.hidden = false;
       error.textContent = errorMsg;
     } else {
@@ -1446,72 +1452,160 @@ function setFaceAnalysisView(mode, errorMsg) {
   }
 }
 
-function renderFaceAnalysis() {
-  const api = window.CarveFaceAnalysis;
-  if (!api) return;
-  const report = api.loadFaceReport();
-  const meta = $("#face-analysis-meta");
+let faceCamStream = null;
 
-  if (!report) {
-    if (meta) meta.textContent = "On-device";
-    setFaceAnalysisView("upload");
-    return;
+function stopFaceCamera() {
+  if (faceCamStream) {
+    faceCamStream.getTracks().forEach((t) => t.stop());
+    faceCamStream = null;
   }
+  const video = $("#face-analysis-video");
+  if (video) {
+    video.srcObject = null;
+  }
+}
 
-  if (meta) meta.textContent = "Saved";
+function fillFaceAnalysisResults(report) {
   const score = $("#face-analysis-score");
   const ratio = $("#face-analysis-ratio");
   const symmetry = $("#face-analysis-symmetry");
   if (score) score.textContent = String(report.jawlineScore);
   if (ratio) ratio.textContent = Number(report.jawRatio).toFixed(2);
   if (symmetry) symmetry.textContent = `${Math.round(Number(report.symmetry) * 100)}%`;
+}
+
+function renderFaceAnalysis() {
+  const api = window.CarveFaceAnalysis;
+  if (!api) return;
+  stopFaceCamera();
+  const report = api.loadFaceReport();
+  const meta = $("#face-analysis-meta");
+
+  if (!report) {
+    if (meta) meta.textContent = "On-device";
+    setFaceAnalysisView("idle");
+    return;
+  }
+
+  if (meta) meta.textContent = "Saved";
+  fillFaceAnalysisResults(report);
   setFaceAnalysisView("results");
 }
 
-function openFaceAnalysisPicker() {
-  const input = $("#face-analysis-input");
-  if (!input) return;
-  input.value = "";
-  input.click();
+async function startFaceCamera() {
+  const meta = $("#face-analysis-meta");
+  stopFaceCamera();
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setFaceAnalysisView("idle", "Camera not supported in this browser.");
+    return;
+  }
+
+  try {
+    faceCamStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: "user",
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    });
+  } catch (_) {
+    const hasReport = Boolean(window.CarveFaceAnalysis?.loadFaceReport());
+    setFaceAnalysisView(hasReport ? "results" : "idle", "Could not access camera. Allow permission and try again.");
+    if (hasReport) {
+      fillFaceAnalysisResults(window.CarveFaceAnalysis.loadFaceReport());
+      if (meta) meta.textContent = "Saved";
+    }
+    return;
+  }
+
+  const video = $("#face-analysis-video");
+  if (!video) {
+    stopFaceCamera();
+    return;
+  }
+  video.srcObject = faceCamStream;
+  try {
+    await video.play();
+  } catch (_) {
+    /* autoplay may already be running */
+  }
+  if (meta) meta.textContent = "Live";
+  setFaceAnalysisView("camera");
 }
 
-async function handleFaceAnalysisSelected(file) {
-  const api = window.CarveFaceAnalysis;
-  if (!api || !file) return;
+function captureFaceFrame() {
+  const video = $("#face-analysis-video");
+  const canvas = $("#face-analysis-canvas");
+  if (!video || !canvas) throw new Error("Image load failure");
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+  if (!w || !h) throw new Error("Image load failure");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  // Mirror to match selfie preview
+  ctx.save();
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, w, h);
+  ctx.restore();
+  return canvas;
+}
 
-  setFaceAnalysisView("loading");
+async function captureAndAnalyzeFace() {
+  const api = window.CarveFaceAnalysis;
+  if (!api) return;
   const meta = $("#face-analysis-meta");
+
+  let canvas;
+  try {
+    canvas = captureFaceFrame();
+  } catch (_) {
+    setFaceAnalysisView("camera", "Image load failure. Wait for the camera to ready, then try again.");
+    return;
+  }
+
+  stopFaceCamera();
+  setFaceAnalysisView("loading");
   if (meta) meta.textContent = "Analyzing…";
 
   try {
-    const report = await api.analyzeFaceFromFile(file);
+    const report = await api.analyzeFaceFromImage(canvas);
     api.saveFaceReport(report);
     renderFaceAnalysis();
     showToast("Face analysis saved on this device");
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
-    let friendly = "Face analysis failed. Try another photo.";
-    if (/no face/i.test(msg)) friendly = "No face detected. Use a clear front-facing photo.";
-    else if (/image load/i.test(msg)) friendly = "Image load failure. Try a different image.";
-    setFaceAnalysisView("error", friendly);
-    // Keep upload visible under error when no prior report
-    const upload = $("#face-analysis-upload");
-    if (upload) upload.hidden = false;
-    if (meta) meta.textContent = "On-device";
+    let friendly = "Face analysis failed. Try another capture.";
+    if (/no face/i.test(msg)) friendly = "No face detected. Face the camera and try again.";
+    else if (/image load/i.test(msg)) friendly = "Image load failure. Try capturing again.";
+
     const existing = api.loadFaceReport();
     if (existing) {
-      // Restore last good results under the error
-      const score = $("#face-analysis-score");
-      const ratio = $("#face-analysis-ratio");
-      const symmetry = $("#face-analysis-symmetry");
-      if (score) score.textContent = String(existing.jawlineScore);
-      if (ratio) ratio.textContent = Number(existing.jawRatio).toFixed(2);
-      if (symmetry) symmetry.textContent = `${Math.round(Number(existing.symmetry) * 100)}%`;
-      const results = $("#face-analysis-results");
-      if (results) results.hidden = false;
-      if (upload) upload.hidden = true;
+      fillFaceAnalysisResults(existing);
+      setFaceAnalysisView("results", friendly);
       if (meta) meta.textContent = "Saved";
+    } else {
+      setFaceAnalysisView("idle", friendly);
+      if (meta) meta.textContent = "On-device";
     }
+  }
+}
+
+function cancelFaceCamera() {
+  stopFaceCamera();
+  const api = window.CarveFaceAnalysis;
+  const existing = api?.loadFaceReport();
+  const meta = $("#face-analysis-meta");
+  if (existing) {
+    fillFaceAnalysisResults(existing);
+    setFaceAnalysisView("results");
+    if (meta) meta.textContent = "Saved";
+  } else {
+    setFaceAnalysisView("idle");
+    if (meta) meta.textContent = "On-device";
   }
 }
 
@@ -2099,10 +2193,18 @@ function bind() {
         return;
       }
       if (
-        e.target.closest("#btn-face-analysis-upload") ||
+        e.target.closest("#btn-face-analysis-start") ||
         e.target.closest("#btn-face-analysis-reanalyze")
       ) {
-        openFaceAnalysisPicker();
+        startFaceCamera();
+        return;
+      }
+      if (e.target.closest("#btn-face-analysis-capture")) {
+        captureAndAnalyzeFace();
+        return;
+      }
+      if (e.target.closest("#btn-face-analysis-cancel")) {
+        cancelFaceCamera();
       }
     });
   }
@@ -2110,11 +2212,6 @@ function bind() {
   $("#reports-photo-input")?.addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) handleReportsPhotoSelected(file);
-  });
-
-  $("#face-analysis-input")?.addEventListener("change", (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) handleFaceAnalysisSelected(file);
   });
   $("#btn-skip").addEventListener("click", () => {
     clearPlayerTimer();

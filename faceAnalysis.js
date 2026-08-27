@@ -1,5 +1,5 @@
 /**
- * Face analysis utility — MediaPipe Face Mesh (468 landmarks) on uploaded images.
+ * Face analysis utility — MediaPipe Face Mesh (468 landmarks) on captured images.
  * Exposes window.CarveFaceAnalysis
  */
 (function (global) {
@@ -197,14 +197,14 @@
   }
 
   /**
-   * Analyze an uploaded image file with MediaPipe Face Mesh.
-   * @param {File} file
+   * Analyze an HTML image/video/canvas element with MediaPipe Face Mesh.
+   * @param {CanvasImageSource} source
    * @returns {Promise<object>} metrics result
    */
-  async function analyzeFaceFromFile(file) {
-    const image = await loadImageFromFile(file);
+  async function analyzeFaceFromImage(source) {
+    if (!source) throw new Error("Image load failure");
     const faceMesh = await ensureFaceMesh();
-    const results = await detectLandmarks(faceMesh, image);
+    const results = await detectLandmarks(faceMesh, source);
 
     const faces = results && results.multiFaceLandmarks;
     if (!faces || !faces.length) {
@@ -212,6 +212,16 @@
     }
 
     return metricsFromLandmarks(faces[0]);
+  }
+
+  /**
+   * Analyze an uploaded image file with MediaPipe Face Mesh.
+   * @param {File} file
+   * @returns {Promise<object>} metrics result
+   */
+  async function analyzeFaceFromFile(file) {
+    const image = await loadImageFromFile(file);
+    return analyzeFaceFromImage(image);
   }
 
   function loadFaceReport() {
@@ -238,6 +248,7 @@
   global.CarveFaceAnalysis = {
     STORAGE_KEY,
     analyzeFaceFromFile,
+    analyzeFaceFromImage,
     loadFaceReport,
     saveFaceReport,
     clearFaceReport,

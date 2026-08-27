@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=face1" />
+  <link rel="stylesheet" href="styles.css?v=face2" />
 </head>
 <body>
   <div class="device">
@@ -196,13 +196,26 @@
               <h2 class="card-title">Face analysis</h2>
               <span class="panel-meta" id="face-analysis-meta">On-device</span>
             </div>
-            <div id="face-analysis-upload">
+            <div id="face-analysis-idle">
               <p class="muted reports-photos-lead">
-                Upload a front-facing photo to estimate jawline score, ratio, and symmetry.
+                Use your webcam for a front-facing capture to estimate jawline score, ratio, and symmetry.
               </p>
-              <button type="button" class="reports-photo-cta" id="btn-face-analysis-upload">
-                Upload face photo
+              <button type="button" class="reports-photo-cta" id="btn-face-analysis-start">
+                Open camera
               </button>
+            </div>
+            <div id="face-analysis-camera" hidden>
+              <div class="face-analysis-video-wrap">
+                <video id="face-analysis-video" playsinline autoplay muted></video>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-face-analysis-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-face-analysis-capture">
+                  Capture photo
+                </button>
+              </div>
             </div>
             <div id="face-analysis-loading" hidden>
               <p class="face-analysis-loading-text">Analyzing your face...</p>
@@ -224,10 +237,10 @@
                 </div>
               </div>
               <button type="button" class="face-analysis-reanalyze" id="btn-face-analysis-reanalyze">
-                Analyze new photo
+                Capture new photo
               </button>
             </div>
-            <input type="file" id="face-analysis-input" accept="image/*" hidden />
+            <canvas id="face-analysis-canvas" hidden></canvas>
           </div>
 
           <div class="card reports-card" id="reports-milestones-card">
@@ -584,7 +597,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="faceAnalysis.js?v=1"></script>
-  <script src="script.js?v=face1"></script>
+  <script src="faceAnalysis.js?v=2"></script>
+  <script src="script.js?v=face2"></script>
 </body>
 </html>
