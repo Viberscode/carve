@@ -997,9 +997,9 @@ function focusInsight(track) {
 }
 
 function habitsLead(track) {
-  if (track === "voice") return "Small daily cues that keep your voice easy and clear.";
-  if (track === "both") return "Gentle face + voice cues. Tap to check off.";
-  return "Gentle daily cues for tone, posture, and recovery.";
+  if (track === "voice") return "Tap to check off today’s voice cues.";
+  if (track === "both") return "Tap to check off face + voice cues.";
+  return "Tap to check off today’s cues.";
 }
 
 function renderHomeWeek() {
