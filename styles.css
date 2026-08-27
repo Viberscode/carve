@@ -1302,61 +1302,139 @@ button {
   gap: 4px;
 }
 
+.care-shell {
+  padding: 18px;
+  border-radius: 28px;
+  background:
+    radial-gradient(ellipse 85% 65% at 0% 0%, #9db8ff55, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 100% 100%, #c29bff44, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 90% 10%, #9ef0c844, transparent 50%),
+    linear-gradient(165deg, #ffffff 0%, #f4f7ff 55%, #f7f3ff 100%);
+  border: 1px solid #d9e0f5;
+  box-shadow:
+    0 14px 36px #1e3fe012,
+    inset 0 1px 0 #ffffffaa;
+}
+
+.care-head {
+  margin-bottom: 16px;
+}
+
+.care-kicker {
+  font-family: "Montserrat", "Outfit", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: transparent;
+  background: linear-gradient(90deg, #1e3fe0 0%, #7b5cff 55%, #2bb673 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.care-shell .panel-title {
+  font-family: "Syne", "Outfit", sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #121a33;
+  line-height: 1.05;
+}
+
 .care-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 11px;
 }
 
 .care-card {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 16px;
-  background: var(--white);
-  border: 1.5px solid var(--border);
+  gap: 13px;
+  padding: 15px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1.5px solid #e4e9f5;
+  box-shadow: 0 6px 16px #1e3fe00c;
+}
+
+.care-card.tint-aqua {
+  border-color: #9adceb;
+  background: linear-gradient(135deg, #eefbff 0%, #ffffff 70%);
+}
+.care-card.tint-lilac {
+  border-color: #d2b8ff;
+  background: linear-gradient(135deg, #f7f0ff 0%, #ffffff 70%);
+}
+.care-card.tint-mint {
+  border-color: #9ad9b8;
+  background: linear-gradient(135deg, #effff6 0%, #ffffff 70%);
+}
+.care-card.tint-sky {
+  border-color: #a8b8ff;
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 70%);
 }
 
 .care-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: var(--blue-soft);
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 21px;
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px #ffffff88, 0 4px 10px #0000000d;
+}
+
+.care-card.tint-aqua .care-icon {
+  background: linear-gradient(145deg, #d5f6ff, #7ad6ea);
+}
+.care-card.tint-lilac .care-icon {
+  background: linear-gradient(145deg, #eddfff, #c29bff);
+}
+.care-card.tint-mint .care-icon {
+  background: linear-gradient(145deg, #d9ffe9, #57e0a0);
+}
+.care-card.tint-sky .care-icon {
+  background: linear-gradient(145deg, #dce5ff, #6b8cff);
 }
 
 .care-text {
   min-width: 0;
+  padding-top: 1px;
 }
 
 .care-text strong {
   display: block;
-  font-size: 14px;
+  font-family: "Syne", "Outfit", sans-serif;
+  font-size: 16px;
   font-weight: 800;
-  color: var(--text);
-  margin-bottom: 3px;
+  letter-spacing: -0.02em;
+  color: #121a33;
+  margin-bottom: 4px;
+  line-height: 1.15;
 }
 
 .care-text p {
-  font-size: 12px;
+  font-family: "Outfit", sans-serif;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--muted);
+  color: #5c6a7a;
   line-height: 1.4;
 }
 
 .photo-check {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #eef1ff 0%, #f7f8ff 60%, #ffffff 100%);
-  border: 1.5px solid #d7defe;
+  padding: 15px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #1e3fe0 0%, #4a6cf0 45%, #7b5cff 100%);
+  border: none;
+  box-shadow: 0 12px 28px #1e3fe044;
+  color: #fff;
 }
 
 .photo-check-copy {
@@ -1366,25 +1444,32 @@ button {
 
 .photo-check-copy strong {
   display: block;
-  font-size: 14px;
+  font-family: "Syne", "Outfit", sans-serif;
+  font-size: 15px;
   font-weight: 800;
-  color: var(--text);
-  margin-bottom: 2px;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 3px;
 }
 
 .photo-check-copy p {
+  font-family: "Outfit", sans-serif;
   font-size: 12px;
   font-weight: 500;
-  color: var(--muted);
+  color: #ffffffcc;
   line-height: 1.35;
 }
 
 .photo-check-btn {
   flex-shrink: 0;
+  font-family: "Montserrat", "Outfit", sans-serif;
   font-size: 13px;
-  font-weight: 700;
-  color: var(--blue);
-  padding: 8px 4px;
+  font-weight: 800;
+  color: #1e3fe0;
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 12px #00000022;
 }
 
 .drills-grid {

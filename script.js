@@ -922,29 +922,23 @@ function habitCatalog(track) {
 function careNotes(track) {
   if (track === "voice") {
     return [
-      { icon: "💧", title: "Sip warm water", body: "Keeps the throat comfortable after breath and hum work." },
-      { icon: "🎶", title: "Stay in easy range", body: "If it feels pressed or hoarse, stop. Habit change is gradual." },
-      { icon: "🫁", title: "Reset the breath", body: "Quiet nasal inhale, long soft exhale — shoulders down." },
+      { icon: "💧", title: "Warm water first", body: "A few slow sips keep your throat easy after breath and hum work.", tint: "aqua" },
+      { icon: "🎶", title: "Stay in easy range", body: "If it feels pressed or hoarse — stop. Presence grows gently.", tint: "lilac" },
+      { icon: "🫁", title: "Reset your breath", body: "Nasal inhale. Soft long exhale. Drop the shoulders.", tint: "sky" },
     ];
   }
   if (track === "both") {
     return [
-      { icon: "💧", title: "Hydrate both ways", body: "Water helps soft tissue recover and keeps speaking easy." },
-      { icon: "🪞", title: "Soft face, open throat", body: "Unclench the jaw and keep the neck easy after training." },
-      { icon: "✦", title: "Never force either", body: "No bone claims. No larynx strain. Stop if anything feels sharp." },
+      { icon: "💧", title: "Hydrate both ways", body: "Water softens tissue recovery and keeps speaking effortless.", tint: "aqua" },
+      { icon: "🪞", title: "Soft face, open throat", body: "Unclench the jaw. Keep the neck long and easy.", tint: "lilac" },
+      { icon: "✦", title: "Never force it", body: "No bone claims. No larynx strain. Sharp pain = ease off.", tint: "mint" },
     ];
   }
   return [
-    { icon: "💧", title: "Sip water", body: "Hydration helps soft tissue feel less tight after massage and holds." },
-    { icon: "😌", title: "Unclench the jaw", body: "Rest the tongue on the palate. Soft face = better recovery." },
-    { icon: "🌙", title: "Stop if it hurts", body: "Pressure should feel relieving. Sharp pain means ease off." },
+    { icon: "💧", title: "Sip water now", body: "Hydration unlocks softer tissue after massage and holds.", tint: "aqua" },
+    { icon: "😌", title: "Release the jaw", body: "Tongue to palate. Soft cheeks. Better recovery starts here.", tint: "lilac" },
+    { icon: "🌙", title: "Respect the signal", body: "Relieving pressure is good. Sharp pain means stop.", tint: "mint" },
   ];
-}
-
-function careLead(track) {
-  if (track === "voice") return "Protect the voice. Easy air, easy pitch — never strain.";
-  if (track === "both") return "Face soft. Voice easy. Presence without pressure.";
-  return "Small wins stack. Keep it gentle — tone, posture, and habit.";
 }
 
 function todayHabitMap() {
@@ -1083,31 +1077,31 @@ function renderTrackExtras() {
       </section>
 
       <section class="home-panel care-panel" aria-label="After you train">
-        <div class="habits-head">
-          <div class="habits-copy">
+        <div class="care-shell">
+          <div class="care-head">
+            <p class="care-kicker">Recovery · lock it in</p>
             <h2 class="panel-title">After you train</h2>
-            <p class="panel-sub">${careLead(track)}</p>
           </div>
-        </div>
-        <div class="care-list">
-          ${notes
-            .map(
-              (n) => `<article class="care-card">
-              <span class="care-icon" aria-hidden="true">${n.icon}</span>
-              <div class="care-text">
-                <strong>${n.title}</strong>
-                <p>${n.body}</p>
-              </div>
-            </article>`
-            )
-            .join("")}
-        </div>
-        <div class="photo-check">
-          <div class="photo-check-copy">
-            <strong>Weekly progress photo</strong>
-            <p>Front-facing, same light — stays on your device.</p>
+          <div class="care-list">
+            ${notes
+              .map(
+                (n) => `<article class="care-card tint-${n.tint}">
+                <span class="care-icon" aria-hidden="true">${n.icon}</span>
+                <div class="care-text">
+                  <strong>${n.title}</strong>
+                  <p>${n.body}</p>
+                </div>
+              </article>`
+              )
+              .join("")}
           </div>
-          <button type="button" class="photo-check-btn" data-photo-check>Add ›</button>
+          <div class="photo-check">
+            <div class="photo-check-copy">
+              <strong>Capture this week</strong>
+              <p>Same angle. Same light. Progress stays on your device.</p>
+            </div>
+            <button type="button" class="photo-check-btn" data-photo-check>Add ›</button>
+          </div>
         </div>
       </section>
     </div>`;
