@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=reports2" />
+  <link rel="stylesheet" href="styles.css?v=face1" />
 </head>
 <body>
   <div class="device">
@@ -189,6 +189,45 @@
               Add this week’s photo
             </button>
             <input type="file" id="reports-photo-input" accept="image/*" hidden />
+          </div>
+
+          <div class="card reports-card" id="reports-face-analysis-card">
+            <div class="panel-head">
+              <h2 class="card-title">Face analysis</h2>
+              <span class="panel-meta" id="face-analysis-meta">On-device</span>
+            </div>
+            <div id="face-analysis-upload">
+              <p class="muted reports-photos-lead">
+                Upload a front-facing photo to estimate jawline score, ratio, and symmetry.
+              </p>
+              <button type="button" class="reports-photo-cta" id="btn-face-analysis-upload">
+                Upload face photo
+              </button>
+            </div>
+            <div id="face-analysis-loading" hidden>
+              <p class="face-analysis-loading-text">Analyzing your face...</p>
+            </div>
+            <div id="face-analysis-error" class="face-analysis-error" hidden></div>
+            <div id="face-analysis-results" hidden>
+              <div class="face-analysis-metrics">
+                <div class="face-analysis-metric">
+                  <span class="face-analysis-metric-label">Jawline Score</span>
+                  <strong id="face-analysis-score">—</strong>
+                </div>
+                <div class="face-analysis-metric">
+                  <span class="face-analysis-metric-label">Jaw Ratio</span>
+                  <strong id="face-analysis-ratio">—</strong>
+                </div>
+                <div class="face-analysis-metric">
+                  <span class="face-analysis-metric-label">Symmetry</span>
+                  <strong id="face-analysis-symmetry">—</strong>
+                </div>
+              </div>
+              <button type="button" class="face-analysis-reanalyze" id="btn-face-analysis-reanalyze">
+                Analyze new photo
+              </button>
+            </div>
+            <input type="file" id="face-analysis-input" accept="image/*" hidden />
           </div>
 
           <div class="card reports-card" id="reports-milestones-card">
@@ -545,6 +584,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="script.js?v=reports2"></script>
+  <script src="faceAnalysis.js?v=1"></script>
+  <script src="script.js?v=face1"></script>
 </body>
 </html>

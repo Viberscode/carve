@@ -1292,6 +1292,7 @@ function renderReports() {
   renderReportPhotos();
   renderReportMilestones(sessionsDone, state.streak, photoCount, totalMinutes);
   renderReportInsight(track);
+  renderFaceAnalysis();
 
   const pitchCard = $("#pitch-card");
   const reportsDisclaimer = $("#reports-disclaimer");
@@ -1424,6 +1425,94 @@ function renderReportInsight(track) {
   if (icon) icon.textContent = tip.icon;
   if (title) title.textContent = tip.title;
   if (body) body.textContent = tip.body;
+}
+
+function setFaceAnalysisView(mode, errorMsg) {
+  const upload = $("#face-analysis-upload");
+  const loading = $("#face-analysis-loading");
+  const results = $("#face-analysis-results");
+  const error = $("#face-analysis-error");
+  if (upload) upload.hidden = mode !== "upload";
+  if (loading) loading.hidden = mode !== "loading";
+  if (results) results.hidden = mode !== "results";
+  if (error) {
+    if (mode === "error" && errorMsg) {
+      error.hidden = false;
+      error.textContent = errorMsg;
+    } else {
+      error.hidden = true;
+      error.textContent = "";
+    }
+  }
+}
+
+function renderFaceAnalysis() {
+  const api = window.CarveFaceAnalysis;
+  if (!api) return;
+  const report = api.loadFaceReport();
+  const meta = $("#face-analysis-meta");
+
+  if (!report) {
+    if (meta) meta.textContent = "On-device";
+    setFaceAnalysisView("upload");
+    return;
+  }
+
+  if (meta) meta.textContent = "Saved";
+  const score = $("#face-analysis-score");
+  const ratio = $("#face-analysis-ratio");
+  const symmetry = $("#face-analysis-symmetry");
+  if (score) score.textContent = String(report.jawlineScore);
+  if (ratio) ratio.textContent = Number(report.jawRatio).toFixed(2);
+  if (symmetry) symmetry.textContent = `${Math.round(Number(report.symmetry) * 100)}%`;
+  setFaceAnalysisView("results");
+}
+
+function openFaceAnalysisPicker() {
+  const input = $("#face-analysis-input");
+  if (!input) return;
+  input.value = "";
+  input.click();
+}
+
+async function handleFaceAnalysisSelected(file) {
+  const api = window.CarveFaceAnalysis;
+  if (!api || !file) return;
+
+  setFaceAnalysisView("loading");
+  const meta = $("#face-analysis-meta");
+  if (meta) meta.textContent = "Analyzing…";
+
+  try {
+    const report = await api.analyzeFaceFromFile(file);
+    api.saveFaceReport(report);
+    renderFaceAnalysis();
+    showToast("Face analysis saved on this device");
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+    let friendly = "Face analysis failed. Try another photo.";
+    if (/no face/i.test(msg)) friendly = "No face detected. Use a clear front-facing photo.";
+    else if (/image load/i.test(msg)) friendly = "Image load failure. Try a different image.";
+    setFaceAnalysisView("error", friendly);
+    // Keep upload visible under error when no prior report
+    const upload = $("#face-analysis-upload");
+    if (upload) upload.hidden = false;
+    if (meta) meta.textContent = "On-device";
+    const existing = api.loadFaceReport();
+    if (existing) {
+      // Restore last good results under the error
+      const score = $("#face-analysis-score");
+      const ratio = $("#face-analysis-ratio");
+      const symmetry = $("#face-analysis-symmetry");
+      if (score) score.textContent = String(existing.jawlineScore);
+      if (ratio) ratio.textContent = Number(existing.jawRatio).toFixed(2);
+      if (symmetry) symmetry.textContent = `${Math.round(Number(existing.symmetry) * 100)}%`;
+      const results = $("#face-analysis-results");
+      if (results) results.hidden = false;
+      if (upload) upload.hidden = true;
+      if (meta) meta.textContent = "Saved";
+    }
+  }
 }
 
 function openReportsPhotoPicker(slot) {
@@ -2007,6 +2096,13 @@ function bind() {
         const preferred = `week${weekNum}`;
         const fallback = ["week1", "week2", "week3", "week4"].find((k) => !photos[k]) || preferred;
         openReportsPhotoPicker(photos[preferred] ? fallback : preferred);
+        return;
+      }
+      if (
+        e.target.closest("#btn-face-analysis-upload") ||
+        e.target.closest("#btn-face-analysis-reanalyze")
+      ) {
+        openFaceAnalysisPicker();
       }
     });
   }
@@ -2014,6 +2110,11 @@ function bind() {
   $("#reports-photo-input")?.addEventListener("change", (e) => {
     const file = e.target.files && e.target.files[0];
     if (file) handleReportsPhotoSelected(file);
+  });
+
+  $("#face-analysis-input")?.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) handleFaceAnalysisSelected(file);
   });
   $("#btn-skip").addEventListener("click", () => {
     clearPlayerTimer();
