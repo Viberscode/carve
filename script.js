@@ -1002,6 +1002,43 @@ function habitsLead(track) {
   return "Gentle daily cues for tone, posture, and recovery.";
 }
 
+function renderHomeWeek() {
+  const root = $("#home-week");
+  if (!root) return;
+  const track = state.track || "face";
+  const habits = habitCatalog(track);
+  const checks = todayHabitMap();
+  const doneCount = habits.filter((h) => checks[h.id]).length;
+  const week = getWeekDays();
+  const allHabitsDone = doneCount === habits.length && habits.length > 0;
+  const weekDone = week.filter((d) => d.done).length + (allHabitsDone ? 1 : 0);
+
+  root.innerHTML = `
+    <section class="home-panel week-panel week-panel-top" aria-label="This week">
+      <div class="panel-head">
+        <h2 class="panel-title">This week</h2>
+        <span class="panel-meta">${weekDone} of 7 done</span>
+      </div>
+      <div class="week-strip" role="list">
+        ${week
+          .map((d) => {
+            let cls = "week-day";
+            if (d.done) cls += " done";
+            if (d.isToday) cls += " today";
+            if (d.isFuture) cls += " future";
+            const inner = d.done
+              ? `<span class="week-check" aria-hidden="true">✓</span>`
+              : `<span class="week-num">${d.dayNum}</span>`;
+            return `<div class="${cls}" role="listitem" title="${d.label}">
+              <span class="week-label">${d.label}</span>
+              <div class="week-circle">${inner}</div>
+            </div>`;
+          })
+          .join("")}
+      </div>
+    </section>`;
+}
+
 function renderTrackExtras() {
   const root = $("#track-extras");
   if (!root) return;
@@ -1011,41 +1048,15 @@ function renderTrackExtras() {
   const notes = careNotes(track);
   const checks = todayHabitMap();
   const doneCount = habits.filter((h) => checks[h.id]).length;
-  const week = getWeekDays();
-  const allHabitsDone = doneCount === habits.length && habits.length > 0;
-  const weekDone =
-    week.filter((d) => d.done).length + (allHabitsDone ? 1 : 0);
   const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
+
+  renderHomeWeek();
 
   root.innerHTML = `
     <div class="extras-block">
       <div class="insight-card ${insight.cls} insight-pulse">
         <h3>${insight.title}</h3>
       </div>
-
-      <section class="home-panel week-panel" aria-label="This week">
-        <div class="panel-head">
-          <h2 class="panel-title">This week</h2>
-          <span class="panel-meta">${weekDone} of 7 done</span>
-        </div>
-        <div class="week-strip" role="list">
-          ${week
-            .map((d) => {
-              let cls = "week-day";
-              if (d.done) cls += " done";
-              if (d.isToday) cls += " today";
-              if (d.isFuture) cls += " future";
-              const inner = d.done
-                ? `<span class="week-check" aria-hidden="true">✓</span>`
-                : `<span class="week-num">${d.dayNum}</span>`;
-              return `<div class="${cls}" role="listitem" title="${d.label}">
-                <span class="week-label">${d.label}</span>
-                <div class="week-circle">${inner}</div>
-              </div>`;
-            })
-            .join("")}
-        </div>
-      </section>
 
       <section class="home-panel habits-panel" aria-label="Daily habits">
         <div class="habits-shell">

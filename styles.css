@@ -423,7 +423,16 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(12px + var(--safe-t)) 20px 8px;
+  padding: calc(12px + var(--safe-t)) 20px 4px;
+}
+
+.home-week {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.week-panel-top {
+  margin-top: 0;
 }
 
 .brand {
