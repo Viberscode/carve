@@ -840,6 +840,267 @@ button {
   animation: insightFloat 3.2s ease-in-out infinite;
 }
 
+/* ========== HOME: week / habits / drills ========== */
+.home-panel {
+  margin-top: 22px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.panel-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.panel-meta {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.panel-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.week-strip {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.week-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.week-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.week-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--white);
+  border: 1.5px solid transparent;
+  color: #c5c5c9;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.week-day.future .week-circle {
+  background: transparent;
+  color: #d1d1d6;
+}
+
+.week-day.today .week-circle {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--white);
+}
+
+.week-day.today .week-label {
+  color: var(--blue);
+}
+
+.week-day.done .week-circle {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--white);
+}
+
+.week-check {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.habits-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.habits-copy {
+  min-width: 0;
+}
+
+.habits-count {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--blue);
+  padding-top: 2px;
+}
+
+.habits-progress {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--chip);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.habits-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width 0.25s ease;
+}
+
+.habits-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.habit-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 14px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  box-shadow: 0 1px 2px #00000006;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.habit-card.on {
+  background: var(--blue-soft);
+  border-color: var(--blue);
+}
+
+.habit-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--soft);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.habit-card.on .habit-icon {
+  background: var(--blue);
+  color: var(--white);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.habit-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.habit-text strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.habit-text span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.habit-metric {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.drills-anytime {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.drills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.drill-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 4px;
+  padding: 16px 14px 14px;
+  border-radius: 18px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px #1e3fe00f;
+  min-height: 132px;
+}
+
+.drill-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #eef1ff;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.drill-card strong {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.drill-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.35;
+  margin-bottom: auto;
+}
+
+.drill-start {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
 .insight-card.insight-pulse::before {
   content: "";
   position: absolute;

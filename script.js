@@ -702,6 +702,7 @@ const state = {
   days: buildDays("face"),
   currentDay: 1,
   streak: 0,
+  habitChecks: {},
   sessionIds: [],
   sessionItems: [],
   sessionIndex: 0,
@@ -744,6 +745,7 @@ function saveState() {
         days: state.days,
         currentDay: state.currentDay,
         streak: state.streak,
+        habitChecks: state.habitChecks,
         settings: state.settings,
       })
     );
@@ -762,6 +764,7 @@ function loadState() {
     state.days = data.days || buildDays(data.track);
     state.currentDay = data.currentDay || 1;
     state.streak = data.streak || 0;
+    state.habitChecks = data.habitChecks && typeof data.habitChecks === "object" ? data.habitChecks : {};
     state.settings = { ...defaultSettings, ...(data.settings || {}) };
     return true;
   } catch (_) {
@@ -864,6 +867,7 @@ function selectTrack(track) {
     state.days = buildDays(track);
     state.currentDay = 1;
     state.streak = 0;
+    state.habitChecks = {};
     refreshHome();
     renderDayList();
     saveState();
@@ -882,146 +886,242 @@ function selectTrack(track) {
   }, 400);
 }
 
-function renderProgressBox() {
-  /* Home uses hero card only — day rail lives on plan screen */
+function dateKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function habitCatalog(track) {
+  if (track === "voice") {
+    return [
+      { id: "nasal", icon: "👃", title: "Nasal breathing only", sub: "Lips sealed, mouth closed", metric: "all day" },
+      { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Warm sips for easy voice", metric: "2 L" },
+      { id: "posture", icon: "🧍", title: "Tall posture", sub: "Open chest, soft neck", metric: "3 x" },
+      { id: "hum", icon: "🎵", title: "Easy hums", sub: "Feel buzz on lips & face", metric: "5 min" },
+      { id: "soft", icon: "🗣️", title: "Soft onsets", sub: "No hard glottal attacks", metric: "all day" },
+      { id: "rest", icon: "🌙", title: "Voice rest window", sub: "Quiet hour before sleep", metric: "1 h" },
+    ];
+  }
+  if (track === "both") {
+    return [
+      { id: "tongue", icon: "👅", title: "Tongue on palate", sub: "Mewing throughout the day", metric: "4 h" },
+      { id: "nasal", icon: "👃", title: "Nasal breathing only", sub: "Lips sealed, mouth closed", metric: "all day" },
+      { id: "chew", icon: "🍪", title: "Balanced chewing", sub: "Both sides, mastic gum", metric: "15 min" },
+      { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Soft tissue + easy voice", metric: "2.5 L" },
+      { id: "posture", icon: "🧍", title: "Posture resets", sub: "Chin tucks every few hours", metric: "3 x" },
+      { id: "hum", icon: "🎵", title: "Resonance check", sub: "One easy hum after speaking", metric: "2 x" },
+    ];
+  }
+  return [
+    { id: "tongue", icon: "👅", title: "Tongue on palate", sub: "Mewing throughout the day", metric: "4 h" },
+    { id: "chew", icon: "🍪", title: "Balanced chewing", sub: "Both sides, mastic gum", metric: "15 min" },
+    { id: "nasal", icon: "👃", title: "Nasal breathing only", sub: "Lips sealed, mouth closed", metric: "all day" },
+    { id: "posture", icon: "🧍", title: "Posture resets", sub: "Chin tucks every few hours", metric: "3 x" },
+    { id: "hydrate", icon: "💧", title: "Hydrate", sub: "Less bloat, sharper lines", metric: "2.5 L" },
+    { id: "sleep", icon: "😴", title: "Back sleeping", sub: "No face-down compression", metric: "7 h" },
+  ];
+}
+
+function drillCatalog(track) {
+  if (track === "voice") {
+    return [
+      { id: "hum", icon: "🎵", title: "Hum reset", sub: "Lip buzz & ease" },
+      { id: "breath", icon: "🌬️", title: "Breath ladder", sub: "Nasal 4–6 cadence" },
+      { id: "resonant", icon: "🎙️", title: "Resonance hold", sub: "Forward placement" },
+      { id: "speak", icon: "🗣️", title: "Easy speak", sub: "Soft onset lines" },
+    ];
+  }
+  if (track === "both") {
+    return [
+      { id: "jaw", icon: "💆", title: "Jaw release", sub: "Masseter massage" },
+      { id: "chin", icon: "🧍", title: "Chin tucks", sub: "Neck & posture" },
+      { id: "hum", icon: "🎵", title: "Hum reset", sub: "Voice + face buzz" },
+      { id: "breath", icon: "🌬️", title: "Breath reset", sub: "Nasal 4–6 cadence" },
+    ];
+  }
+  return [
+    { id: "jaw", icon: "💆", title: "Jaw release", sub: "Masseter massage" },
+    { id: "chin", icon: "🧍", title: "Chin tucks", sub: "Neck & posture" },
+    { id: "mew", icon: "👅", title: "Mewing hold", sub: "Tongue posture" },
+    { id: "breath", icon: "🌬️", title: "Breath reset", sub: "Nasal 4–6 cadence" },
+  ];
+}
+
+function todayHabitMap() {
+  const key = dateKey();
+  if (!state.habitChecks[key] || typeof state.habitChecks[key] !== "object") {
+    state.habitChecks[key] = {};
+  }
+  return state.habitChecks[key];
+}
+
+function isHabitDone(habitId) {
+  return Boolean(todayHabitMap()[habitId]);
+}
+
+function dayHasHabitActivity(key) {
+  const map = state.habitChecks[key];
+  return Boolean(map && Object.values(map).some(Boolean));
+}
+
+function getWeekDays() {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const dow = now.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  const labels = ["M", "T", "W", "T", "F", "S", "S"];
+  const todayKey = dateKey(now);
+
+  return labels.map((label, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const key = dateKey(d);
+    const isToday = key === todayKey;
+    const isFuture = d > now;
+    const done = !isFuture && !isToday && dayHasHabitActivity(key);
+    return { label, dayNum: d.getDate(), key, isToday, isFuture, done };
+  });
+}
+
+function focusInsight(track) {
+  if (track === "voice") {
+    return { cls: "voice", title: "Today’s focus — breath & resonance" };
+  }
+  if (track === "both") {
+    return { cls: "face", title: "Today’s focus — look & sound together" };
+  }
+  return { cls: "face", title: "Today’s focus — soft tissue & posture" };
+}
+
+function habitsLead(track) {
+  if (track === "voice") return "These drive 80% of voice presence. Tap to check off.";
+  if (track === "both") return "Face + voice habits compound. Tap to check off.";
+  return "These drive 80% of jawline results. Tap to check off.";
 }
 
 function renderTrackExtras() {
   const root = $("#track-extras");
+  if (!root) return;
   const track = state.track || "face";
+  const insight = focusInsight(track);
+  const habits = habitCatalog(track);
+  const drills = drillCatalog(track);
+  const checks = todayHabitMap();
+  const doneCount = habits.filter((h) => checks[h.id]).length;
+  const week = getWeekDays();
+  const allHabitsDone = doneCount === habits.length && habits.length > 0;
+  const weekDone =
+    week.filter((d) => d.done).length + (allHabitsDone ? 1 : 0);
+  const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
 
-  if (track === "face") {
-    root.innerHTML = `
-      <div class="extras-block">
-        <div class="insight-card face insight-pulse">
-          <h3>Today’s focus — soft tissue & posture</h3>
-        </div>
-        <h2 class="section-title focus-heading">Focus zones</h2>
-        <div class="focus-grid strips">
-          <div class="focus-tile strip purple"><span class="emoji">💎</span><strong>Jawline Focus</strong></div>
-          <div class="focus-tile strip green"><span class="emoji">✨</span><strong>Eye Brightening</strong></div>
-          <div class="focus-tile strip blue"><span class="emoji">🧘</span><strong>5-Min Face Reset</strong></div>
-          <div class="focus-tile strip teal"><span class="emoji">🦢</span><strong>Neckline Posture</strong></div>
-        </div>
-
-        <section class="feel-good" aria-label="Practice notes">
-          <h2 class="section-title focus-heading">After you train</h2>
-          <p class="feel-lead">Small wins stack. Keep it gentle — tone, posture, and habit.</p>
-          <div class="feel-list">
-            <article class="feel-card feel-water">
-              <span class="feel-icon" aria-hidden="true">💧</span>
-              <div>
-                <strong class="feel-card-title">Sip water</strong>
-                <p>Hydration helps soft tissue feel less tight after massage and holds.</p>
-              </div>
-            </article>
-            <article class="feel-card feel-jaw">
-              <span class="feel-icon" aria-hidden="true">😌</span>
-              <div>
-                <strong class="feel-card-title">Unclench the jaw</strong>
-                <p>Rest the tongue on the palate. Soft face = better recovery.</p>
-              </div>
-            </article>
-            <article class="feel-card feel-safe">
-              <span class="feel-icon" aria-hidden="true">🌙</span>
-              <div>
-                <strong class="feel-card-title">Stop if it hurts</strong>
-                <p>Pressure should feel relieving. Sharp pain means ease off.</p>
-              </div>
-            </article>
-          </div>
-        </section>
-      </div>`;
-    return;
-  }
-
-  if (track === "voice") {
-    root.innerHTML = `
-      <div class="extras-block">
-        <div class="insight-card voice insight-pulse">
-          <h3>Today’s focus — breath & resonance</h3>
-        </div>
-        <h2 class="section-title focus-heading">Focus zones</h2>
-        <div class="focus-grid strips">
-          <div class="focus-tile strip teal"><span class="emoji">🎙️</span><strong>Deep Voice Drills</strong></div>
-          <div class="focus-tile strip purple"><span class="emoji">🎵</span><strong>Resonance Hum</strong></div>
-          <div class="focus-tile strip blue"><span class="emoji">🌬️</span><strong>Diaphragm Steady</strong></div>
-          <div class="focus-tile strip green"><span class="emoji">🗣️</span><strong>Confident Speaking</strong></div>
-        </div>
-
-        <section class="feel-good" aria-label="Practice notes">
-          <h2 class="section-title focus-heading">After you train</h2>
-          <p class="feel-lead">Protect the voice. Easy air, easy pitch — never strain.</p>
-          <div class="feel-list">
-            <article class="feel-card feel-water">
-              <span class="feel-icon" aria-hidden="true">💧</span>
-              <div>
-                <strong class="feel-card-title">Sip warm water</strong>
-                <p>Keeps the throat comfortable after humming and breath work.</p>
-              </div>
-            </article>
-            <article class="feel-card feel-jaw">
-              <span class="feel-icon" aria-hidden="true">🎶</span>
-              <div>
-                <strong class="feel-card-title">Stay in easy range</strong>
-                <p>If it feels pressed or hoarse, stop. Habit change is gradual.</p>
-              </div>
-            </article>
-            <article class="feel-card feel-safe">
-              <span class="feel-icon" aria-hidden="true">🫁</span>
-              <div>
-                <strong class="feel-card-title">Reset the breath</strong>
-                <p>One quiet nasal inhale, long soft exhale — shoulders down.</p>
-              </div>
-            </article>
-          </div>
-        </section>
-      </div>`;
-    return;
-  }
-
-  // Full Presence — same shell, face + voice content
   root.innerHTML = `
     <div class="extras-block">
-      <div class="insight-card face insight-pulse">
-        <h3>Today’s focus — look & sound together</h3>
-      </div>
-      <h2 class="section-title focus-heading">Focus zones</h2>
-      <div class="focus-grid strips">
-        <div class="focus-tile strip purple"><span class="emoji">💎</span><strong>Jawline Focus</strong></div>
-        <div class="focus-tile strip teal"><span class="emoji">🎙️</span><strong>Deep Voice Drills</strong></div>
-        <div class="focus-tile strip green"><span class="emoji">✨</span><strong>Eye Brightening</strong></div>
-        <div class="focus-tile strip blue"><span class="emoji">🌬️</span><strong>Diaphragm Steady</strong></div>
+      <div class="insight-card ${insight.cls} insight-pulse">
+        <h3>${insight.title}</h3>
       </div>
 
-      <section class="feel-good" aria-label="Practice notes">
-        <h2 class="section-title focus-heading">After you train</h2>
-        <p class="feel-lead">Face soft. Voice easy. Presence without pressure.</p>
-        <div class="feel-list">
-          <article class="feel-card feel-water">
-            <span class="feel-icon" aria-hidden="true">💧</span>
-            <div>
-              <strong class="feel-card-title">Hydrate both ways</strong>
-              <p>Water supports soft tissue recovery and a comfortable speaking voice.</p>
-            </div>
-          </article>
-          <article class="feel-card feel-jaw">
-            <span class="feel-icon" aria-hidden="true">🪞</span>
-            <div>
-              <strong class="feel-card-title">Soft face, open throat</strong>
-              <p>Unclench the jaw and keep the neck easy after face + voice work.</p>
-            </div>
-          </article>
-          <article class="feel-card feel-safe">
-            <span class="feel-icon" aria-hidden="true">✦</span>
-            <div>
-              <strong class="feel-card-title">Never force either</strong>
-              <p>No bone claims. No larynx strain. Stop if anything feels sharp.</p>
-            </div>
-          </article>
+      <section class="home-panel week-panel" aria-label="This week">
+        <div class="panel-head">
+          <h2 class="panel-title">This week</h2>
+          <span class="panel-meta">${weekDone} of 7 done</span>
+        </div>
+        <div class="week-strip" role="list">
+          ${week
+            .map((d) => {
+              let cls = "week-day";
+              if (d.done) cls += " done";
+              if (d.isToday) cls += " today";
+              if (d.isFuture) cls += " future";
+              const inner = d.done
+                ? `<span class="week-check" aria-hidden="true">✓</span>`
+                : `<span class="week-num">${d.dayNum}</span>`;
+              return `<div class="${cls}" role="listitem" title="${d.label}">
+                <span class="week-label">${d.label}</span>
+                <div class="week-circle">${inner}</div>
+              </div>`;
+            })
+            .join("")}
+        </div>
+      </section>
+
+      <section class="home-panel habits-panel" aria-label="Daily habits">
+        <div class="habits-head">
+          <div class="habits-copy">
+            <h2 class="panel-title">Daily habits</h2>
+            <p class="panel-sub">${habitsLead(track)}</p>
+          </div>
+          <span class="habits-count">${doneCount}/${habits.length}</span>
+        </div>
+        <div class="habits-progress" aria-hidden="true">
+          <div class="habits-progress-fill" style="width:${progressPct}%"></div>
+        </div>
+        <div class="habits-list">
+          ${habits
+            .map((h) => {
+              const on = Boolean(checks[h.id]);
+              return `<button type="button" class="habit-card${on ? " on" : ""}" data-habit-id="${h.id}" aria-pressed="${on}">
+                <span class="habit-icon" aria-hidden="true">${on ? "✓" : h.icon}</span>
+                <span class="habit-text">
+                  <strong>${h.title}</strong>
+                  <span>${h.sub}</span>
+                </span>
+                <span class="habit-metric">${h.metric}</span>
+              </button>`;
+            })
+            .join("")}
+        </div>
+      </section>
+
+      <section class="home-panel drills-panel" aria-label="60-second drills">
+        <div class="panel-head">
+          <h2 class="panel-title">60-second drills</h2>
+          <span class="panel-meta drills-anytime"><span aria-hidden="true">⏱</span> anytime</span>
+        </div>
+        <div class="drills-grid">
+          ${drills
+            .map(
+              (d) => `<button type="button" class="drill-card" data-drill="${d.title}">
+              <span class="drill-icon" aria-hidden="true">${d.icon}</span>
+              <strong>${d.title}</strong>
+              <span class="drill-sub">${d.sub}</span>
+              <span class="drill-start">Start ›</span>
+            </button>`
+            )
+            .join("")}
         </div>
       </section>
     </div>`;
+
+  bindTrackExtras();
+}
+
+function bindTrackExtras() {
+  const root = $("#track-extras");
+  if (!root || root.dataset.bound === "1") return;
+  root.dataset.bound = "1";
+  root.addEventListener("click", (e) => {
+    const habitBtn = e.target.closest("[data-habit-id]");
+    if (habitBtn) {
+      const id = habitBtn.dataset.habitId;
+      const map = todayHabitMap();
+      map[id] = !map[id];
+      saveState();
+      renderTrackExtras();
+      return;
+    }
+    const drillBtn = e.target.closest("[data-drill]");
+    if (drillBtn) {
+      showToast(`${drillBtn.dataset.drill} — 60s drill ready`);
+    }
+  });
+}
+
+function renderProgressBox() {
+  /* Home uses hero card only — day rail lives on plan screen */
 }
 
 function refreshHome() {
