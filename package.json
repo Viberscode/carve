@@ -1,0 +1,9 @@
+{
+  "name": "carve",
+  "private": true,
+  "scripts": {
+    "dev": "python serve.py",
+    "start": "python serve.py",
+    "app": "npm --prefix app start"
+  }
+}
