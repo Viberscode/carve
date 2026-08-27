@@ -1176,8 +1176,6 @@ function refreshHome() {
   if (heroRing) heroRing.style.setProperty("--pct", String(Math.round(pct)));
   const heroRingLabel = $("#hero-ring-label");
   if (heroRingLabel) heroRingLabel.textContent = `${Math.round(pct)}%`;
-  const heroMeta = $("#hero-meta");
-  if (heroMeta) heroMeta.textContent = `9 min · ${meta.label || "Focused training"}`;
   $("#plan-bar").style.width = `${pct}%`;
   $("#days-left").textContent = String(30 - sessionsDone);
   $("#minutes-trained").textContent = `${sessionsDone * 9} min`;
