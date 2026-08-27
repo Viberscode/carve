@@ -2410,6 +2410,16 @@ button {
   min-height: 42px;
 }
 
+.reports-photos-slot-label {
+  margin: 0 0 10px;
+  font-family: "Montserrat", "Outfit", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #5b6d90;
+}
+
 .face-analysis-error {
   margin-top: 10px;
   padding: 10px 12px;

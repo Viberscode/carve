@@ -829,7 +829,10 @@ function formatTime(sec) {
 }
 
 function showView(id) {
-  if (id !== "reports") stopFaceCamera();
+  if (id !== "reports") {
+    stopFaceCamera();
+    stopProgressCamera();
+  }
   $$(".view").forEach((v) => {
     v.hidden = true;
     v.classList.remove("view-active");
@@ -1359,10 +1362,10 @@ function renderReportPhotos() {
           <span>${label}</span>
         </button>`;
       }
-      return `<button type="button" class="reports-photo" data-photo-slot="${key}" aria-label="Add ${label} photo">
+      return `<button type="button" class="reports-photo" data-photo-slot="${key}" aria-label="Capture ${label} photo">
         <span class="reports-photo-plus" aria-hidden="true">＋</span>
         <strong>${label}</strong>
-        <span class="reports-photo-hint">Tap to add</span>
+        <span class="reports-photo-hint">Tap to capture</span>
       </button>`;
     })
     .join("");
@@ -1497,6 +1500,7 @@ function renderFaceAnalysis() {
 
 async function startFaceCamera() {
   const meta = $("#face-analysis-meta");
+  stopProgressCamera();
   stopFaceCamera();
 
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -1613,36 +1617,161 @@ function cancelFaceCamera() {
 }
 
 function openReportsPhotoPicker(slot) {
-  const input = $("#reports-photo-input");
-  if (!input) return;
-  input.dataset.slot = slot;
-  input.value = "";
-  input.click();
+  startProgressCamera(slot);
 }
 
-function handleReportsPhotoSelected(file) {
-  const input = $("#reports-photo-input");
-  const slot = input?.dataset.slot;
-  if (!file || !slot) return;
-  if (!file.type.startsWith("image/")) {
-    showToast("Choose an image file");
+let progressCamStream = null;
+let progressPhotoSlot = null;
+
+function stopProgressCamera() {
+  if (progressCamStream) {
+    progressCamStream.getTracks().forEach((t) => t.stop());
+    progressCamStream = null;
+  }
+  const video = $("#reports-photo-video");
+  if (video) video.srcObject = null;
+  progressPhotoSlot = null;
+  const grid = $("#reports-photos-grid-wrap");
+  const cam = $("#reports-photos-camera");
+  const err = $("#reports-photos-error");
+  const meta = $("#reports-photos-meta");
+  if (grid) grid.hidden = false;
+  if (cam) cam.hidden = true;
+  if (err) {
+    err.hidden = true;
+    err.textContent = "";
+  }
+  if (meta) meta.textContent = "On-device only";
+}
+
+function setProgressPhotoError(msg) {
+  const err = $("#reports-photos-error");
+  if (!err) return;
+  if (msg) {
+    err.hidden = false;
+    err.textContent = msg;
+  } else {
+    err.hidden = true;
+    err.textContent = "";
+  }
+}
+
+function preferredProgressPhotoSlot() {
+  const photos = loadReportPhotos();
+  const weekNum = Math.min(4, Math.max(1, Math.ceil((state.currentDay || 1) / 7)));
+  const preferred = `week${weekNum}`;
+  return photos[preferred]
+    ? ["week1", "week2", "week3", "week4"].find((k) => !photos[k]) || preferred
+    : preferred;
+}
+
+async function startProgressCamera(slot) {
+  stopFaceCamera();
+  stopProgressCamera();
+
+  const key = slot || preferredProgressPhotoSlot();
+  progressPhotoSlot = key;
+  const labelMap = { week1: "Week 1", week2: "Week 2", week3: "Week 3", week4: "Week 4" };
+  const slotLabel = $("#reports-photos-slot-label");
+  if (slotLabel) slotLabel.textContent = labelMap[key] || "Progress photo";
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    setProgressPhotoError("Camera not supported in this browser.");
     return;
   }
-  const reader = new FileReader();
-  reader.onload = () => {
-    const result = String(reader.result || "");
-    // Keep storage light — skip huge payloads
-    if (result.length > 900000) {
-      showToast("Photo too large — try a smaller image");
-      return;
-    }
-    const photos = loadReportPhotos();
-    photos[slot] = result;
-    saveReportPhotos(photos);
-    renderReportPhotos();
-    showToast("Progress photo saved on this device");
-  };
-  reader.readAsDataURL(file);
+
+  try {
+    progressCamStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: "user",
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+    });
+  } catch (_) {
+    setProgressPhotoError("Could not access camera. Allow permission and try again.");
+    return;
+  }
+
+  const video = $("#reports-photo-video");
+  const grid = $("#reports-photos-grid-wrap");
+  const cam = $("#reports-photos-camera");
+  const meta = $("#reports-photos-meta");
+  if (!video || !cam) {
+    stopProgressCamera();
+    return;
+  }
+  video.srcObject = progressCamStream;
+  try {
+    await video.play();
+  } catch (_) {
+    /* autoplay may already be running */
+  }
+  if (grid) grid.hidden = true;
+  cam.hidden = false;
+  setProgressPhotoError("");
+  if (meta) meta.textContent = "Live";
+}
+
+function captureProgressFrameDataUrl() {
+  const video = $("#reports-photo-video");
+  const canvas = $("#reports-photo-canvas");
+  if (!video || !canvas) throw new Error("Image load failure");
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+  if (!w || !h) throw new Error("Image load failure");
+
+  const maxW = 720;
+  const scale = w > maxW ? maxW / w : 1;
+  const cw = Math.round(w * scale);
+  const ch = Math.round(h * scale);
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext("2d");
+  ctx.save();
+  ctx.translate(cw, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, cw, ch);
+  ctx.restore();
+
+  let quality = 0.82;
+  let dataUrl = canvas.toDataURL("image/jpeg", quality);
+  while (dataUrl.length > 900000 && quality > 0.45) {
+    quality -= 0.1;
+    dataUrl = canvas.toDataURL("image/jpeg", quality);
+  }
+  if (dataUrl.length > 900000) throw new Error("Photo too large");
+  return dataUrl;
+}
+
+function captureProgressPhoto() {
+  if (!progressPhotoSlot) {
+    setProgressPhotoError("Pick a week slot, then capture.");
+    return;
+  }
+  let dataUrl;
+  try {
+    dataUrl = captureProgressFrameDataUrl();
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+    if (/too large/i.test(msg)) setProgressPhotoError("Photo too large — try again with steadier framing.");
+    else setProgressPhotoError("Camera not ready yet. Wait a moment, then capture.");
+    return;
+  }
+
+  const slot = progressPhotoSlot;
+  const photos = loadReportPhotos();
+  photos[slot] = dataUrl;
+  saveReportPhotos(photos);
+  stopProgressCamera();
+  renderReportPhotos();
+  renderReports();
+  showToast("Progress photo saved on this device");
+}
+
+function cancelProgressCamera() {
+  stopProgressCamera();
 }
 
 function renderDayList() {
@@ -2185,15 +2314,19 @@ function bind() {
     reportsRoot.addEventListener("click", (e) => {
       const photoBtn = e.target.closest("[data-photo-slot]");
       if (photoBtn) {
-        openReportsPhotoPicker(photoBtn.dataset.photoSlot);
+        startProgressCamera(photoBtn.dataset.photoSlot);
         return;
       }
       if (e.target.closest("#btn-reports-add-photo")) {
-        const photos = loadReportPhotos();
-        const weekNum = Math.min(4, Math.max(1, Math.ceil((state.currentDay || 1) / 7)));
-        const preferred = `week${weekNum}`;
-        const fallback = ["week1", "week2", "week3", "week4"].find((k) => !photos[k]) || preferred;
-        openReportsPhotoPicker(photos[preferred] ? fallback : preferred);
+        startProgressCamera(preferredProgressPhotoSlot());
+        return;
+      }
+      if (e.target.closest("#btn-reports-photo-capture")) {
+        captureProgressPhoto();
+        return;
+      }
+      if (e.target.closest("#btn-reports-photo-cancel")) {
+        cancelProgressCamera();
         return;
       }
       if (
@@ -2213,10 +2346,6 @@ function bind() {
     });
   }
 
-  $("#reports-photo-input")?.addEventListener("change", (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) handleReportsPhotoSelected(file);
-  });
   $("#btn-skip").addEventListener("click", () => {
     clearPlayerTimer();
     beginActive();

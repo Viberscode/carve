@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=hero3" />
+  <link rel="stylesheet" href="styles.css?v=photoCam1" />
 </head>
 <body>
   <div class="device">
@@ -190,17 +190,33 @@
                 <p class="reports-photos-kicker">Visual progress</p>
                 <h2 class="card-title">Progress photos</h2>
               </div>
-              <span class="panel-meta">On-device only</span>
+              <span class="panel-meta" id="reports-photos-meta">On-device only</span>
             </div>
             <p class="muted reports-photos-lead">
               Capture the same angle and light each week. Photos stay on this device — never uploaded.
             </p>
-            <div class="reports-photos reports-photos-lg" id="reports-photos"></div>
-            <button type="button" class="reports-photo-cta" id="btn-reports-add-photo">
-              <span aria-hidden="true">📷</span>
-              Add this week’s photo
-            </button>
-            <input type="file" id="reports-photo-input" accept="image/*" hidden />
+            <div id="reports-photos-grid-wrap">
+              <div class="reports-photos reports-photos-lg" id="reports-photos"></div>
+              <button type="button" class="reports-photo-cta" id="btn-reports-add-photo">
+                Capture this week’s photo
+              </button>
+            </div>
+            <div id="reports-photos-camera" hidden>
+              <p class="reports-photos-slot-label" id="reports-photos-slot-label">Week 1</p>
+              <div class="face-analysis-video-wrap">
+                <video id="reports-photo-video" playsinline autoplay muted></video>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-reports-photo-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-reports-photo-capture">
+                  Capture photo
+                </button>
+              </div>
+            </div>
+            <p id="reports-photos-error" class="face-analysis-error" hidden></p>
+            <canvas id="reports-photo-canvas" hidden></canvas>
           </div>
 
           <div class="card reports-card" id="reports-face-analysis-card">
@@ -610,6 +626,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=2"></script>
-  <script src="script.js?v=hero3"></script>
+  <script src="script.js?v=photoCam1"></script>
 </body>
 </html>
