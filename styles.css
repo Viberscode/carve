@@ -465,46 +465,65 @@ button {
   font-size: 14px;
 }
 
-/* Hero card */
+/* Hero card — premium fitness session */
 .hero-card {
   position: relative;
   width: 100%;
   text-align: left;
-  border-radius: 28px;
-  padding: 22px 20px 18px;
-  min-height: 200px;
-  background:
-    linear-gradient(145deg, #3a5cf0 0%, #1e3fe0 38%, #0b1f8f 100%);
+  border-radius: 24px;
+  padding: 0;
+  min-height: 0;
+  background: #0c1222;
   color: var(--white);
   overflow: hidden;
   margin-bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  border: 1px solid #ffffff28;
+  border: 1px solid #ffffff14;
   box-shadow:
-    0 18px 40px #1e3fe055,
-    0 2px 0 #ffffff22 inset,
-    0 -1px 0 #00000022 inset;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+    0 20px 48px #0a122855,
+    0 1px 0 #ffffff12 inset;
+  transition: transform 0.18s ease, box-shadow 0.22s ease;
 }
 
 .hero-card:active {
   transform: scale(0.985);
   box-shadow:
-    0 12px 28px #1e3fe044,
-    0 2px 0 #ffffff22 inset;
+    0 12px 28px #0a122844,
+    0 1px 0 #ffffff10 inset;
 }
 
-.hero-glow {
+.hero-bg {
   position: absolute;
-  inset: -20% -10% auto auto;
-  width: 70%;
-  height: 70%;
-  background:
-    radial-gradient(circle at 70% 20%, #9db8ff88, transparent 55%),
-    radial-gradient(circle at 100% 80%, #7b5cff44, transparent 50%);
+  inset: 0;
   pointer-events: none;
+  background:
+    linear-gradient(115deg, #10182c 0%, #0c1222 42%, #132045 100%),
+    radial-gradient(ellipse 80% 70% at 100% 0%, #1e3fe055, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 0% 100%, #2bb67322, transparent 50%);
+}
+
+.hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(#ffffff08 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(135deg, transparent 20%, #000 70%);
+}
+
+.hero-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 20px 8px;
 }
 
 .hero-plan-link {
@@ -556,31 +575,21 @@ button {
   color: var(--blue);
 }
 
-.hero-dots {
-  position: absolute;
-  right: 8px;
-  bottom: 40px;
-  width: 120px;
-  height: 100px;
-  opacity: 0.16;
-  background-image: radial-gradient(circle, #fff 1.5px, transparent 1.6px);
-  background-size: 14px 14px;
-  pointer-events: none;
-}
-
 .hero-copy {
   position: relative;
   z-index: 1;
-  max-width: 70%;
+  max-width: none;
+  flex: 1;
+  min-width: 0;
 }
 
 .hero-kicker {
   font-family: "Montserrat", "Outfit", sans-serif;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #ffffffb8;
+  color: #8ea0c8;
   margin-bottom: 10px;
 }
 
@@ -604,60 +613,108 @@ button {
 
 .hero-day {
   font-family: var(--font-display);
-  font-size: 42px;
+  font-size: 44px;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   margin: 0 0 8px;
-  line-height: 0.95;
-  text-shadow: 0 8px 24px #00000033;
+  line-height: 0.92;
+  color: #fff;
+}
+
+.hero-meta {
+  font-family: "Montserrat", "Outfit", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a8b6d4;
+  letter-spacing: 0.01em;
+}
+
+.hero-ring {
+  --pct: 0;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, #0c1222 62%, transparent 63%),
+    conic-gradient(#3d6bff 0%, #57e0a0 calc(var(--pct) * 1%), #ffffff18 0);
+  box-shadow: 0 8px 24px #00000055;
+}
+
+.hero-ring span {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.hero-foot {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  padding: 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: linear-gradient(180deg, transparent, #00000044);
+  border-top: 1px solid #ffffff12;
+}
+
+.hero-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hero-progress-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #ffffff18;
+  overflow: hidden;
+}
+
+.hero-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #3d6bff, #57e0a0);
+  min-width: 0;
+  transition: width 0.35s ease;
 }
 
 .hero-progress-label {
-  font-size: 13px;
-  font-weight: 600;
-  opacity: 0.88;
-  margin-bottom: 10px;
-  letter-spacing: 0.02em;
-}
-
-.hero-card .bar.bar-light {
-  height: 6px;
-  border-radius: 999px;
-  background: #ffffff28;
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px #00000022;
-}
-
-.hero-card .bar.bar-light .bar-fill {
-  background: linear-gradient(90deg, #ffffff, #c9d6ff);
-  box-shadow: 0 0 12px #ffffff66;
-}
-
-.hero-art {
-  position: absolute;
-  right: 6px;
-  top: 22px;
-  font-size: 92px;
-  line-height: 1;
-  opacity: 0.92;
-  filter: drop-shadow(0 12px 24px #00000044);
+  font-family: "Montserrat", "Outfit", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8ea0c8;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0;
+  opacity: 1;
 }
 
 .hero-cta {
-  margin-top: auto;
-  align-self: stretch;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #f5f7ff 0%, #ffffff 100%);
+  color: #0c1222;
+  font-family: "Montserrat", "Outfit", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 24px #00000040;
 }
 
-.hero-card .pill.pill-white.hero-cta {
-  border-radius: 999px;
-  font-family: var(--font-display);
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  box-shadow: 0 10px 24px #00000033;
+.hero-card:hover .hero-cta,
+.hero-card:focus-visible .hero-cta {
+  background: #fff;
 }
 
 .section-title {

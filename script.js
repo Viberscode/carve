@@ -1172,11 +1172,16 @@ function refreshHome() {
   }
   const pct = (sessionsDone / 30) * 100;
   $("#hero-bar").style.width = `${pct}%`;
+  const heroRing = $("#hero-ring");
+  if (heroRing) heroRing.style.setProperty("--pct", String(Math.round(pct)));
+  const heroRingLabel = $("#hero-ring-label");
+  if (heroRingLabel) heroRingLabel.textContent = `${Math.round(pct)}%`;
+  const heroMeta = $("#hero-meta");
+  if (heroMeta) heroMeta.textContent = `9 min · ${meta.label || "Focused training"}`;
   $("#plan-bar").style.width = `${pct}%`;
   $("#days-left").textContent = String(30 - sessionsDone);
   $("#minutes-trained").textContent = `${sessionsDone * 9} min`;
   $("#volume-bar").style.width = `${pct}%`;
-  $("#hero-art") && ($("#hero-art").textContent = meta.art);
   const heroSub = $("#hero-sub");
   if (heroSub) heroSub.textContent = meta.subtitle;
   const heroDiff = $("#hero-diff");
@@ -1191,7 +1196,7 @@ function refreshHome() {
   const heroStart = $("#hero-start-label");
   if (heroStart && today) {
     heroStart.textContent =
-      today.status !== "done" && (today.doneCount || today.percent) > 0 ? "CONTINUE" : "START";
+      today.status !== "done" && (today.doneCount || today.percent) > 0 ? "Continue session" : "Start session";
   }
   const profileName = $("#profile-name");
   if (profileName) profileName.textContent = state.profileName || "Priya";
@@ -1733,7 +1738,8 @@ function updateStartCta(day) {
   }
 
   if (heroLabel && day.n === state.currentDay) {
-    heroLabel.textContent = day.status !== "done" && done > 0 ? "CONTINUE" : "START";
+    heroLabel.textContent =
+      day.status !== "done" && done > 0 ? "Continue session" : "Start session";
   }
 }
 
