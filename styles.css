@@ -59,13 +59,22 @@ button {
 
 /* ========== LANDING ========== */
 .landing {
+  --landing-ink: #05070a;
+  --landing-ink-2: #0a0f1d;
+  --landing-muted: #a0a4b0;
+  --landing-soft: #c6cad3;
+  --landing-amber: #e08e6d;
+  --landing-amber-hot: #f0a07a;
+  --landing-glass: rgba(22, 26, 36, 0.42);
+  --landing-glass-border: rgba(255, 255, 255, 0.16);
   position: relative;
-  background: #05070d;
-  color: var(--white);
+  background: var(--landing-ink);
+  color: #ffffff;
   min-height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  font-family: "Montserrat", "Outfit", system-ui, sans-serif;
 }
 
 .landing-bg {
@@ -73,17 +82,17 @@ button {
   inset: 0;
   background:
     url("assets/landing-portrait.png")
-      68% 12% / cover no-repeat;
-  transform: scale(1.03);
-  animation: landingKen 20s ease-in-out infinite alternate;
+      72% 8% / cover no-repeat;
+  transform: scale(1.02);
+  animation: landingKen 22s ease-in-out infinite alternate;
 }
 
 @keyframes landingKen {
   from {
-    transform: scale(1.03) translate3d(0, 0, 0);
+    transform: scale(1.02) translate3d(0, 0, 0);
   }
   to {
-    transform: scale(1.08) translate3d(-1.5%, -1.5%, 0);
+    transform: scale(1.06) translate3d(-1%, -1%, 0);
   }
 }
 
@@ -92,16 +101,16 @@ button {
   inset: 0;
   background:
     linear-gradient(
-      105deg,
-      #05070df2 0%,
-      #05070de6 28%,
-      #05070c88 48%,
-      #05070c22 62%,
-      transparent 78%
+      100deg,
+      #05070af5 0%,
+      #05070aee 24%,
+      #05070ab8 42%,
+      #05070a55 58%,
+      transparent 76%
     ),
-    linear-gradient(180deg, #05070c66 0%, transparent 22%, transparent 48%, #05070ccc 72%, #05070c 100%),
-    radial-gradient(ellipse 55% 45% at 88% 42%, #ff7a2e55, transparent 70%),
-    radial-gradient(ellipse 50% 40% at 12% 30%, #1b2a55aa, transparent 65%);
+    linear-gradient(180deg, #05070a55 0%, transparent 18%, transparent 52%, #05070ad0 78%, #05070a 100%),
+    radial-gradient(ellipse 48% 42% at 92% 38%, rgba(224, 142, 109, 0.38), transparent 68%),
+    radial-gradient(ellipse 42% 36% at 8% 28%, rgba(20, 32, 68, 0.55), transparent 70%);
   pointer-events: none;
 }
 
@@ -111,66 +120,67 @@ button {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: calc(34px + var(--safe-t)) 22px calc(26px + var(--safe-b));
+  padding: calc(36px + var(--safe-t)) 22px calc(24px + var(--safe-b));
   min-height: 100%;
 }
 
 .landing-head {
-  max-width: 78%;
+  max-width: 82%;
 }
 
 .landing-kicker {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.24em;
+  font-weight: 500;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: #ffffff9e;
-  margin-bottom: 14px;
+  color: var(--landing-muted);
+  margin-bottom: 16px;
 }
 
 .landing-brand {
-  font-family: "Syne", "Outfit", sans-serif;
-  font-size: clamp(52px, 14vw, 64px);
+  font-family: "Montserrat", sans-serif;
+  font-size: clamp(54px, 15vw, 68px);
   font-weight: 800;
-  letter-spacing: 0.04em;
-  line-height: 0.92;
-  margin-bottom: 16px;
-  text-shadow: 0 8px 30px #00000066;
+  letter-spacing: 0.08em;
+  line-height: 0.9;
+  margin-bottom: 18px;
+  color: #ffffff;
+  text-shadow: 0 10px 36px rgba(0, 0, 0, 0.45);
 }
 
 .landing-tag {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 500;
-  line-height: 1.45;
-  color: #fffffff0;
+  line-height: 1.5;
+  color: #f2f3f6;
   margin: 0;
-  max-width: 240px;
-  text-shadow: 0 4px 18px #00000088;
+  max-width: 250px;
+  text-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
 }
 
 .track-choices {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
   margin-top: auto;
-  margin-bottom: 22px;
-  padding-top: 36px;
+  margin-bottom: 20px;
+  padding-top: 40px;
 }
 
 .track-card {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 13px;
   width: 100%;
   text-align: left;
-  padding: 15px 14px;
-  border-radius: 18px;
-  background: rgba(18, 20, 28, 0.48);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(18px) saturate(1.15);
-  -webkit-backdrop-filter: blur(18px) saturate(1.15);
-  box-shadow: 0 10px 28px #00000033;
-  color: var(--white);
+  padding: 14px 14px 14px 13px;
+  border-radius: 22px;
+  background: var(--landing-glass);
+  border: 1px solid var(--landing-glass-border);
+  backdrop-filter: blur(22px) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  color: #ffffff;
   transition:
     transform 0.15s ease,
     background 0.2s ease,
@@ -180,7 +190,7 @@ button {
 
 .track-card:hover,
 .track-card:focus-visible {
-  background: rgba(24, 26, 36, 0.58);
+  background: rgba(28, 32, 44, 0.55);
   border-color: rgba(255, 255, 255, 0.28);
   outline: none;
 }
@@ -190,23 +200,24 @@ button {
 }
 
 .track-card-face {
-  border-color: rgba(255, 140, 66, 0.72);
+  border-color: rgba(224, 142, 109, 0.85);
   box-shadow:
-    0 0 0 1px rgba(255, 122, 46, 0.18),
-    0 0 22px rgba(255, 122, 46, 0.28),
-    0 10px 28px #00000040;
+    0 0 0 1px rgba(240, 160, 122, 0.22),
+    0 0 26px rgba(224, 142, 109, 0.34),
+    inset 0 0 18px rgba(224, 142, 109, 0.06),
+    0 12px 30px rgba(0, 0, 0, 0.32);
 }
 
 .track-icon {
-  width: 44px;
-  height: 44px;
+  width: 42px;
+  height: 42px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.14);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  color: #ffffffd9;
+  color: #e8ebf0;
   box-shadow: none;
 }
 
@@ -219,20 +230,21 @@ button {
 }
 
 .track-name {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.01em;
+  color: #ffffff;
 }
 
 .track-desc {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 1.35;
-  color: #ffffffa3;
+  color: var(--landing-muted);
 }
 
 .track-arrow {
-  color: #ffffffcc;
+  color: rgba(255, 255, 255, 0.82);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -256,20 +268,21 @@ button {
   align-items: center;
   gap: 12px;
   margin-top: 2px;
-  padding-top: 18px;
+  padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .landing-mark {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, transparent 52%, rgba(255, 122, 46, 0.95) 53%, rgba(255, 122, 46, 0.95) 62%, transparent 63%),
-    rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 14px rgba(255, 122, 46, 0.35);
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-top-color: var(--landing-amber);
+  border-right-color: var(--landing-amber-hot);
+  box-shadow: 0 0 16px rgba(224, 142, 109, 0.4);
   flex-shrink: 0;
+  transform: rotate(-25deg);
 }
 
 .landing-mark svg {
@@ -279,15 +292,15 @@ button {
 .landing-foot-title {
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #fffffff2;
+  letter-spacing: 0.005em;
+  color: #ffffff;
 }
 
 .landing-foot-sub {
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  color: #ffffff8f;
+  color: var(--landing-muted);
   margin-top: 2px;
 }
 
