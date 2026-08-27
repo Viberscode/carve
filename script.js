@@ -990,16 +990,6 @@ function getWeekDays() {
   });
 }
 
-function focusInsight(track) {
-  if (track === "voice") {
-    return { cls: "voice", title: "Today’s focus — breath & resonance" };
-  }
-  if (track === "both") {
-    return { cls: "face", title: "Today’s focus — look & sound together" };
-  }
-  return { cls: "face", title: "Today’s focus — soft tissue & posture" };
-}
-
 function habitsLead(track) {
   if (track === "voice") return "Tap to check off today’s voice cues.";
   if (track === "both") return "Tap to check off face + voice cues.";
@@ -1047,7 +1037,6 @@ function renderTrackExtras() {
   const root = $("#track-extras");
   if (!root) return;
   const track = state.track || "face";
-  const insight = focusInsight(track);
   const habits = habitCatalog(track);
   const notes = careNotes(track);
   const checks = todayHabitMap();
@@ -1058,10 +1047,6 @@ function renderTrackExtras() {
 
   root.innerHTML = `
     <div class="extras-block">
-      <div class="insight-card ${insight.cls} insight-pulse">
-        <h3>${insight.title}</h3>
-      </div>
-
       <section class="home-panel habits-panel" aria-label="Daily habits">
         <div class="habits-shell">
           <div class="habits-head">
