@@ -460,7 +460,7 @@ button {
   background: var(--grad);
   color: var(--white);
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -472,8 +472,52 @@ button {
 }
 
 .hero-plan-link {
-  text-align: center;
-  margin: 0 0 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 18px 0;
+}
+
+.plan-box-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-height: 52px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1.5px solid #d7defe;
+  box-shadow: 0 6px 18px #1e3fe012;
+  color: var(--blue);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.plan-box-btn:hover,
+.plan-box-btn:focus-visible {
+  background: #f4f7ff;
+  border-color: #b8c4ff;
+  outline: none;
+}
+
+.plan-box-btn:active {
+  transform: scale(0.985);
+}
+
+.plan-box-arrow {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--blue);
 }
 
 .hero-dots {
@@ -796,12 +840,14 @@ button {
 }
 
 .extras-block {
+  margin-top: 0;
   margin-bottom: 24px;
 }
 
 .insight-card {
   border-radius: var(--radius);
   padding: 18px;
+  margin-top: 0;
   margin-bottom: 16px;
   color: var(--white);
   position: relative;
