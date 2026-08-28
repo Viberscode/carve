@@ -702,6 +702,7 @@ const state = {
   days: buildDays("face"),
   currentDay: 1,
   streak: 0,
+  sessionDates: {},
   habitChecks: {},
   profileName: "Priya",
   memberSince: "Jul 2026",
@@ -747,6 +748,7 @@ function saveState() {
         days: state.days,
         currentDay: state.currentDay,
         streak: state.streak,
+        sessionDates: state.sessionDates,
         habitChecks: state.habitChecks,
         profileName: state.profileName,
         memberSince: state.memberSince,
@@ -768,6 +770,8 @@ function loadState() {
     state.days = data.days || buildDays(data.track);
     state.currentDay = data.currentDay || 1;
     state.streak = data.streak || 0;
+    state.sessionDates =
+      data.sessionDates && typeof data.sessionDates === "object" ? data.sessionDates : {};
     state.habitChecks = data.habitChecks && typeof data.habitChecks === "object" ? data.habitChecks : {};
     state.profileName = data.profileName || "Priya";
     state.memberSince = data.memberSince || "Jul 2026";
@@ -878,6 +882,7 @@ function selectTrack(track) {
     state.days = buildDays(track);
     state.currentDay = 1;
     state.streak = 0;
+    state.sessionDates = {};
     state.habitChecks = {};
     refreshHome();
     renderDayList();
@@ -967,6 +972,36 @@ function isHabitDone(habitId) {
 function dayHasHabitActivity(key) {
   const map = state.habitChecks[key];
   return Boolean(map && Object.values(map).some(Boolean));
+}
+
+function hasSessionOnDate(key) {
+  return Boolean(state.sessionDates && state.sessionDates[key]);
+}
+
+function markSessionDoneForToday() {
+  if (!state.sessionDates || typeof state.sessionDates !== "object") {
+    state.sessionDates = {};
+  }
+  state.sessionDates[dateKey()] = true;
+}
+
+function getStreakCalendarDays(count = 14) {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const todayKey = dateKey(now);
+
+  return Array.from({ length: count }, (_, i) => {
+    const offset = i - (count - 1);
+    const d = new Date(now);
+    d.setDate(now.getDate() + offset);
+    const key = dateKey(d);
+    return {
+      key,
+      isToday: key === todayKey,
+      isFuture: d > now,
+      done: hasSessionOnDate(key),
+    };
+  });
 }
 
 function getWeekDays() {
@@ -1258,14 +1293,14 @@ function renderReports() {
   const cal = $("#streak-cal");
   if (cal) {
     cal.innerHTML = "";
-    for (let i = 0; i < 14; i++) {
+    getStreakCalendarDays(14).forEach((d) => {
       const s = document.createElement("span");
-      const isToday = i === 13;
-      const completed = state.streak > 0 && i >= 13 - state.streak && i < 13;
-      if (completed) s.classList.add("on");
-      if (isToday) s.classList.add("today");
+      if (d.done) s.classList.add("done");
+      else if (d.isToday) s.classList.add("today");
+      else if (!d.isFuture) s.classList.add("missed");
+      s.title = d.isToday ? "Today" : d.done ? "Session done" : d.isFuture ? "Upcoming" : "Missed";
       cal.appendChild(s);
-    }
+    });
   }
 
   const volumeBars = $("#reports-volume-bars");
@@ -2056,6 +2091,7 @@ function finishDay() {
       if (after) after.status = "active";
     }
     state.streak += 1;
+    markSessionDoneForToday();
     state.currentDay = Math.min(30, (day?.n || state.currentDay) + 1);
   }
   refreshHome();
@@ -2268,6 +2304,7 @@ function bind() {
       state.days = buildDays(track);
       state.currentDay = 1;
       state.streak = 0;
+      state.sessionDates = {};
       state.habitChecks = {};
       saveState();
       refreshHome();
