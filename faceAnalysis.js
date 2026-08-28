@@ -172,6 +172,57 @@
     return Math.round(Math.min(100, Math.max(0, ratioScore * 0.55 + symScore * 0.45)));
   }
 
+  function buildFaceAnalysis(metrics) {
+    const jawRatio = Number(metrics.jawRatio);
+    const symmetry = Number(metrics.symmetry);
+    const jawlineScore = Number(metrics.jawlineScore);
+    const symPct = Math.round(symmetry * 100);
+
+    let jawDef;
+    if (jawRatio >= 0.84) {
+      jawDef =
+        "Your lower face reads angular — jaw width tracks close to your cheeks, giving a sculpted mandible line in this capture.";
+    } else if (jawRatio >= 0.78) {
+      jawDef =
+        "Your jaw width balances well with your mid-face. The outline along the mandible looks defined without looking heavy.";
+    } else if (jawRatio >= 0.72) {
+      jawDef =
+        "Your jaw sits slightly narrower than your cheeks in this shot. Jaw-release work and posture resets can help sharpen the outline.";
+    } else {
+      jawDef =
+        "Your lower face reads softer relative to cheek width here. Consistent chin tucks and masseter release can gradually define the line.";
+    }
+
+    let symNote;
+    if (symmetry >= 0.88) {
+      symNote = `Left–right balance is strong (${symPct}% symmetry). Both sides align closely — a solid base for even training.`;
+    } else if (symmetry >= 0.78) {
+      symNote = `Symmetry looks balanced at ${symPct}%. Minor side-to-side variation is normal and often improves with mirrored reps.`;
+    } else {
+      symNote = `Symmetry reads at ${symPct}% — some left/right difference shows in this capture. Gentle, balanced exercises can help even things out.`;
+    }
+
+    let headline;
+    if (jawlineScore >= 85) headline = "Well-defined jawline";
+    else if (jawlineScore >= 70) headline = "Solid structure — keep sharpening";
+    else if (jawlineScore >= 55) headline = "Definition emerging";
+    else headline = "Your baseline capture";
+
+    let takeaway;
+    if (jawlineScore >= 70) {
+      takeaway =
+        "Maintain posture resets, jaw-release sessions, and hydration. Re-capture in the same light each week to track real change.";
+    } else {
+      takeaway =
+        "Focus on chin tucks, jaw-release massage, and back-sleeping. Small daily habits compound — check back after a week of sessions.";
+    }
+
+    return {
+      headline,
+      paragraphs: [jawDef, symNote, takeaway],
+    };
+  }
+
   function metricsFromLandmarks(landmarks) {
     if (!landmarks || landmarks.length < 468) {
       throw new Error("No face detected");
@@ -184,6 +235,7 @@
     const jawRatio = jawWidth / faceWidth;
     const symmetry = calcSymmetry(landmarks);
     const jawlineScore = calcJawlineScore(jawRatio, symmetry);
+    const analysis = buildFaceAnalysis({ jawRatio, symmetry, jawlineScore });
 
     return {
       landmarkCount: landmarks.length,
@@ -192,6 +244,8 @@
       jawRatio: Number(jawRatio.toFixed(4)),
       symmetry: Number(symmetry.toFixed(4)),
       jawlineScore,
+      analysisHeadline: analysis.headline,
+      analysisParagraphs: analysis.paragraphs,
       analyzedAt: new Date().toISOString(),
     };
   }
@@ -249,6 +303,7 @@
     STORAGE_KEY,
     analyzeFaceFromFile,
     analyzeFaceFromImage,
+    buildFaceAnalysis,
     loadFaceReport,
     saveFaceReport,
     clearFaceReport,

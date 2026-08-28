@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=reportsWins1" />
+  <link rel="stylesheet" href="styles.css?v=faceWriteup1" />
 </head>
 <body>
   <div class="device">
@@ -250,6 +250,15 @@
             </div>
             <div id="face-analysis-error" class="face-analysis-error" hidden></div>
             <div id="face-analysis-results" hidden>
+              <div class="face-analysis-photo-wrap" id="face-analysis-photo-wrap" hidden>
+                <img id="face-analysis-photo" alt="Captured face" />
+              </div>
+              <div class="face-analysis-writeup">
+                <p class="face-analysis-writeup-kicker">Your analysis</p>
+                <h3 class="face-analysis-writeup-title" id="face-analysis-headline">—</h3>
+                <div class="face-analysis-writeup-body" id="face-analysis-analysis"></div>
+              </div>
+              <p class="face-analysis-scores-label">Scores</p>
               <div class="face-analysis-metrics">
                 <div class="face-analysis-metric">
                   <span class="face-analysis-metric-label">Jawline Score</span>
@@ -609,7 +618,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="faceAnalysis.js?v=2"></script>
-  <script src="script.js?v=reportsWins1"></script>
+  <script src="faceAnalysis.js?v=3"></script>
+  <script src="script.js?v=faceWriteup1"></script>
 </body>
 </html>

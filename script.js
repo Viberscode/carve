@@ -1709,9 +1709,37 @@ function stopFaceCamera() {
 }
 
 function fillFaceAnalysisResults(report) {
+  const api = window.CarveFaceAnalysis;
+  const photoWrap = $("#face-analysis-photo-wrap");
+  const photo = $("#face-analysis-photo");
+  const headline = $("#face-analysis-headline");
+  const analysis = $("#face-analysis-analysis");
   const score = $("#face-analysis-score");
   const ratio = $("#face-analysis-ratio");
   const symmetry = $("#face-analysis-symmetry");
+
+  const writeup = report.analysisHeadline
+    ? { headline: report.analysisHeadline, paragraphs: report.analysisParagraphs || [] }
+    : api?.buildFaceAnalysis
+      ? api.buildFaceAnalysis(report)
+      : { headline: "Your face analysis", paragraphs: [] };
+
+  if (photoWrap && photo) {
+    if (report.photoDataUrl) {
+      photo.src = report.photoDataUrl;
+      photoWrap.hidden = false;
+    } else {
+      photoWrap.hidden = true;
+    }
+  }
+
+  if (headline) headline.textContent = writeup.headline;
+  if (analysis) {
+    analysis.innerHTML = (writeup.paragraphs || [])
+      .map((p) => `<p>${p}</p>`)
+      .join("");
+  }
+
   if (score) score.textContent = String(report.jawlineScore);
   if (ratio) ratio.textContent = Number(report.jawRatio).toFixed(2);
   if (symmetry) symmetry.textContent = `${Math.round(Number(report.symmetry) * 100)}%`;
@@ -1817,6 +1845,7 @@ async function captureAndAnalyzeFace() {
 
   try {
     const report = await api.analyzeFaceFromImage(canvas);
+    report.photoDataUrl = canvas.toDataURL("image/jpeg", 0.82);
     api.saveFaceReport(report);
     renderFaceAnalysis();
     showToast("Face analysis saved on this device");
