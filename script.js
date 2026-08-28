@@ -1150,6 +1150,93 @@ function nextStreakBadge(ctx) {
   return BADGE_CATALOG.find((badge) => badge.streak > 0 && !state.unlockedBadges[badge.id]);
 }
 
+function computeConsistencyScore(days = 14) {
+  const cal = getStreakCalendarDays(days);
+  const relevant = cal.filter((d) => !d.isFuture);
+  if (!relevant.length) return 0;
+  const completed = relevant.filter((d) => d.done).length;
+  return Math.round((completed / relevant.length) * 100);
+}
+
+function getWeekTrainingDays() {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const dow = now.getDay();
+  const mondayOffset = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  const labels = ["M", "T", "W", "T", "F", "S", "S"];
+  const todayKey = dateKey(now);
+
+  return labels.map((label, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const key = dateKey(d);
+    const isToday = key === todayKey;
+    const isFuture = d > now;
+    const sessionDone = hasSessionOnDate(key);
+    return { label, key, isToday, isFuture, sessionDone };
+  });
+}
+
+function formatActivityDate(isoOrKey) {
+  const d = new Date(isoOrKey.includes("T") ? isoOrKey : `${isoOrKey}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function buildActivityFeed(photos, faceReport) {
+  const items = [];
+
+  Object.entries(state.unlockedBadges || {}).forEach(([id, data]) => {
+    const badge = BADGE_CATALOG.find((b) => b.id === id);
+    if (!badge || !data?.unlockedAt) return;
+    items.push({
+      at: data.unlockedAt,
+      icon: badge.emoji,
+      title: `${badge.title} earned`,
+      sub: badge.sub,
+    });
+  });
+
+  Object.keys(state.sessionDates || {})
+    .filter((key) => state.sessionDates[key])
+    .sort()
+    .reverse()
+    .forEach((key) => {
+      items.push({
+        at: `${key}T18:00:00`,
+        icon: "✓",
+        title: "Session completed",
+        sub: formatActivityDate(key),
+      });
+    });
+
+  if (faceReport?.analyzedAt) {
+    items.push({
+      at: faceReport.analyzedAt,
+      icon: "📐",
+      title: "Face scan recorded",
+      sub: `Jawline score ${faceReport.jawlineScore}`,
+    });
+  }
+
+  const photoLabels = { week1: "Week 1", week2: "Week 2", week3: "Week 3", week4: "Week 4" };
+  Object.entries(photos || {})
+    .filter(([, src]) => src)
+    .forEach(([slot]) => {
+      items.push({
+        at: `${dateKey()}T12:00:00`,
+        icon: "📷",
+        title: "Progress photo saved",
+        sub: photoLabels[slot] || "Weekly check-in",
+      });
+    });
+
+  items.sort((a, b) => new Date(b.at) - new Date(a.at));
+  return items.slice(0, 6);
+}
+
 function getWeekDays() {
   const now = new Date();
   now.setHours(12, 0, 0, 0);
@@ -1347,8 +1434,6 @@ function refreshHome() {
   if (heroRingLabel) heroRingLabel.textContent = `${Math.round(pct)}%`;
   $("#plan-bar").style.width = `${pct}%`;
   $("#days-left").textContent = String(30 - sessionsDone);
-  $("#minutes-trained").textContent = `${sessionsDone * 9} min`;
-  $("#volume-bar").style.width = `${pct}%`;
   const heroSub = $("#hero-sub");
   if (heroSub) heroSub.textContent = meta.subtitle;
   const heroDiff = $("#hero-diff");
@@ -1391,18 +1476,13 @@ function renderMe() {
 }
 
 function renderReports() {
-  const meta = trackMeta();
   const track = state.track || "face";
   const sessionsDone = Math.max(0, state.currentDay - 1);
   const totalMinutes = sessionsDone * 9;
-  const habits = habitCatalog(track);
-  const checks = todayHabitMap();
-  const doneHabits = habits.filter((h) => checks[h.id]).length;
-  const week = getWeekDays();
-  const planPct = Math.min(100, Math.round((sessionsDone / 30) * 100));
-  const today = state.days.find((d) => d.n === state.currentDay);
   const photos = loadReportPhotos();
   const photoCount = Object.keys(photos).filter((k) => photos[k]).length;
+  const faceReport =
+    typeof window.CarveFaceAnalysis !== "undefined" ? window.CarveFaceAnalysis.loadFaceReport() : null;
 
   const setText = (id, value) => {
     const el = $("#" + id);
@@ -1417,24 +1497,6 @@ function renderReports() {
     "reports-sessions",
     sessionsDone === 0 ? "No sessions yet · start Day 1" : `${sessionsDone} sessions completed`
   );
-  setText("reports-plan-meta", `Day ${state.currentDay} / 30`);
-  setText("reports-plan-pct", `${planPct}%`);
-  setText("reports-plan-next", `Next up · Day ${state.currentDay}`);
-  setText(
-    "reports-plan-sub",
-    sessionsDone === 0
-      ? "Start your first guided session."
-      : today?.week
-        ? `Week ${today.week} · keep showing up gently.`
-        : "Keep the streak gentle and consistent."
-  );
-  setText("minutes-trained", `${totalMinutes} min`);
-
-  const planRing = $("#reports-plan-ring");
-  if (planRing) planRing.style.setProperty("--pct", String(planPct));
-
-  const volumeBar = $("#volume-bar");
-  if (volumeBar) volumeBar.style.width = `${planPct}%`;
 
   const cal = $("#streak-cal");
   if (cal) {
@@ -1449,49 +1511,13 @@ function renderReports() {
     });
   }
 
-  const volumeBars = $("#reports-volume-bars");
-  if (volumeBars) {
-    const bars = week.map((d) => {
-      const active = d.done || (d.isToday && doneHabits > 0);
-      const height = active ? 70 + (d.isToday ? 20 : 0) : 18;
-      return `<div class="reports-vbar${active ? " on" : ""}" title="${d.label}">
-        <i style="height:${height}%"></i>
-        <span>${d.label}</span>
-      </div>`;
-    });
-    volumeBars.innerHTML = bars.join("");
-  }
-
   renderReportPhotos();
   const badgeCtx = badgeContext(sessionsDone, photoCount, totalMinutes);
   syncUnlockedBadges(badgeCtx);
   renderReportBadges(badgeCtx);
-  renderReportInsight(track);
+  renderReportWeekly(badgeCtx);
+  renderReportActivity(photos, faceReport);
   renderFaceAnalysis();
-
-  const pitchCard = $("#pitch-card");
-  const reportsDisclaimer = $("#reports-disclaimer");
-  const isVoiceTrack = track === "voice" || track === "both";
-  if (pitchCard) pitchCard.hidden = !isVoiceTrack;
-  if (reportsDisclaimer) reportsDisclaimer.textContent = meta.disclaimer;
-
-  const chart = $("#pitch-chart");
-  if (!isVoiceTrack || !chart) return;
-
-  chart.innerHTML = "";
-  if (state.streak === 0 && sessionsDone === 0) {
-    chart.classList.add("empty");
-    chart.innerHTML = `<p class="muted">Complete a voice session to see your pitch trend.</p>`;
-    return;
-  }
-  chart.classList.remove("empty");
-  [148, 145, 142, 140, 138, 136, 135].forEach((hz) => {
-    const i = document.createElement("i");
-    const h = ((hz - 130) / 25) * 80 + 20;
-    i.style.height = `${h}px`;
-    i.dataset.hz = hz;
-    chart.appendChild(i);
-  });
 }
 
 const PHOTO_STORAGE_KEY = "carve-report-photos-v1";
@@ -1539,6 +1565,71 @@ function renderReportPhotos() {
     .join("");
 }
 
+function renderReportWeekly(ctx) {
+  const week = getWeekTrainingDays();
+  const trained = week.filter((d) => d.sessionDone).length;
+  const meta = $("#reports-weekly-meta");
+  if (meta) meta.textContent = `${trained} / 7 trained`;
+
+  setText("reports-consistency", `${computeConsistencyScore()}%`);
+  setText("reports-best-streak", String(ctx.bestStreak));
+
+  const root = $("#reports-week-strip");
+  if (!root) return;
+
+  root.innerHTML = week
+    .map((d) => {
+      let stateClass = "future";
+      if (d.sessionDone) stateClass = "done";
+      else if (d.isToday) stateClass = "today";
+      else if (!d.isFuture) stateClass = "missed";
+
+      const inner = d.sessionDone
+        ? `<span class="reports-week-check" aria-hidden="true">✓</span>`
+        : `<span class="reports-week-dot" aria-hidden="true"></span>`;
+
+      return `<div class="reports-week-day ${stateClass}" title="${d.label}">
+        <span class="reports-week-label">${d.label}</span>
+        <div class="reports-week-circle">${inner}</div>
+      </div>`;
+    })
+    .join("");
+}
+
+function renderReportActivity(photos, faceReport) {
+  const root = $("#reports-activity");
+  if (!root) return;
+
+  const items = buildActivityFeed(photos, faceReport);
+  const meta = $("#reports-activity-meta");
+  if (meta) meta.textContent = items.length ? `${items.length} recent` : "Your journey";
+
+  if (!items.length) {
+    root.innerHTML = `<div class="reports-activity-empty">
+      <span aria-hidden="true">🏁</span>
+      <p>Finish a session, earn a badge, or capture a photo — your wins show up here.</p>
+    </div>`;
+    return;
+  }
+
+  root.innerHTML = items
+    .map(
+      (item) => `<div class="reports-activity-item">
+        <span class="reports-activity-icon" aria-hidden="true">${item.icon}</span>
+        <div class="reports-activity-copy">
+          <strong>${item.title}</strong>
+          <span>${item.sub}</span>
+        </div>
+      </div>`
+    )
+    .join("");
+}
+
+function setText(id, value) {
+  const el = $("#" + id);
+  if (el) el.textContent = value;
+}
+
 function renderReportBadges(ctx) {
   const root = $("#reports-badges");
   if (!root) return;
@@ -1578,19 +1669,6 @@ function renderReportBadges(ctx) {
       <span class="badge-sub">${badge.sub}</span>
     </div>`;
   }).join("");
-}
-
-function renderReportInsight(track) {
-  const notes = careNotes(track || state.track || "face");
-  if (!notes.length) return;
-  const dayIndex = Math.max(0, (state.currentDay || 1) - 1) % notes.length;
-  const tip = notes[dayIndex];
-  const icon = $("#reports-insight-icon");
-  const title = $("#reports-insight-title");
-  const body = $("#reports-insight-body");
-  if (icon) icon.textContent = tip.icon;
-  if (title) title.textContent = tip.title;
-  if (body) body.textContent = tip.body;
 }
 
 function setFaceAnalysisView(mode, errorMsg) {
