@@ -2323,60 +2323,142 @@ button {
   box-shadow: 0 10px 24px #1e3fe044;
 }
 
-.reports-milestones {
+.badge-next-hint {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff7ed, #fffbeb);
+  border: 1px solid #fed7aa;
+  font-size: 13px;
+  font-weight: 700;
+  color: #9a3412;
+  line-height: 1.4;
+}
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 8px;
+}
+
+.badge-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.reports-milestone {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 16px;
-  background: #f7f9fc;
-  border: 1.5px solid #e8eef5;
+  gap: 4px;
+  text-align: center;
+  min-width: 0;
 }
 
-.reports-milestone.on {
-  background: linear-gradient(135deg, #eefbf4, #f4f8ff);
-  border-color: #b7e4cb;
-}
-
-.reports-milestone-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+.badge-medal {
+  --badge-pct: 0%;
+  position: relative;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: #eef2ff;
-  flex-shrink: 0;
-  font-size: 16px;
+  background:
+    conic-gradient(#ff7a28 var(--badge-pct), #e8edf5 0),
+    #f3f6fa;
+  box-shadow: inset 0 0 0 3px #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.reports-milestone.on .reports-milestone-icon {
-  background: linear-gradient(145deg, #57e0a0, #1fa35a);
+.badge-item.earned .badge-medal {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 0 0 3px #fff,
+    0 8px 18px #1e3fe022;
+}
+
+.badge-item[data-tier="bronze"].earned .badge-medal {
+  background:
+    conic-gradient(#d97706 var(--badge-pct), #fde68a 0),
+    #fff7ed;
+}
+
+.badge-item[data-tier="silver"].earned .badge-medal {
+  background:
+    conic-gradient(#64748b var(--badge-pct), #e2e8f0 0),
+    #f8fafc;
+}
+
+.badge-item[data-tier="gold"].earned .badge-medal {
+  background:
+    conic-gradient(#ca8a04 var(--badge-pct), #fef08a 0),
+    #fffbeb;
+}
+
+.badge-item[data-tier="legend"].earned .badge-medal {
+  background:
+    conic-gradient(#7c3aed var(--badge-pct), #ddd6fe 0),
+    #f5f3ff;
+}
+
+.badge-emoji {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  font-size: 22px;
+  line-height: 1;
+  box-shadow: inset 0 0 0 1px #e8edf5;
+}
+
+.badge-item:not(.earned) .badge-emoji {
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.badge-lock,
+.badge-check {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  line-height: 1;
+  border: 2px solid #fff;
+}
+
+.badge-lock {
+  background: #e8edf5;
+}
+
+.badge-check {
+  background: linear-gradient(145deg, #22c55e, #16a34a);
   color: #fff;
   font-weight: 800;
 }
 
-.reports-milestone-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.reports-milestone-text strong {
-  font-size: 14px;
+.badge-title {
+  font-size: 11px;
   font-weight: 800;
   color: #152820;
+  line-height: 1.2;
 }
 
-.reports-milestone-text span {
-  font-size: 12px;
+.badge-item:not(.earned) .badge-title {
+  color: #8b95a5;
+}
+
+.badge-sub {
+  font-size: 10px;
   color: var(--muted);
+  line-height: 1.2;
+}
+
+@media (max-width: 380px) {
+  .badge-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .face-analysis-loading-text {

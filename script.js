@@ -703,6 +703,7 @@ const state = {
   currentDay: 1,
   streak: 0,
   sessionDates: {},
+  unlockedBadges: {},
   habitChecks: {},
   profileName: "Priya",
   memberSince: "Jul 2026",
@@ -749,6 +750,7 @@ function saveState() {
         currentDay: state.currentDay,
         streak: state.streak,
         sessionDates: state.sessionDates,
+        unlockedBadges: state.unlockedBadges,
         habitChecks: state.habitChecks,
         profileName: state.profileName,
         memberSince: state.memberSince,
@@ -772,6 +774,8 @@ function loadState() {
     state.streak = data.streak || 0;
     state.sessionDates =
       data.sessionDates && typeof data.sessionDates === "object" ? data.sessionDates : {};
+    state.unlockedBadges =
+      data.unlockedBadges && typeof data.unlockedBadges === "object" ? data.unlockedBadges : {};
     state.habitChecks = data.habitChecks && typeof data.habitChecks === "object" ? data.habitChecks : {};
     state.profileName = data.profileName || "Priya";
     state.memberSince = data.memberSince || "Jul 2026";
@@ -883,6 +887,7 @@ function selectTrack(track) {
     state.currentDay = 1;
     state.streak = 0;
     state.sessionDates = {};
+    state.unlockedBadges = {};
     state.habitChecks = {};
     refreshHome();
     renderDayList();
@@ -1002,6 +1007,147 @@ function getStreakCalendarDays(count = 14) {
       done: hasSessionOnDate(key),
     };
   });
+}
+
+function computeCurrentStreak() {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  let streak = 0;
+  const cursor = new Date(now);
+
+  if (!hasSessionOnDate(dateKey(cursor))) {
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  while (hasSessionOnDate(dateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function computeBestStreak() {
+  const keys = Object.keys(state.sessionDates || {})
+    .filter((key) => state.sessionDates[key])
+    .sort();
+  if (!keys.length) return 0;
+
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < keys.length; i++) {
+    const prev = new Date(`${keys[i - 1]}T12:00:00`);
+    const next = new Date(`${keys[i]}T12:00:00`);
+    const gap = Math.round((next - prev) / 86400000);
+    if (gap === 1) {
+      current += 1;
+      best = Math.max(best, current);
+    } else if (gap > 1) {
+      current = 1;
+    }
+  }
+  return best;
+}
+
+const BADGE_CATALOG = [
+  {
+    id: "day1",
+    emoji: "✦",
+    title: "First Rep",
+    sub: "Finish Day 1",
+    tier: "bronze",
+    streak: 0,
+    test: (ctx) => ctx.sessionsDone >= 1,
+  },
+  {
+    id: "streak3",
+    emoji: "🔥",
+    title: "3-Day Spark",
+    sub: "3 days in a row",
+    tier: "bronze",
+    streak: 3,
+    test: (ctx) => ctx.bestStreak >= 3,
+  },
+  {
+    id: "streak7",
+    emoji: "⚡",
+    title: "Week Warrior",
+    sub: "7-day streak",
+    tier: "silver",
+    streak: 7,
+    test: (ctx) => ctx.bestStreak >= 7,
+  },
+  {
+    id: "streak14",
+    emoji: "💪",
+    title: "Fortnight",
+    sub: "14-day streak",
+    tier: "gold",
+    streak: 14,
+    test: (ctx) => ctx.bestStreak >= 14,
+  },
+  {
+    id: "streak21",
+    emoji: "🧬",
+    title: "Habit Locked",
+    sub: "21-day streak",
+    tier: "gold",
+    streak: 21,
+    test: (ctx) => ctx.bestStreak >= 21,
+  },
+  {
+    id: "streak30",
+    emoji: "👑",
+    title: "CARVE Master",
+    sub: "30-day streak",
+    tier: "legend",
+    streak: 30,
+    test: (ctx) => ctx.bestStreak >= 30,
+  },
+  {
+    id: "photo",
+    emoji: "📷",
+    title: "Mirror Shot",
+    sub: "First progress photo",
+    tier: "bronze",
+    streak: 0,
+    test: (ctx) => ctx.photoCount >= 1,
+  },
+  {
+    id: "hour",
+    emoji: "⏱",
+    title: "Hour Power",
+    sub: "60 guided minutes",
+    tier: "silver",
+    streak: 0,
+    test: (ctx) => ctx.totalMinutes >= 60,
+  },
+];
+
+function badgeContext(sessionsDone, photoCount, totalMinutes) {
+  const currentStreak = computeCurrentStreak();
+  const bestStreak = Math.max(computeBestStreak(), currentStreak, state.streak || 0);
+  return { sessionsDone, photoCount, totalMinutes, currentStreak, bestStreak };
+}
+
+function syncUnlockedBadges(ctx) {
+  if (!state.unlockedBadges || typeof state.unlockedBadges !== "object") {
+    state.unlockedBadges = {};
+  }
+
+  const newlyUnlocked = [];
+  BADGE_CATALOG.forEach((badge) => {
+    if (state.unlockedBadges[badge.id] || !badge.test(ctx)) return;
+    state.unlockedBadges[badge.id] = { unlockedAt: new Date().toISOString() };
+    newlyUnlocked.push(badge);
+  });
+
+  if (newlyUnlocked.length) saveState();
+  return newlyUnlocked;
+}
+
+function nextStreakBadge(ctx) {
+  return BADGE_CATALOG.find((badge) => badge.streak > 0 && !state.unlockedBadges[badge.id]);
 }
 
 function getWeekDays() {
@@ -1317,7 +1463,9 @@ function renderReports() {
   }
 
   renderReportPhotos();
-  renderReportMilestones(sessionsDone, state.streak, photoCount, totalMinutes);
+  const badgeCtx = badgeContext(sessionsDone, photoCount, totalMinutes);
+  syncUnlockedBadges(badgeCtx);
+  renderReportBadges(badgeCtx);
   renderReportInsight(track);
   renderFaceAnalysis();
 
@@ -1391,54 +1539,45 @@ function renderReportPhotos() {
     .join("");
 }
 
-function renderReportMilestones(sessionsDone, streak, photoCount, totalMinutes) {
-  const root = $("#reports-milestones");
+function renderReportBadges(ctx) {
+  const root = $("#reports-badges");
   if (!root) return;
-  const items = [
-    {
-      id: "first",
-      icon: "✦",
-      title: "First session",
-      sub: "Complete Day 1",
-      done: sessionsDone >= 1,
-    },
-    {
-      id: "streak3",
-      icon: "🔥",
-      title: "3-day spark",
-      sub: "Hold a 3-day streak",
-      done: streak >= 3,
-    },
-    {
-      id: "photo",
-      icon: "📷",
-      title: "First progress photo",
-      sub: "Save a weekly check-in shot",
-      done: photoCount >= 1,
-    },
-    {
-      id: "hour",
-      icon: "⏱",
-      title: "1 hour trained",
-      sub: "Reach 60 guided minutes",
-      done: totalMinutes >= 60,
-    },
-  ];
-  const unlocked = items.filter((i) => i.done).length;
-  const meta = $("#reports-milestones-meta");
-  if (meta) meta.textContent = `${unlocked} / ${items.length} unlocked`;
 
-  root.innerHTML = items
-    .map(
-      (m) => `<div class="reports-milestone${m.done ? " on" : ""}">
-        <span class="reports-milestone-icon" aria-hidden="true">${m.done ? "✓" : m.icon}</span>
-        <span class="reports-milestone-text">
-          <strong>${m.title}</strong>
-          <span>${m.sub}</span>
-        </span>
-      </div>`
-    )
-    .join("");
+  const earned = BADGE_CATALOG.filter((badge) => state.unlockedBadges[badge.id]).length;
+  const meta = $("#reports-badges-meta");
+  if (meta) meta.textContent = `${earned} / ${BADGE_CATALOG.length} earned`;
+
+  const next = nextStreakBadge(ctx);
+  const hint = $("#reports-badges-next");
+  if (hint) {
+    if (!next) {
+      hint.textContent = "All streak badges unlocked — keep the momentum going.";
+    } else {
+      const daysLeft = Math.max(0, next.streak - ctx.currentStreak);
+      hint.textContent =
+        daysLeft === 0
+          ? `You're on a roll — finish today to earn ${next.title}.`
+          : `${daysLeft} more day${daysLeft === 1 ? "" : "s"} to unlock ${next.title} (${next.emoji}).`;
+    }
+  }
+
+  root.innerHTML = BADGE_CATALOG.map((badge) => {
+    const unlocked = Boolean(state.unlockedBadges[badge.id]);
+    const progress =
+      badge.streak > 0
+        ? Math.min(100, Math.round((ctx.currentStreak / badge.streak) * 100))
+        : unlocked
+          ? 100
+          : 0;
+    return `<div class="badge-item${unlocked ? " earned" : ""}" data-tier="${badge.tier}" title="${badge.sub}">
+      <div class="badge-medal" style="--badge-pct:${progress}%">
+        <span class="badge-emoji" aria-hidden="true">${badge.emoji}</span>
+        ${unlocked ? '<span class="badge-check" aria-hidden="true">✓</span>' : '<span class="badge-lock" aria-hidden="true">🔒</span>'}
+      </div>
+      <strong class="badge-title">${badge.title}</strong>
+      <span class="badge-sub">${badge.sub}</span>
+    </div>`;
+  }).join("");
 }
 
 function renderReportInsight(track) {
@@ -2093,6 +2232,14 @@ function finishDay() {
     state.streak += 1;
     markSessionDoneForToday();
     state.currentDay = Math.min(30, (day?.n || state.currentDay) + 1);
+    const sessionsDone = Math.max(0, state.currentDay - 1);
+    const photoCount = Object.keys(loadReportPhotos()).length;
+    const totalMinutes = sessionsDone * 9;
+    const badgeCtx = badgeContext(sessionsDone, photoCount, totalMinutes);
+    const newBadges = syncUnlockedBadges(badgeCtx);
+    if (newBadges.length) {
+      showToast(`Badge unlocked: ${newBadges.map((b) => `${b.emoji} ${b.title}`).join(", ")}`, 3400);
+    }
   }
   refreshHome();
   renderDayList();
@@ -2305,6 +2452,7 @@ function bind() {
       state.currentDay = 1;
       state.streak = 0;
       state.sessionDates = {};
+      state.unlockedBadges = {};
       state.habitChecks = {};
       saveState();
       refreshHome();

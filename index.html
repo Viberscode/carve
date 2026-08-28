@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=streakDots1" />
+  <link rel="stylesheet" href="styles.css?v=badges1" />
 </head>
 <body>
   <div class="device">
@@ -271,12 +271,13 @@
             <canvas id="face-analysis-canvas" hidden></canvas>
           </div>
 
-          <div class="card reports-card" id="reports-milestones-card">
+          <div class="card reports-card" id="reports-badges-card">
             <div class="panel-head">
-              <h2 class="card-title">Milestones</h2>
-              <span class="panel-meta" id="reports-milestones-meta">0 / 4 unlocked</span>
+              <h2 class="card-title">Badges</h2>
+              <span class="panel-meta" id="reports-badges-meta">0 / 8 earned</span>
             </div>
-            <div class="reports-milestones" id="reports-milestones"></div>
+            <p class="badge-next-hint" id="reports-badges-next">Complete 3 days in a row to earn 3-Day Spark.</p>
+            <div class="badge-grid" id="reports-badges"></div>
           </div>
 
           <div class="card reports-card" id="reports-plan-card">
@@ -626,6 +627,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=2"></script>
-  <script src="script.js?v=photoCam2"></script>
+  <script src="script.js?v=badges1"></script>
 </body>
 </html>
