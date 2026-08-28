@@ -15,7 +15,13 @@
     rightCheek: 454,
     leftJaw: 172,
     rightJaw: 397,
+    chin: 152,
   };
+
+  // Jaw contour landmarks for on-photo overlay (left → chin → right)
+  const JAW_OVERLAY_INDICES = [
+    234, 93, 132, 58, 172, 136, 150, 152, 377, 400, 378, 379, 365, 397, 288, 361, 323, 454,
+  ];
 
   const SYMMETRY_PAIRS = [
     [234, 454],
@@ -172,6 +178,23 @@
     return Math.round(Math.min(100, Math.max(0, ratioScore * 0.55 + symScore * 0.45)));
   }
 
+  function buildOverlayData(landmarks) {
+    const pt = (i) => ({
+      x: Number(landmarks[i].x.toFixed(4)),
+      y: Number(landmarks[i].y.toFixed(4)),
+    });
+
+    return {
+      jaw: JAW_OVERLAY_INDICES.map((i) => pt(i)),
+      leftCheek: pt(LM.leftCheek),
+      rightCheek: pt(LM.rightCheek),
+      leftJaw: pt(LM.leftJaw),
+      rightJaw: pt(LM.rightJaw),
+      noseTip: pt(LM.noseTip),
+      chin: pt(LM.chin),
+    };
+  }
+
   function buildFaceAnalysis(metrics) {
     const jawRatio = Number(metrics.jawRatio);
     const symmetry = Number(metrics.symmetry);
@@ -246,6 +269,7 @@
       jawlineScore,
       analysisHeadline: analysis.headline,
       analysisParagraphs: analysis.paragraphs,
+      overlay: buildOverlayData(landmarks),
       analyzedAt: new Date().toISOString(),
     };
   }

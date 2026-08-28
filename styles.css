@@ -2704,6 +2704,7 @@ button {
 }
 
 .face-analysis-photo-wrap {
+  position: relative;
   margin-bottom: 14px;
   border-radius: 18px;
   overflow: hidden;
@@ -2717,6 +2718,111 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.face-analysis-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.fa-guide {
+  stroke-width: 0.003;
+  stroke-dasharray: 0.014 0.01;
+  opacity: 0.85;
+}
+
+.fa-guide-sym {
+  stroke: rgba(255, 255, 255, 0.75);
+}
+
+.fa-guide-cheek {
+  stroke: rgba(96, 165, 250, 0.9);
+}
+
+.fa-guide-jaw {
+  stroke: rgba(52, 211, 153, 0.95);
+}
+
+.fa-jaw-path {
+  fill: none;
+  stroke: #22d3ee;
+  stroke-width: 0.0045;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.025 0.01;
+  filter: drop-shadow(0 0 0.004px rgba(34, 211, 238, 0.8));
+  animation: faJawTrace 2.4s ease-in-out infinite;
+}
+
+.fa-dot {
+  fill: #38bdf8;
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 0.002;
+  filter: drop-shadow(0 0 0.006px rgba(56, 189, 248, 0.9));
+  animation: faDotPulse 1.8s ease-in-out infinite;
+}
+
+.face-analysis-scan-shine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(34, 211, 238, 0.08) 35%,
+    rgba(34, 211, 238, 0.42) 50%,
+    rgba(34, 211, 238, 0.08) 65%,
+    transparent 100%
+  );
+  animation: faScanSweep 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.face-analysis-overlay-scan .fa-scan-line {
+  stroke: #22d3ee;
+  stroke-width: 0.006;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 0.008px #22d3ee);
+  animation: faScanSweep 1.6s ease-in-out infinite;
+}
+
+.face-analysis-photo-loading {
+  margin-bottom: 12px;
+}
+
+@keyframes faJawTrace {
+  0%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.75;
+  }
+  50% {
+    stroke-dashoffset: 0.06;
+    opacity: 1;
+  }
+}
+
+@keyframes faDotPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes faScanSweep {
+  0% {
+    top: -32%;
+  }
+  100% {
+    top: 100%;
+  }
 }
 
 .face-analysis-writeup {

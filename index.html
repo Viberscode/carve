@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=faceWriteup1" />
+  <link rel="stylesheet" href="styles.css?v=faceOverlay1" />
 </head>
 <body>
   <div class="device">
@@ -246,12 +246,17 @@
               </div>
             </div>
             <div id="face-analysis-loading" hidden>
+              <div class="face-analysis-photo-wrap face-analysis-photo-loading" id="face-analysis-loading-wrap" hidden>
+                <img id="face-analysis-loading-photo" alt="Analyzing capture" />
+                <div class="face-analysis-scan-shine" aria-hidden="true"></div>
+              </div>
               <p class="face-analysis-loading-text">Analyzing your face...</p>
             </div>
             <div id="face-analysis-error" class="face-analysis-error" hidden></div>
             <div id="face-analysis-results" hidden>
               <div class="face-analysis-photo-wrap" id="face-analysis-photo-wrap" hidden>
                 <img id="face-analysis-photo" alt="Captured face" />
+                <svg class="face-analysis-overlay" id="face-analysis-overlay" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg>
               </div>
               <div class="face-analysis-writeup">
                 <p class="face-analysis-writeup-kicker">Your analysis</p>
@@ -618,7 +623,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="faceAnalysis.js?v=3"></script>
-  <script src="script.js?v=faceWriteup1"></script>
+  <script src="faceAnalysis.js?v=4"></script>
+  <script src="script.js?v=faceOverlay1"></script>
 </body>
 </html>

@@ -1680,6 +1680,8 @@ function setFaceAnalysisView(mode, errorMsg) {
   if (idle) idle.hidden = mode !== "idle";
   if (camera) camera.hidden = mode !== "camera";
   if (loading) loading.hidden = mode !== "loading";
+  const loadingWrap = $("#face-analysis-loading-wrap");
+  if (loadingWrap) loadingWrap.hidden = mode !== "loading";
   if (results) results.hidden = mode !== "results";
   if (error) {
     if (mode === "error" && errorMsg) {
@@ -1708,6 +1710,47 @@ function stopFaceCamera() {
   }
 }
 
+function renderFaceAnalysisOverlay(report) {
+  const svg = $("#face-analysis-overlay");
+  if (!svg) return;
+
+  const overlay = report?.overlay;
+  if (!overlay?.jaw?.length) {
+    svg.innerHTML = "";
+    svg.hidden = true;
+    return;
+  }
+
+  const jawPath = overlay.jaw.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+  const cheekY = (overlay.leftCheek.y + overlay.rightCheek.y) / 2;
+  const jawY = (overlay.leftJaw.y + overlay.rightJaw.y) / 2;
+  const symTop = Math.max(0.02, overlay.noseTip.y - 0.22);
+  const symBottom = Math.min(0.98, overlay.chin.y + 0.04);
+
+  const keyPoints = [
+    overlay.leftJaw,
+    overlay.rightJaw,
+    overlay.leftCheek,
+    overlay.rightCheek,
+    overlay.chin,
+    overlay.noseTip,
+  ];
+
+  svg.hidden = false;
+  svg.innerHTML = `
+    <line class="fa-guide fa-guide-sym" x1="${overlay.noseTip.x}" y1="${symTop}" x2="${overlay.noseTip.x}" y2="${symBottom}" />
+    <line class="fa-guide fa-guide-cheek" x1="${overlay.leftCheek.x}" y1="${cheekY}" x2="${overlay.rightCheek.x}" y2="${cheekY}" />
+    <line class="fa-guide fa-guide-jaw" x1="${overlay.leftJaw.x}" y1="${jawY}" x2="${overlay.rightJaw.x}" y2="${jawY}" />
+    <path class="fa-jaw-path" d="${jawPath}" />
+    ${keyPoints
+      .map(
+        (p, i) =>
+          `<circle class="fa-dot" cx="${p.x}" cy="${p.y}" r="0.009" style="animation-delay:${(i * 0.12).toFixed(2)}s" />`
+      )
+      .join("")}
+  `;
+}
+
 function fillFaceAnalysisResults(report) {
   const api = window.CarveFaceAnalysis;
   const photoWrap = $("#face-analysis-photo-wrap");
@@ -1728,8 +1771,10 @@ function fillFaceAnalysisResults(report) {
     if (report.photoDataUrl) {
       photo.src = report.photoDataUrl;
       photoWrap.hidden = false;
+      renderFaceAnalysisOverlay(report);
     } else {
       photoWrap.hidden = true;
+      renderFaceAnalysisOverlay(null);
     }
   }
 
@@ -1840,12 +1885,16 @@ async function captureAndAnalyzeFace() {
   }
 
   stopFaceCamera();
-  setFaceAnalysisView("loading");
+
+  const photoDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+  const loadingPhoto = $("#face-analysis-loading-photo");
+  if (loadingPhoto) loadingPhoto.src = photoDataUrl;
   if (meta) meta.textContent = "Analyzing…";
+  setFaceAnalysisView("loading");
 
   try {
     const report = await api.analyzeFaceFromImage(canvas);
-    report.photoDataUrl = canvas.toDataURL("image/jpeg", 0.82);
+    report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
     renderFaceAnalysis();
     showToast("Face analysis saved on this device");
