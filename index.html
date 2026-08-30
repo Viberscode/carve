@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=fullReports1" />
+  <link rel="stylesheet" href="styles.css?v=analysisOnce1" />
 </head>
 <body>
   <div class="device">
@@ -260,6 +260,44 @@
             <canvas id="reports-photo-canvas" hidden></canvas>
           </div>
 
+          <div id="reports-presence-analysis-section" hidden>
+            <p class="me-section-label reports-section-label">Presence analysis</p>
+            <div class="card reports-card presence-analysis-hub" id="presence-analysis-hub">
+              <div class="panel-head">
+                <div>
+                  <p class="reports-photos-kicker">Face + voice</p>
+                  <h2 class="card-title">Combined analysis</h2>
+                </div>
+                <span class="panel-meta" id="presence-analysis-meta">On-device</span>
+              </div>
+              <p class="muted reports-photos-lead" id="presence-analysis-lead">
+                Complete both check-ins to establish your personal baseline — trends compare to your own history, never anyone else’s.
+              </p>
+              <div class="presence-analysis-status" id="presence-analysis-status">
+                <div class="presence-analysis-status-item" id="presence-status-face">
+                  <span class="presence-analysis-status-icon" aria-hidden="true">🪞</span>
+                  <div>
+                    <strong>Face capture</strong>
+                    <span id="presence-status-face-label">Not started</span>
+                  </div>
+                </div>
+                <div class="presence-analysis-status-item" id="presence-status-voice">
+                  <span class="presence-analysis-status-icon" aria-hidden="true">🎙️</span>
+                  <div>
+                    <strong>Voice recording</strong>
+                    <span id="presence-status-voice-label">Not started</span>
+                  </div>
+                </div>
+              </div>
+              <p class="presence-analysis-free-note" id="presence-analysis-free-note">One free face scan and one free voice scan on this device.</p>
+              <div class="presence-analysis-actions" id="presence-analysis-actions">
+                <button type="button" class="reports-photo-cta" id="btn-presence-face-scan">Start face analysis</button>
+                <button type="button" class="reports-photo-cta reports-photo-cta-secondary" id="btn-presence-voice-scan">Start voice analysis</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="reports-analysis-cards">
           <div class="card reports-card" id="reports-face-analysis-card">
             <div class="panel-head">
               <h2 class="card-title">Face analysis</h2>
@@ -267,8 +305,9 @@
             </div>
             <div id="face-analysis-idle">
               <p class="muted reports-photos-lead">
-                Use your webcam for a front-facing capture to estimate jawline score, ratio, and symmetry.
+                Front-facing capture to track jaw outline and balance trends against your own check-ins.
               </p>
+              <p class="analysis-free-note" id="face-analysis-free-note">Includes 1 free on-device scan.</p>
               <button type="button" class="reports-photo-cta" id="btn-face-analysis-start">
                 Open camera
               </button>
@@ -335,8 +374,9 @@
             </div>
             <div id="voice-analysis-idle">
               <p class="muted reports-photos-lead">
-                Use your microphone for a short recording to estimate pitch, resonance, and clarity.
+                Short recording to track resonance, clarity, and pitch stability against your own sessions.
               </p>
+              <p class="analysis-free-note" id="voice-analysis-free-note">Includes 1 free on-device scan.</p>
               <button type="button" class="reports-photo-cta" id="btn-voice-analysis-start">
                 Start recording
               </button>
@@ -399,6 +439,7 @@
                 Record again
               </button>
             </div>
+          </div>
           </div>
 
           <div class="card reports-card" id="reports-badges-card">
@@ -803,6 +844,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=fullReports1"></script>
+  <script src="script.js?v=analysisOnce1"></script>
 </body>
 </html>

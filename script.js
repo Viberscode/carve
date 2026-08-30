@@ -2019,6 +2019,7 @@ function renderReports() {
   renderReportWeekly(badgeCtx);
   renderFaceAnalysis();
   renderVoiceAnalysis();
+  syncAnalysisPaywallUi();
 }
 
 function loadReportPhotos() {
@@ -2614,6 +2615,125 @@ function requireAnalysisScanAccess(kind) {
   return false;
 }
 
+function syncAnalysisPaywallUi() {
+  const faceAllowed = canRunFaceAnalysisScan();
+  const voiceAllowed = canRunVoiceAnalysisScan();
+  const hasFace = Boolean(window.CarveFaceAnalysis?.loadFaceReport());
+  const hasVoice = Boolean(window.CarveVoiceAnalysis?.loadVoiceReport());
+
+  const setBtn = (el, defaultLabel, paywallLabel, allowed) => {
+    if (!el) return;
+    if (!allowed && !hasCarvePlus()) {
+      el.textContent = paywallLabel;
+      el.classList.add("is-paywall-cta");
+    } else {
+      el.textContent = defaultLabel;
+      el.classList.remove("is-paywall-cta");
+    }
+  };
+
+  setBtn($("#btn-face-analysis-reanalyze"), "Capture new photo", "Upgrade for more face scans", faceAllowed);
+  setBtn($("#btn-voice-analysis-reanalyze"), "Record again", "Upgrade for more voice scans", voiceAllowed);
+
+  const faceStart = $("#btn-face-analysis-start");
+  const voiceStart = $("#btn-voice-analysis-start");
+  if (faceStart) faceStart.disabled = !faceAllowed && !hasCarvePlus();
+  if (voiceStart) voiceStart.disabled = !voiceAllowed && !hasCarvePlus();
+
+  const faceNote = $("#face-analysis-free-note");
+  const voiceNote = $("#voice-analysis-free-note");
+  if (faceNote) {
+    faceNote.textContent = hasCarvePlus()
+      ? "Unlimited scans with CARVE Plus."
+      : hasFace
+        ? "Free scan used — upgrade for more face scans."
+        : "Includes 1 free on-device scan.";
+  }
+  if (voiceNote) {
+    voiceNote.textContent = hasCarvePlus()
+      ? "Unlimited scans with CARVE Plus."
+      : hasVoice
+        ? "Free scan used — upgrade for more voice scans."
+        : "Includes 1 free on-device scan.";
+  }
+
+  const presenceSection = $("#reports-presence-analysis-section");
+  if (presenceSection) presenceSection.hidden = !isFullPresenceMode();
+
+  if (isFullPresenceMode()) {
+    updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed);
+  }
+}
+
+function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed) {
+  const meta = $("#presence-analysis-meta");
+  const lead = $("#presence-analysis-lead");
+  const freeNote = $("#presence-analysis-free-note");
+  const actions = $("#presence-analysis-actions");
+  const faceStatus = $("#presence-status-face");
+  const voiceStatus = $("#presence-status-voice");
+  const faceLabel = $("#presence-status-face-label");
+  const voiceLabel = $("#presence-status-voice-label");
+  const faceBtn = $("#btn-presence-face-scan");
+  const voiceBtn = $("#btn-presence-voice-scan");
+
+  if (faceStatus) {
+    faceStatus.classList.toggle("is-done", hasFace);
+    faceStatus.classList.toggle("is-used", hasFace && !faceAllowed && !hasCarvePlus());
+  }
+  if (voiceStatus) {
+    voiceStatus.classList.toggle("is-done", hasVoice);
+    voiceStatus.classList.toggle("is-used", hasVoice && !voiceAllowed && !hasCarvePlus());
+  }
+  if (faceLabel) {
+    faceLabel.textContent = hasFace
+      ? hasCarvePlus() || faceAllowed
+        ? "Baseline saved"
+        : "Free scan used"
+      : "Not started";
+  }
+  if (voiceLabel) {
+    voiceLabel.textContent = hasVoice
+      ? hasCarvePlus() || voiceAllowed
+        ? "Baseline saved"
+        : "Free scan used"
+      : "Not started";
+  }
+
+  const doneCount = (hasFace ? 1 : 0) + (hasVoice ? 1 : 0);
+  if (meta) {
+    meta.textContent =
+      doneCount === 2 ? "Complete" : doneCount === 1 ? "1 / 2 done" : "On-device";
+  }
+  if (lead && doneCount === 2) {
+    lead.textContent =
+      "Both baselines saved — scroll down to review face and voice trends against your own history.";
+  }
+
+  if (freeNote) {
+    freeNote.textContent = hasCarvePlus()
+      ? "Unlimited face and voice scans with CARVE Plus."
+      : "One free face scan and one free voice scan on this device.";
+  }
+
+  if (actions) {
+    const showFaceBtn = !hasFace || faceAllowed || hasCarvePlus();
+    const showVoiceBtn = !hasVoice || voiceAllowed || hasCarvePlus();
+    actions.hidden = !showFaceBtn && !showVoiceBtn;
+  }
+
+  if (faceBtn) {
+    faceBtn.hidden = hasFace && !faceAllowed && !hasCarvePlus();
+    faceBtn.textContent = hasFace ? "Run another face scan" : "Start face analysis";
+    faceBtn.disabled = !faceAllowed && !hasCarvePlus();
+  }
+  if (voiceBtn) {
+    voiceBtn.hidden = hasVoice && !voiceAllowed && !hasCarvePlus();
+    voiceBtn.textContent = hasVoice ? "Run another voice scan" : "Start voice analysis";
+    voiceBtn.disabled = !voiceAllowed && !hasCarvePlus();
+  }
+}
+
 async function startFaceCamera() {
   if (!requireAnalysisScanAccess("face")) return;
   const meta = $("#face-analysis-meta");
@@ -2681,6 +2801,10 @@ function captureFaceFrame() {
 async function captureAndAnalyzeFace() {
   const api = window.CarveFaceAnalysis;
   if (!api) return;
+  if (!canRunFaceAnalysisScan()) {
+    redirectToCarvePlusHighlight();
+    return;
+  }
   const meta = $("#face-analysis-meta");
 
   let canvas;
@@ -2705,6 +2829,7 @@ async function captureAndAnalyzeFace() {
     report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
     renderFaceAnalysis({ scrollToScores: true });
+    syncAnalysisPaywallUi();
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
     let friendly = "Face analysis failed. Try another capture.";
@@ -3014,6 +3139,19 @@ async function processVoiceAnalysisRecording() {
 
   const blob = new Blob(chunks, { type: chunks[0]?.type || "audio/webm" });
   stopVoiceAnalysisMic(false);
+  if (!canRunVoiceAnalysisScan()) {
+    redirectToCarvePlusHighlight();
+    const existing = api.loadVoiceReport();
+    if (existing) {
+      fillVoiceAnalysisResults(existing);
+      setVoiceAnalysisView("results");
+      if (meta) meta.textContent = "Saved";
+    } else {
+      setVoiceAnalysisView("idle");
+      if (meta) meta.textContent = "On-device";
+    }
+    return;
+  }
   if (meta) meta.textContent = "Analyzing…";
   setVoiceAnalysisView("loading");
 
@@ -3022,6 +3160,7 @@ async function processVoiceAnalysisRecording() {
     const report = await api.analyzeVoiceFromBlob(blob, previous);
     api.saveVoiceReport(report);
     renderVoiceAnalysis({ scrollToScores: true });
+    syncAnalysisPaywallUi();
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
     let friendly = "Voice analysis failed. Try another recording.";
@@ -4179,6 +4318,14 @@ function bind() {
       }
       if (e.target.closest("#btn-reports-voice-cancel")) {
         cancelVoiceRecorder();
+        return;
+      }
+      if (e.target.closest("#btn-presence-face-scan")) {
+        startFaceCamera();
+        return;
+      }
+      if (e.target.closest("#btn-presence-voice-scan")) {
+        startVoiceAnalysisRecorder();
         return;
       }
       if (

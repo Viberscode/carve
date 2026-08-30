@@ -2675,6 +2675,80 @@ button {
   border: 1.5px solid var(--line-gray);
 }
 
+.reports-section-label {
+  margin: 18px 0 10px;
+}
+
+.presence-analysis-status {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.presence-analysis-status-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line-gray);
+  background: #f8fafc;
+}
+
+.presence-analysis-status-item.is-done {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.presence-analysis-status-item.is-used {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.presence-analysis-status-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.presence-analysis-status-item strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  color: #334155;
+  margin-bottom: 2px;
+}
+
+.presence-analysis-status-item span:last-child {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.presence-analysis-free-note,
+.analysis-free-note {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.presence-analysis-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.presence-analysis-actions .reports-photo-cta {
+  margin-top: 0;
+}
+
+.face-analysis-reanalyze.is-paywall-cta {
+  color: #9a3412;
+  border-color: #fed7aa;
+  background: linear-gradient(135deg, #fff7ed, #fffbeb);
+}
+
 .badge-next-hint {
   margin: 0 0 14px;
   padding: 10px 12px;
