@@ -2272,10 +2272,21 @@ function scrollAnalysisScoresIntoView(selector) {
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         return;
       }
+
       const rootRect = scrollRoot.getBoundingClientRect();
       const targetRect = target.getBoundingClientRect();
-      const top = scrollRoot.scrollTop + (targetRect.top - rootRect.top) - 20;
-      scrollRoot.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+
+      // Align scores block ~42% down the viewport — keeps analysis tips above, button below.
+      const viewAnchor = rootRect.top + rootRect.height * 0.42;
+      const blockAnchor = targetRect.top + targetRect.height * 0.45;
+      const delta = blockAnchor - viewAnchor;
+
+      if (Math.abs(delta) < 8) return;
+
+      scrollRoot.scrollTo({
+        top: Math.max(0, scrollRoot.scrollTop + delta),
+        behavior: "smooth",
+      });
     });
   });
 }
@@ -2348,7 +2359,7 @@ function renderFaceAnalysis(opts = {}) {
   if (meta) meta.textContent = "Saved";
   setFaceAnalysisView("results");
   fillFaceAnalysisResults(report);
-  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#face-analysis-scores");
+  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#face-analysis-scores-block");
 }
 
 async function startFaceCamera() {
@@ -2629,7 +2640,7 @@ function renderVoiceAnalysis(opts = {}) {
   if (meta) meta.textContent = "Saved";
   setVoiceAnalysisView("results");
   fillVoiceAnalysisResults(report);
-  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#voice-analysis-scores");
+  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#voice-analysis-scores-block");
 }
 
 async function startVoiceAnalysisRecorder() {
