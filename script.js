@@ -2919,7 +2919,7 @@ function setVoiceRecorderUi(recording) {
   const status = $("#reports-voice-status");
   if (ring) ring.classList.toggle("is-recording", recording);
   if (meter) meter.classList.toggle("is-live", recording);
-  if (btn) btn.textContent = recording ? "Stop & save" : "Start recording";
+  if (btn) btn.textContent = recording ? "STOP RECORDING" : "Start recording";
   if (status) {
     status.textContent = recording
       ? "Recording… speak at your natural pace"
