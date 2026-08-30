@@ -1851,7 +1851,10 @@ function renderMe() {
   const streakNum = $("#me-streak-num");
   if (streakNum) streakNum.textContent = String(streak);
   const streakBadge = $("#me-streak-badge");
-  if (streakBadge) streakBadge.setAttribute("aria-label", `${streak} day streak`);
+  if (streakBadge) {
+    streakBadge.classList.toggle("is-active", streak > 0);
+    streakBadge.setAttribute("aria-label", `${streak} day streak`);
+  }
 
   $$("[data-me-track]").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));
