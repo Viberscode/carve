@@ -3305,44 +3305,39 @@ button {
   margin-bottom: 0;
 }
 
-.voice-analysis-metric {
-  transition: background 0.25s ease, border-color 0.25s ease;
+.analysis-summary {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #64748b;
+  font-weight: 500;
 }
 
-.voice-analysis-metric.score-low {
-  background: linear-gradient(165deg, #fff5f5 0%, #ffe8ec 100%);
-  border-color: #fecdd3;
+.analysis-metric.tint-indigo {
+  background: linear-gradient(165deg, #eef2ff 0%, #e0e7ff 100%);
+  border-color: #c7d2fe;
 }
 
-.voice-analysis-metric.score-low strong {
-  color: #be123c;
+.analysis-metric.tint-indigo strong {
+  color: #4338ca;
 }
 
-.voice-analysis-metric.score-mid {
-  background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 100%);
-  border-color: #fde68a;
+.analysis-metric.tint-violet {
+  background: linear-gradient(165deg, #f5f3ff 0%, #ede9fe 100%);
+  border-color: #ddd6fe;
 }
 
-.voice-analysis-metric.score-mid strong {
-  color: #b45309;
+.analysis-metric.tint-violet strong {
+  color: #7c3aed;
 }
 
-.voice-analysis-metric.score-good {
-  background: linear-gradient(165deg, #eff6ff 0%, #dbeafe 100%);
-  border-color: #bfdbfe;
+.analysis-metric.tint-teal {
+  background: linear-gradient(165deg, #ecfdf5 0%, #ccfbf1 100%);
+  border-color: #99f6e4;
 }
 
-.voice-analysis-metric.score-good strong {
-  color: #1d4ed8;
-}
-
-.voice-analysis-metric.score-high {
-  background: linear-gradient(165deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: #a7f3d0;
-}
-
-.voice-analysis-metric.score-high strong {
-  color: #047857;
+.analysis-metric.tint-teal strong {
+  color: #0f766e;
 }
 
 .voice-analysis-pitch-line {

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=voiceScores1" />
+  <link rel="stylesheet" href="styles.css?v=analysisUi1" />
 </head>
 <body>
   <div class="device">
@@ -297,19 +297,19 @@
               <div class="face-analysis-writeup">
                 <p class="face-analysis-writeup-kicker">Your analysis</p>
                 <h3 class="face-analysis-writeup-title" id="face-analysis-headline">—</h3>
-                <div class="face-analysis-writeup-body" id="face-analysis-analysis"></div>
+                <p class="analysis-summary" id="face-analysis-summary"></p>
               </div>
               <p class="face-analysis-scores-label">Scores</p>
               <div class="face-analysis-metrics">
-                <div class="face-analysis-metric">
+                <div class="face-analysis-metric analysis-metric tint-indigo" id="face-metric-score">
                   <span class="face-analysis-metric-label">Jawline Score</span>
                   <strong id="face-analysis-score">—</strong>
                 </div>
-                <div class="face-analysis-metric">
+                <div class="face-analysis-metric analysis-metric tint-violet" id="face-metric-ratio">
                   <span class="face-analysis-metric-label">Jaw Ratio</span>
                   <strong id="face-analysis-ratio">—</strong>
                 </div>
-                <div class="face-analysis-metric">
+                <div class="face-analysis-metric analysis-metric tint-teal" id="face-metric-symmetry">
                   <span class="face-analysis-metric-label">Symmetry</span>
                   <strong id="face-analysis-symmetry">—</strong>
                 </div>
@@ -368,18 +368,19 @@
               <div class="face-analysis-writeup voice-analysis-writeup">
                 <p class="face-analysis-writeup-kicker">Your analysis</p>
                 <h3 class="face-analysis-writeup-title" id="voice-analysis-headline">—</h3>
+                <p class="analysis-summary" id="voice-analysis-summary"></p>
               </div>
               <p class="face-analysis-scores-label">Scores</p>
               <div class="face-analysis-metrics voice-analysis-metrics">
-                <div class="face-analysis-metric voice-analysis-metric" id="voice-metric-score">
+                <div class="face-analysis-metric analysis-metric tint-indigo" id="voice-metric-score">
                   <span class="face-analysis-metric-label">Voice Score</span>
                   <strong id="voice-analysis-score">—</strong>
                 </div>
-                <div class="face-analysis-metric voice-analysis-metric" id="voice-metric-resonance">
+                <div class="face-analysis-metric analysis-metric tint-violet" id="voice-metric-resonance">
                   <span class="face-analysis-metric-label">Resonance</span>
                   <strong id="voice-analysis-resonance">—</strong>
                 </div>
-                <div class="face-analysis-metric voice-analysis-metric" id="voice-metric-clarity">
+                <div class="face-analysis-metric analysis-metric tint-teal" id="voice-metric-clarity">
                   <span class="face-analysis-metric-label">Clarity</span>
                   <strong id="voice-analysis-clarity">—</strong>
                 </div>
@@ -758,8 +759,8 @@
   </div>
 
   <script src="data.js?v=landing9"></script>
-  <script src="faceAnalysis.js?v=4"></script>
-  <script src="voiceAnalysis.js?v=1"></script>
-  <script src="script.js?v=voiceScores1"></script>
+  <script src="faceAnalysis.js?v=5"></script>
+  <script src="voiceAnalysis.js?v=2"></script>
+  <script src="script.js?v=analysisUi1"></script>
 </body>
 </html>

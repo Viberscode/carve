@@ -2188,7 +2188,7 @@ function fillFaceAnalysisResults(report) {
   const photoWrap = $("#face-analysis-photo-wrap");
   const photo = $("#face-analysis-photo");
   const headline = $("#face-analysis-headline");
-  const analysis = $("#face-analysis-analysis");
+  const summaryEl = $("#face-analysis-summary");
   const score = $("#face-analysis-score");
   const ratio = $("#face-analysis-ratio");
   const symmetry = $("#face-analysis-symmetry");
@@ -2211,10 +2211,10 @@ function fillFaceAnalysisResults(report) {
   }
 
   if (headline) headline.textContent = writeup.headline;
-  if (analysis) {
-    analysis.innerHTML = (writeup.paragraphs || [])
-      .map((p) => `<p>${p}</p>`)
-      .join("");
+  if (summaryEl) {
+    summaryEl.textContent =
+      report.analysisSummary ||
+      (api?.buildFaceAnalysisSummary ? api.buildFaceAnalysisSummary(report) : "");
   }
 
   if (score) score.textContent = String(report.jawlineScore);
@@ -2437,29 +2437,16 @@ function renderVoiceAnalysisWaveform(container, peaks) {
     .join("");
 }
 
-function applyVoiceMetricTint(el, score) {
-  if (!el) return;
-  el.classList.remove("score-low", "score-mid", "score-good", "score-high");
-  const n = Number(score);
-  if (Number.isNaN(n)) return;
-  if (n >= 85) el.classList.add("score-high");
-  else if (n >= 70) el.classList.add("score-good");
-  else if (n >= 50) el.classList.add("score-mid");
-  else el.classList.add("score-low");
-}
-
 function fillVoiceAnalysisResults(report) {
   const api = window.CarveVoiceAnalysis;
   const waveWrap = $("#voice-analysis-wave-wrap");
   const wave = $("#voice-analysis-wave");
   const headline = $("#voice-analysis-headline");
+  const summaryEl = $("#voice-analysis-summary");
   const score = $("#voice-analysis-score");
   const resonance = $("#voice-analysis-resonance");
   const clarity = $("#voice-analysis-clarity");
   const pitchLine = $("#voice-analysis-pitch-line");
-  const scoreCard = $("#voice-metric-score");
-  const resonanceCard = $("#voice-metric-resonance");
-  const clarityCard = $("#voice-metric-clarity");
 
   const writeup = report.analysisHeadline
     ? { headline: report.analysisHeadline }
@@ -2478,13 +2465,15 @@ function fillVoiceAnalysisResults(report) {
   }
 
   if (headline) headline.textContent = writeup.headline;
+  if (summaryEl) {
+    summaryEl.textContent =
+      report.analysisSummary ||
+      (api?.buildVoiceAnalysisSummary ? api.buildVoiceAnalysisSummary(report) : "");
+  }
 
   if (score) score.textContent = String(report.voiceScore);
   if (resonance) resonance.textContent = `${report.resonanceScore}%`;
   if (clarity) clarity.textContent = `${report.clarityScore}%`;
-  applyVoiceMetricTint(scoreCard, report.voiceScore);
-  applyVoiceMetricTint(resonanceCard, report.resonanceScore);
-  applyVoiceMetricTint(clarityCard, report.clarityScore);
   if (pitchLine) {
     pitchLine.textContent = report.pitchHz
       ? `Pitch ${Math.round(report.pitchHz)} Hz · score ${report.pitchScore}/100`

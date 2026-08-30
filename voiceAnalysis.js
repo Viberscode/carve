@@ -227,6 +227,21 @@
     };
   }
 
+  function buildVoiceAnalysisSummary(metrics) {
+    const pitchHz = Number(metrics.pitchHz) || 0;
+    const voiceScore = Number(metrics.voiceScore);
+    const resonanceScore = Number(metrics.resonanceScore);
+    const clarityScore = Number(metrics.clarityScore);
+    const pitchPart = pitchHz ? `${Math.round(pitchHz)} Hz pitch` : "pitch not locked";
+    const focus =
+      resonanceScore < clarityScore && resonanceScore < voiceScore
+        ? "Prioritize breath support and resonance drills."
+        : clarityScore < 65
+          ? "Record closer in a quieter room for sharper detail."
+          : "Keep the same phrase and spot each week to track change.";
+    return `Main points: ${pitchPart}, ${resonanceScore}% resonance, ${clarityScore}% clarity. ${focus}`;
+  }
+
   function buildWaveformPeaks(samples, count = 48) {
     const block = Math.max(1, Math.floor(samples.length / count));
     const peaks = [];
@@ -317,6 +332,7 @@
     STORAGE_KEY,
     analyzeVoiceFromBlob,
     buildVoiceAnalysis,
+    buildVoiceAnalysisSummary,
     loadVoiceReport,
     saveVoiceReport,
     clearVoiceReport,

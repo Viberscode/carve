@@ -246,6 +246,19 @@
     };
   }
 
+  function buildFaceAnalysisSummary(metrics) {
+    const jawlineScore = Number(metrics.jawlineScore);
+    const jawRatio = Number(metrics.jawRatio);
+    const symPct = Math.round(Number(metrics.symmetry) * 100);
+    const focus =
+      symPct < 78
+        ? "Use mirrored reps to even left–right balance."
+        : jawlineScore < 70
+          ? "Focus on chin tucks and jaw-release work."
+          : "Re-capture in the same light each week to track change.";
+    return `Main points: ${jawlineScore}/100 jawline, ${jawRatio.toFixed(2)} ratio, ${symPct}% symmetry. ${focus}`;
+  }
+
   function metricsFromLandmarks(landmarks) {
     if (!landmarks || landmarks.length < 468) {
       throw new Error("No face detected");
@@ -328,6 +341,7 @@
     analyzeFaceFromFile,
     analyzeFaceFromImage,
     buildFaceAnalysis,
+    buildFaceAnalysisSummary,
     loadFaceReport,
     saveFaceReport,
     clearFaceReport,
