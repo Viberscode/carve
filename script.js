@@ -1838,26 +1838,20 @@ function profileInitials(name) {
 }
 
 function renderMe() {
-  const pct = Math.min(100, Math.max(0, ((state.currentDay - 1) / 30) * 100));
-  const ring = $("#me-progress-ring");
-  if (ring) {
-    ring.style.setProperty("--pct", String(pct));
-    ring.setAttribute("aria-label", `Plan progress · ${Math.round(pct)}%`);
-  }
-
-  const progressGlyph = $("#me-progress-glyph");
   const meta = trackMeta();
-  if (progressGlyph) progressGlyph.textContent = meta.art || "✦";
-
   const avatar = $("#profile-avatar");
   if (avatar) avatar.textContent = profileInitials(state.profileName);
 
-  const trackArt = $("#me-track-art");
-  const trackLabel = $("#me-track-label");
-  const trackTags = $("#me-track-tags");
-  if (trackArt) trackArt.textContent = meta.art || "✦";
-  if (trackLabel) trackLabel.textContent = meta.label || "Face Form";
-  if (trackTags) trackTags.textContent = meta.tags || meta.subtitle || "";
+  const programLine = $("#me-program-line");
+  if (programLine) {
+    programLine.textContent = `${meta.label || "Face Form"} · Day ${state.currentDay} of 30`;
+  }
+
+  const streak = state.streak || 0;
+  const streakNum = $("#me-streak-num");
+  if (streakNum) streakNum.textContent = String(streak);
+  const streakBadge = $("#me-streak-badge");
+  if (streakBadge) streakBadge.setAttribute("aria-label", `${streak} day streak`);
 
   $$("[data-me-track]").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));
@@ -3802,13 +3796,6 @@ function bind() {
     renderMe();
     const el = $("#profile-name");
     if (el) el.textContent = cleaned;
-  });
-
-  $("#btn-me-reports")?.addEventListener("click", () => {
-    state.stack = ["reports"];
-    renderReports();
-    showView("reports");
-    $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "reports"));
   });
 
   $$("[data-me-track]").forEach((btn) => {

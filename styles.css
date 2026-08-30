@@ -11,6 +11,10 @@
   --chip: #efeff4;
   --white: #fff;
   --streak: #ff6b35;
+  --ink: #0c1222;
+  --sub-gray: #8e96a3;
+  --line-gray: #e7e9f1;
+  --paper: #eef1f6;
   --purple: #7b5cff;
   --green: #2bb673;
   --teal: #3d7cff;
@@ -20,6 +24,7 @@
   --safe-t: env(safe-area-inset-top, 0px);
   --font: "Outfit", system-ui, sans-serif;
   --font-display: "Montserrat", "Outfit", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --grad: linear-gradient(135deg, #2a4de8 0%, #0b1f8f 100%);
 }
 
@@ -4005,7 +4010,7 @@ button {
 
 /* ========== ME (redesign) ========== */
 .me-view {
-  background: #eef1f6;
+  background: var(--paper);
 }
 
 .me-scroll {
@@ -4018,7 +4023,7 @@ button {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #9aa3b2;
+  color: var(--sub-gray);
   margin: 0 4px 10px;
 }
 
@@ -4029,33 +4034,14 @@ button {
 
 .me-card {
   background: var(--white);
-  border-radius: 22px;
+  border-radius: 16px;
   padding: 16px;
-  border: 1px solid #e6ebf2;
-  box-shadow: 0 8px 20px #1e3fe008;
+  border: 1px solid var(--line-gray);
 }
 
 .me-profile-card {
-  position: relative;
   margin-bottom: 4px;
-  padding: 20px 18px 18px;
-  background:
-    radial-gradient(ellipse 85% 65% at 100% 0%, #1e3fe018, transparent 58%),
-    radial-gradient(ellipse 55% 45% at 0% 100%, #2bb67312, transparent 52%),
-    linear-gradient(160deg, #ffffff 0%, #f6f9ff 52%, #f2f6fc 100%);
-  border: 1px solid #e3eaf6;
-  box-shadow:
-    0 16px 36px #1e3fe00e,
-    0 2px 0 #ffffff inset;
-  overflow: hidden;
-}
-
-.me-profile-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, #ffffff44 0%, transparent 42%);
-  pointer-events: none;
+  padding: 18px 16px;
 }
 
 .me-profile-row {
@@ -4067,7 +4053,7 @@ button {
 .me-avatar {
   width: 58px;
   height: 58px;
-  border-radius: 18px;
+  border-radius: 16px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -4077,10 +4063,7 @@ button {
   letter-spacing: -0.02em;
   color: #fff;
   text-transform: uppercase;
-  background: linear-gradient(145deg, #1e3fe0 0%, #2bb673 100%);
-  box-shadow:
-    0 8px 18px #1e3fe028,
-    inset 0 1px 0 #ffffff55;
+  background: var(--blue);
 }
 
 .me-profile-main {
@@ -4099,13 +4082,13 @@ button {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: #0c1222;
+  color: var(--ink);
   line-height: 1.05;
   text-transform: capitalize;
 }
 
 .me-edit-btn {
-  color: #9aa3b2;
+  color: var(--sub-gray);
   font-size: 14px;
   padding: 6px;
   line-height: 1;
@@ -4116,128 +4099,61 @@ button {
 .me-edit-btn:hover,
 .me-edit-btn:focus-visible {
   color: var(--blue);
-  background: #eef2ff;
+  background: var(--blue-soft);
   outline: none;
 }
 
-.me-member {
-  margin-top: 5px;
-  font-size: 13px;
+.me-program-line {
+  margin-top: 6px;
+  font-size: 14px;
   font-weight: 600;
-  color: #8e96a3;
+  color: var(--sub-gray);
+  line-height: 1.3;
 }
 
-.me-progress-ring {
-  --pct: 0;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+.me-streak-wrap {
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  background:
-    radial-gradient(circle at center, #fff 54%, #f8faff 58%, transparent 59%),
-    conic-gradient(#1e3fe0 0%, #2bb673 calc(var(--pct) * 1%), #e8edf5 0);
-  box-shadow:
-    0 0 0 3px #fff,
-    0 6px 16px #1e3fe018;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.me-progress-glyph {
-  font-size: 22px;
-  line-height: 1;
-  filter: drop-shadow(0 1px 2px rgba(30, 63, 224, 0.12));
-}
-
-.me-focus-strip {
-  position: relative;
-  z-index: 1;
-  margin-top: 18px;
-  padding: 14px 14px 14px 16px;
-  border-radius: 18px;
+.me-streak-pill {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: linear-gradient(135deg, #f8faff 0%, #eef3ff 100%);
-  border: 1px solid #dde5f8;
-  box-shadow: inset 0 1px 0 #ffffffcc;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1px solid var(--line-gray);
 }
 
-.me-focus-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  font-size: 22px;
-  background: linear-gradient(145deg, #ffffff, #eef2ff);
-  border: 1px solid #d7defe;
-  box-shadow: 0 6px 14px #1e3fe012;
+.me-streak-flame {
+  font-size: 14px;
+  line-height: 1;
+  color: var(--streak);
 }
 
-.me-focus-copy {
-  flex: 1;
-  min-width: 0;
-}
-
-.me-focus-kicker {
-  margin: 0 0 3px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--blue);
-}
-
-.me-focus-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #0c1222;
-  line-height: 1.15;
-}
-
-.me-focus-sub {
-  margin: 3px 0 0;
-  font-size: 12px;
+.me-streak-num {
+  font-family: var(--font-mono);
+  font-size: 15px;
   font-weight: 600;
-  color: #8e96a3;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 
-.me-focus-reports {
-  flex-shrink: 0;
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: #fff;
-  background: linear-gradient(135deg, #1e3fe0, #3a5cf0);
-  border: none;
-  box-shadow: 0 8px 18px #1e3fe033;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.me-focus-reports:hover,
-.me-focus-reports:focus-visible {
-  box-shadow: 0 10px 22px #1e3fe044;
-  outline: none;
-}
-
-.me-focus-reports:active {
-  transform: scale(0.98);
+.me-streak-caption {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sub-gray);
+  line-height: 1.2;
 }
 
 .me-link,
 .me-inline-link {
-  color: #6b7280;
+  color: var(--sub-gray);
   font: inherit;
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -4251,21 +4167,16 @@ button {
   align-items: center;
   gap: 14px;
   text-align: left;
-  padding: 16px 16px 16px 14px;
-  border-radius: 22px;
-  border: 1.5px solid #c7d7fe;
-  background:
-    radial-gradient(ellipse 90% 80% at 100% 0%, #dbeafe 0%, transparent 55%),
-    linear-gradient(145deg, #ffffff 0%, #f3f7ff 48%, #eef2ff 100%);
-  color: #0c1222;
-  box-shadow:
-    0 10px 28px #1e3fe012,
-    inset 0 1px 0 #ffffff;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line-gray);
+  background: var(--white);
+  color: var(--ink);
+  transition: border-color 0.15s ease;
 }
 
 .me-plus-card:active {
-  transform: scale(0.985);
+  border-color: var(--blue);
 }
 
 .me-plus-gem {
@@ -4278,8 +4189,7 @@ button {
   font-size: 18px;
   font-weight: 800;
   color: #fff;
-  background: linear-gradient(145deg, #1e3fe0 0%, #4a6cf0 100%);
-  box-shadow: 0 8px 18px #1e3fe028;
+  background: var(--blue);
 }
 
 .me-plus-main {
@@ -4302,7 +4212,7 @@ button {
   font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0c1222;
+  color: var(--ink);
 }
 
 .me-plus-chip {
@@ -4320,14 +4230,14 @@ button {
 .me-plus-detail {
   font-size: 13px;
   font-weight: 500;
-  color: #64748b;
+  color: var(--sub-gray);
   line-height: 1.35;
 }
 
 .me-plus-detail em {
   font-style: normal;
   font-weight: 800;
-  color: #1e3fe0;
+  color: var(--blue);
 }
 
 .me-plus-chevron {
@@ -4340,13 +4250,46 @@ button {
   font-size: 20px;
   font-weight: 700;
   color: var(--blue);
-  background: #ffffffcc;
-  border: 1px solid #d7defe;
+  background: var(--white);
+  border: 1px solid var(--line-gray);
+}
+
+.me-program {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+}
+
+.me-track-btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 8px;
+  border-radius: 16px;
+  border: 1px solid var(--line-gray);
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.me-track-btn.on {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: var(--white);
+}
+
+.me-track-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
 }
 
 .me-chevron {
-  color: #ffffffaa;
-  font-size: 22px;
+  color: #c0c5ce;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1;
 }
@@ -4361,7 +4304,7 @@ button {
   align-items: center;
   gap: 12px;
   padding: 14px 8px;
-  border-bottom: 1px solid #eef1f5;
+  border-bottom: 1px solid var(--line-gray);
 }
 
 .me-pref:last-child {
@@ -4381,7 +4324,7 @@ button {
   min-width: 0;
   font-size: 15px;
   font-weight: 600;
-  color: #111;
+  color: var(--ink);
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -4407,10 +4350,10 @@ button {
   gap: 12px;
   text-align: left;
   padding: 14px 8px;
-  border-bottom: 1px solid #eef1f5;
+  border-bottom: 1px solid var(--line-gray);
   font-size: 15px;
   font-weight: 600;
-  color: #111;
+  color: var(--ink);
 }
 
 .me-row:last-child {
@@ -4425,7 +4368,7 @@ button {
 
 .me-row.danger,
 .me-row.danger .me-row-icon {
-  color: #e85d3b;
+  color: var(--streak);
 }
 
 .me-privacy {
@@ -4443,7 +4386,7 @@ button {
 .me-privacy p {
   font-size: 13px;
   font-weight: 500;
-  color: #3a4454;
+  color: var(--ink);
   line-height: 1.45;
 }
 

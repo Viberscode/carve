@@ -8,8 +8,8 @@
   <title>CARVE APP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=scoreReveal1" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=meFinal1" />
 </head>
 <body>
   <div class="device">
@@ -435,19 +435,15 @@
                   <h1 class="me-name" id="profile-name">Priya</h1>
                   <button type="button" class="me-edit-btn" id="btn-edit-name" aria-label="Edit name">✎</button>
                 </div>
+                <p class="me-program-line" id="me-program-line">Face Form · Day 1 of 30</p>
               </div>
-              <div class="me-progress-ring" id="me-progress-ring" style="--pct:0" aria-label="Plan progress">
-                <span class="me-progress-glyph" id="me-progress-glyph" aria-hidden="true">✦</span>
+              <div class="me-streak-wrap">
+                <div class="me-streak-pill" id="me-streak-badge" aria-label="0 day streak">
+                  <span class="me-streak-flame" aria-hidden="true">🔥</span>
+                  <span class="me-streak-num" id="me-streak-num">0</span>
+                </div>
+                <span class="me-streak-caption">day streak</span>
               </div>
-            </div>
-            <div class="me-focus-strip">
-              <div class="me-focus-icon" id="me-track-art" aria-hidden="true">🪞</div>
-              <div class="me-focus-copy">
-                <p class="me-focus-kicker">Your path</p>
-                <p class="me-focus-title" id="me-track-label">Face Form</p>
-                <p class="me-focus-sub" id="me-track-tags">Jawline · Eyes · Posture</p>
-              </div>
-              <button type="button" class="me-focus-reports" id="btn-me-reports">Reports ›</button>
             </div>
           </div>
 
@@ -464,6 +460,13 @@
             </span>
             <span class="me-plus-chevron" aria-hidden="true">›</span>
           </button>
+
+          <p class="me-section-label blue">My program</p>
+          <div class="me-card me-program" role="group" aria-label="Training program">
+            <button type="button" class="me-track-btn on" data-me-track="face">Face Form</button>
+            <button type="button" class="me-track-btn" data-me-track="voice">Voice Grain</button>
+            <button type="button" class="me-track-btn" data-me-track="both">Full Presence</button>
+          </div>
 
           <p class="me-section-label blue">Preferences</p>
           <div class="me-card me-prefs">
@@ -759,6 +762,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=8"></script>
   <script src="voiceAnalysis.js?v=7"></script>
-  <script src="script.js?v=scoreReveal1"></script>
+  <script src="script.js?v=meFinal1"></script>
 </body>
 </html>
