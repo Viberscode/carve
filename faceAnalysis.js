@@ -6,6 +6,8 @@
   "use strict";
 
   const STORAGE_KEY = "faceReport";
+  const HISTORY_KEY = "faceReportHistory";
+  const MAX_HISTORY = 20;
   const FACE_MESH_CDN = "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619";
 
   // MediaPipe Face Mesh landmark indices
@@ -321,58 +323,124 @@
     };
   }
 
-  function buildFaceAnalysis(metrics) {
+  function trendLabel(delta, threshold, labels) {
+    if (Math.abs(delta) < threshold) return labels.stable;
+    return delta > 0 ? labels.up : labels.down;
+  }
+
+  function multiSessionTrend(history, field, threshold) {
+    if (!history || history.length < 3) return null;
+    const recent = history.slice(-5);
+    const delta = Number(recent[recent.length - 1][field]) - Number(recent[0][field]);
+    if (Math.abs(delta) < threshold) return `Steady over your last ${recent.length} check-ins`;
+    return delta > 0
+      ? `Trending up over your last ${recent.length} check-ins`
+      : `Softening over your last ${recent.length} check-ins`;
+  }
+
+  function buildFaceTrendLabels(metrics, previous, history) {
+    const jawlineScore = Number(metrics.jawlineScore);
     const jawRatio = Number(metrics.jawRatio);
     const symmetry = Number(metrics.symmetry);
-    const jawlineScore = Number(metrics.jawlineScore);
-    const symPct = Math.round(symmetry * 100);
 
-    let jawDef;
-    if (jawRatio >= 0.84) {
-      jawDef =
-        "Your lower face reads angular — jaw width tracks close to your cheeks, giving a sculpted mandible line in this capture.";
-    } else if (jawRatio >= 0.78) {
-      jawDef =
-        "Your jaw width balances well with your mid-face. The outline along the mandible looks defined without looking heavy.";
-    } else if (jawRatio >= 0.72) {
-      jawDef =
-        "Your jaw sits slightly narrower than your cheeks in this shot. Jaw-release work and posture resets can help sharpen the outline.";
-    } else {
-      jawDef =
-        "Your lower face reads softer relative to cheek width here. Consistent chin tucks and masseter release can gradually define the line.";
+    if (!previous) {
+      return {
+        overall: "Baseline saved",
+        jawline: "We'll compare future captures to this",
+        ratio: "Starting outline reference",
+        symmetry: "Starting balance reference",
+      };
     }
 
-    let symNote;
-    if (symmetry >= 0.88) {
-      symNote = `Left–right balance is strong (${symPct}% symmetry). Both sides align closely — a solid base for even training.`;
-    } else if (symmetry >= 0.78) {
-      symNote = `Symmetry looks balanced at ${symPct}%. Minor side-to-side variation is normal and often improves with mirrored reps.`;
-    } else {
-      symNote = `Symmetry reads at ${symPct}% — some left/right difference shows in this capture. Gentle, balanced exercises can help even things out.`;
-    }
-
-    let headline;
-    if (jawlineScore >= 85) headline = "Well-defined jawline";
-    else if (jawlineScore >= 70) headline = "Solid structure — keep sharpening";
-    else if (jawlineScore >= 55) headline = "Definition emerging";
-    else headline = "Your baseline capture";
-
-    let takeaway;
-    if (jawlineScore >= 70) {
-      takeaway =
-        "Maintain posture resets, jaw-release sessions, and hydration. Re-capture in the same light each week to track real change.";
-    } else {
-      takeaway =
-        "Focus on chin tucks, jaw-release massage, and back-sleeping. Small daily habits compound — check back after a week of sessions.";
-    }
+    const jawDelta = jawlineScore - Number(previous.jawlineScore);
+    const ratioDelta = jawRatio - Number(previous.jawRatio);
+    const symDelta = symmetry - Number(previous.symmetry);
+    const multi = multiSessionTrend(history, "jawlineScore", 4);
 
     return {
-      headline,
-      paragraphs: [jawDef, symNote, takeaway],
+      overall:
+        multi ||
+        trendLabel(jawDelta, 3, {
+          up: "More ease than your last check-in",
+          stable: "Holding steady since your last check-in",
+          down: "More tension than your last check-in",
+        }),
+      jawline: trendLabel(jawDelta, 3, {
+        up: "Jaw tension eased since your last check-in",
+        stable: "Jaw tension similar to your last check-in",
+        down: "Jaw tension up since your last check-in",
+      }),
+      ratio: trendLabel(ratioDelta, 0.02, {
+        up: "Outline sharper than your last capture",
+        stable: "Outline similar to your last capture",
+        down: "Outline softer than your last capture",
+      }),
+      symmetry: trendLabel(symDelta, 0.02, {
+        up: "Balance closer than your last check-in",
+        stable: "Balance holding since your last check-in",
+        down: "Balance shifted since your last check-in",
+      }),
     };
   }
 
-  function buildFaceAnalysisSummary(metrics) {
+  function buildFaceAnalysis(metrics, previous) {
+    const jawRatio = Number(metrics.jawRatio);
+    const symmetry = Number(metrics.symmetry);
+    const jawlineScore = Number(metrics.jawlineScore);
+
+    if (!previous) {
+      return {
+        headline: "First check-in saved",
+        paragraphs: [
+          "This capture is your personal baseline — future check-ins compare to your own history, not to anyone else.",
+          "Use the same angle and light each time so trends reflect your sessions, not lighting shifts.",
+          "CARVE tracks soft-tissue habits and tension — never bone structure.",
+        ],
+      };
+    }
+
+    const jawDelta = jawlineScore - Number(previous.jawlineScore);
+    const ratioDelta = jawRatio - Number(previous.jawRatio);
+    const symDelta = symmetry - Number(previous.symmetry);
+
+    let headline;
+    if (jawDelta >= 3) headline = "Jaw tension has eased since your last check-in";
+    else if (jawDelta <= -3) headline = "More tension showing since your last check-in";
+    else if (symDelta >= 0.02) headline = "Balance improved since your last check-in";
+    else if (symDelta <= -0.02) headline = "Balance shifted since your last check-in";
+    else headline = "Holding steady since your last check-in";
+
+    let jawNote;
+    if (ratioDelta >= 0.02) {
+      jawNote =
+        "The jaw outline in this capture reads sharper compared to your last check-in at this angle.";
+    } else if (ratioDelta <= -0.02) {
+      jawNote =
+        "The jaw outline reads softer compared to your last check-in — posture resets and jaw-release may help.";
+    } else {
+      jawNote = "The jaw outline looks similar to your last check-in at this angle.";
+    }
+
+    let symNote;
+    if (symDelta >= 0.02) {
+      symNote = "Left–right balance is closer than in your previous capture.";
+    } else if (symDelta <= -0.02) {
+      symNote =
+        "A bit more side-to-side variation than your last check-in — mirror reps to keep training even.";
+    } else {
+      symNote = "Left–right balance is holding near your last check-in.";
+    }
+
+    const takeaway =
+      "Re-capture weekly in the same spot to watch your own trend line — CARVE never claims to change bone structure.";
+
+    return {
+      headline,
+      paragraphs: [jawNote, symNote, takeaway],
+    };
+  }
+
+  function buildFaceAnalysisSummary(metrics, previous) {
     const jawlineScore = Number(metrics.jawlineScore);
     const jawRatio = Number(metrics.jawRatio);
     const symmetry = Number(metrics.symmetry);
@@ -382,27 +450,40 @@
         ? text.replace(phrase, `<strong class="analysis-tip-hl">${phrase}</strong>`)
         : text;
 
-    const weakest =
-      symmetry < 0.78
+    const tips = [];
+
+    if (!previous) {
+      tips.push(hl("Save this angle — every future check-in compares to this baseline.", "this baseline"));
+      tips.push(hl("Train both sides evenly from day one so your trend line stays trustworthy.", "both sides evenly"));
+      tips.push(hl("Add slow chin tucks and jaw-release work — never force or strain.", "chin tucks"));
+      tips.push(hl("Re-capture in the same angle and light each week to track real change.", "same angle and light"));
+      tips.push(hl("Stop if anything feels painful — CARVE trains soft tissue, not bone.", "soft tissue, not bone"));
+      return tips;
+    }
+
+    const symDelta = symmetry - Number(previous.symmetry);
+    const jawDelta = jawlineScore - Number(previous.jawlineScore);
+    const ratioDelta = jawRatio - Number(previous.jawRatio);
+
+    const focus =
+      symDelta <= -0.02
         ? "symmetry"
-        : jawlineScore < 70 || jawRatio < 0.78
+        : jawDelta <= -3 || ratioDelta <= -0.02
           ? "jawline"
           : "maintain";
 
-    const tips = [];
-
-    if (weakest === "symmetry") {
+    if (focus === "symmetry") {
       tips.push(hl("Train both sides evenly — mirror each rep so left and right get equal work.", "mirror each rep"));
       tips.push(hl("Check head tilt in the mirror; even a small lean can skew how balance reads.", "head tilt"));
       tips.push(hl("Release the tighter jaw side with gentle massage before your session.", "gentle massage"));
       tips.push(hl("Favour back-sleeping when you can — it reduces overnight facial asymmetry.", "back-sleeping"));
-    } else if (weakest === "jawline") {
+    } else if (focus === "jawline") {
       tips.push(hl("Add slow chin tucks daily — controlled reps, never forced or strained.", "chin tucks"));
       tips.push(hl("Massage along the masseter for two minutes each side to release jaw tension.", "masseter"));
       tips.push(hl("Stack neck posture resets with jaw work for a cleaner mandible line.", "posture resets"));
       tips.push(hl("Stay hydrated — soft tissue tone responds better when you're well watered.", "Stay hydrated"));
     } else {
-      tips.push(hl("You're building a solid base — small daily sessions beat long occasional pushes.", "daily sessions"));
+      tips.push(hl("You're holding gains from your last check-in — small daily sessions beat long occasional pushes.", "daily sessions"));
       tips.push(hl("Keep pairing jaw-release work with upright neck and shoulder posture.", "jaw-release"));
       tips.push(hl("Add eye and mid-face drills to balance the overall look.", "mid-face drills"));
     }
@@ -413,7 +494,7 @@
     return tips;
   }
 
-  function metricsFromLandmarks(landmarks) {
+  function metricsFromLandmarks(landmarks, previous) {
     if (!landmarks || landmarks.length < 468) {
       throw new Error("No face detected");
     }
@@ -425,7 +506,10 @@
     const jawRatio = jawWidth / faceWidth;
     const symmetry = calcSymmetry(landmarks);
     const jawlineScore = calcJawlineScore(jawRatio, symmetry);
-    const analysis = buildFaceAnalysis({ jawRatio, symmetry, jawlineScore });
+    const history = loadFaceHistory();
+    const baseline = previous || null;
+    const analysis = buildFaceAnalysis({ jawRatio, symmetry, jawlineScore }, baseline);
+    const trendLabels = buildFaceTrendLabels({ jawRatio, symmetry, jawlineScore }, baseline, history);
 
     return {
       landmarkCount: landmarks.length,
@@ -436,6 +520,7 @@
       jawlineScore,
       analysisHeadline: analysis.headline,
       analysisParagraphs: analysis.paragraphs,
+      trendLabels,
       overlay: buildOverlayData(landmarks),
       analyzedAt: new Date().toISOString(),
     };
@@ -446,7 +531,7 @@
    * @param {CanvasImageSource} source
    * @returns {Promise<object>} metrics result
    */
-  async function analyzeFaceFromImage(source) {
+  async function analyzeFaceFromImage(source, previousReport) {
     if (!source) throw new Error("Image load failure");
     const faceMesh = await ensureFaceMesh();
     const results = await detectLandmarks(faceMesh, source);
@@ -456,7 +541,7 @@
       throw new Error("No face detected");
     }
 
-    return metricsFromLandmarks(faces[0]);
+    return metricsFromLandmarks(faces[0], previousReport || null);
   }
 
   /**
@@ -467,6 +552,39 @@
   async function analyzeFaceFromFile(file) {
     const image = await loadImageFromFile(file);
     return analyzeFaceFromImage(image);
+  }
+
+  function loadFaceHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function appendFaceHistory(snapshot) {
+    const history = loadFaceHistory();
+    const last = history[history.length - 1];
+    if (last && last.analyzedAt === snapshot.analyzedAt) return;
+    history.push(snapshot);
+    while (history.length > MAX_HISTORY) history.shift();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }
+
+  function previousSnapshotFor(report, history) {
+    const list = history || loadFaceHistory();
+    if (!list.length) return null;
+    const idx = list.findIndex((h) => h.analyzedAt === report.analyzedAt);
+    if (idx > 0) return list[idx - 1];
+    if (idx === -1) {
+      const last = list[list.length - 1];
+      if (last.analyzedAt !== report.analyzedAt) return last;
+      if (list.length >= 2) return list[list.length - 2];
+    }
+    return null;
   }
 
   function loadFaceReport() {
@@ -484,6 +602,12 @@
 
   function saveFaceReport(report) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
+    appendFaceHistory({
+      analyzedAt: report.analyzedAt,
+      jawlineScore: report.jawlineScore,
+      jawRatio: report.jawRatio,
+      symmetry: report.symmetry,
+    });
   }
 
   function clearFaceReport() {
@@ -501,6 +625,9 @@
     buildMouthOverlay,
     buildFaceAnalysis,
     buildFaceAnalysisSummary,
+    buildFaceTrendLabels,
+    loadFaceHistory,
+    previousSnapshotFor,
     loadFaceReport,
     saveFaceReport,
     clearFaceReport,

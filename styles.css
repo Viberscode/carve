@@ -3236,10 +3236,10 @@ button {
 
 .face-analysis-metric strong {
   font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   color: #121a33;
-  line-height: 1;
+  line-height: 1.35;
 }
 
 .face-analysis-reanalyze {

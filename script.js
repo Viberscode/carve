@@ -153,23 +153,58 @@ const exercises = {
   },
 };
 
-const FACE_SETS = [
-  ["jaw_release", "chin_tucks", "cheek_lift", "eye_brightener", "lip_seal", "neck_glide"],
-  ["chin_tucks", "jaw_release", "neck_glide", "cheek_lift", "lip_seal", "eye_brightener"],
-  ["cheek_lift", "eye_brightener", "chin_tucks", "jaw_release", "neck_glide", "lip_seal"],
-];
+const FACE_POOL = () => Object.keys(exercises).filter((id) => !exercises[id].voice);
+const VOICE_POOL = () => Object.keys(exercises).filter((id) => exercises[id].voice);
 
-const VOICE_SETS = [
-  ["diaphragmatic_breath", "humming_resonance", "diaphragmatic_breath", "humming_resonance"],
-  ["humming_resonance", "diaphragmatic_breath", "humming_resonance"],
-  ["diaphragmatic_breath", "humming_resonance", "diaphragmatic_breath", "humming_resonance", "diaphragmatic_breath"],
-];
+/** Program config — daily sessions are built from poolSplit, not per-mode logic. */
+const PROGRAMS = {
+  face: {
+    id: "face",
+    pools: ["face"],
+    dailyCount: 4,
+    poolSplit: { face: 4, voice: 0 },
+    useRoadmap: true,
+  },
+  voice: {
+    id: "voice",
+    pools: ["voice"],
+    dailyCount: 3,
+    poolSplit: { face: 0, voice: 3 },
+    useRoadmap: true,
+  },
+  both: {
+    id: "both",
+    pools: ["face", "voice"],
+    dailyCount: 5,
+    poolSplit: { face: 3, voice: 2 },
+    useRoadmap: false,
+  },
+};
 
-const BOTH_SETS = [
-  ["jaw_release", "chin_tucks", "cheek_lift", "eye_brightener", "lip_seal", "neck_glide", "humming_resonance"],
-  ["chin_tucks", "jaw_release", "neck_glide", "cheek_lift", "lip_seal", "eye_brightener", "diaphragmatic_breath"],
-  ["cheek_lift", "eye_brightener", "chin_tucks", "jaw_release", "neck_glide", "humming_resonance", "diaphragmatic_breath"],
-];
+function pickExercisesFromPool(poolIds, count, dayNum, offset = 0) {
+  if (!count || !poolIds.length) return [];
+  const picked = [];
+  const used = new Set();
+  for (let i = 0; i < count; i++) {
+    for (let attempt = 0; attempt < poolIds.length; attempt++) {
+      const idx = (dayNum * count + i + offset + attempt) % poolIds.length;
+      const id = poolIds[idx];
+      if (!used.has(id)) {
+        used.add(id);
+        picked.push(id);
+        break;
+      }
+    }
+  }
+  return picked;
+}
+
+function buildProgramDayIds(programId, dayNum) {
+  const cfg = PROGRAMS[programId] || PROGRAMS.face;
+  const faceIds = pickExercisesFromPool(FACE_POOL(), cfg.poolSplit.face || 0, dayNum, 0);
+  const voiceIds = pickExercisesFromPool(VOICE_POOL(), cfg.poolSplit.voice || 0, dayNum, 11);
+  return [...faceIds, ...voiceIds];
+}
 
 const TRACKS = {
   face: {
@@ -249,10 +284,27 @@ const TRACKS = {
   },
 };
 
-function daySetsFor(track) {
-  if (track === "voice") return VOICE_SETS;
-  if (track === "both") return BOTH_SETS;
-  return FACE_SETS;
+function buildDays(track = "face") {
+  const program = PROGRAMS[track] || PROGRAMS.face;
+  if (program.useRoadmap && track === "face" && typeof ROADMAP !== "undefined") {
+    return buildDaysFromRoadmap(ROADMAP, "face");
+  }
+  if (program.useRoadmap && track === "voice" && typeof VOICE_ROADMAP !== "undefined") {
+    return buildDaysFromRoadmap(VOICE_ROADMAP, "voice");
+  }
+  const days = [];
+  for (let n = 1; n <= 30; n++) {
+    days.push({
+      n,
+      rest: false,
+      status: n === 1 ? "active" : "locked",
+      ids: buildProgramDayIds(track, n),
+      roadmap: null,
+      percent: 0,
+      doneCount: 0,
+    });
+  }
+  return days;
 }
 
 function buildDaysFromRoadmap(roadmap, foundation = "face") {
@@ -388,29 +440,6 @@ function diversifyConsecutiveDays(roadmap, foundation = "face") {
   }
 
   return out;
-}
-
-function buildDays(track = "face") {
-  if (track === "face" && typeof ROADMAP !== "undefined") {
-    return buildDaysFromRoadmap(ROADMAP, "face");
-  }
-  if (track === "voice" && typeof VOICE_ROADMAP !== "undefined") {
-    return buildDaysFromRoadmap(VOICE_ROADMAP, "voice");
-  }
-  const sets = daySetsFor(track);
-  const days = [];
-  for (let n = 1; n <= 30; n++) {
-    days.push({
-      n,
-      rest: false,
-      status: n === 1 ? "active" : "locked",
-      ids: sets[(n - 1) % sets.length],
-      roadmap: null,
-      percent: 0,
-      doneCount: 0,
-    });
-  }
-  return days;
 }
 
 function animClassForName(name) {
@@ -2327,7 +2356,7 @@ function animateAnalysisScore(el, card, target, opts = {}) {
   }, delay);
 }
 
-function revealAnalysisScores(entries) {
+function revealAnalysisTrends(entries) {
   analysisScoreAnimGen += 1;
   entries.forEach((entry, i) => {
     if (!entry?.el) return;
@@ -2336,11 +2365,13 @@ function revealAnalysisScores(entries) {
       entry.card.classList.remove("is-revealed");
       entry.card.classList.add("is-calculating");
     }
-    animateAnalysisScore(entry.el, entry.card, entry.value, {
-      suffix: entry.suffix || "",
-      decimals: entry.decimals ?? 0,
-      delay: 120 + i * 200,
-    });
+    window.setTimeout(() => {
+      entry.el.textContent = entry.text || "—";
+      if (entry.card) {
+        entry.card.classList.remove("is-calculating");
+        entry.card.classList.add("is-revealed");
+      }
+    }, 120 + i * 200);
   });
 }
 
@@ -2392,11 +2423,14 @@ function fillFaceAnalysisResults(report) {
   const ratio = $("#face-analysis-ratio");
   const symmetry = $("#face-analysis-symmetry");
 
-  const writeup = report.analysisHeadline
-    ? { headline: report.analysisHeadline, paragraphs: report.analysisParagraphs || [] }
-    : api?.buildFaceAnalysis
-      ? api.buildFaceAnalysis(report)
-      : { headline: "Your face analysis", paragraphs: [] };
+  const history = api?.loadFaceHistory?.() || [];
+  const previous = api?.previousSnapshotFor?.(report, history) || null;
+  const writeup = api?.buildFaceAnalysis
+    ? api.buildFaceAnalysis(report, previous)
+    : { headline: report.analysisHeadline || "Your check-in", paragraphs: report.analysisParagraphs || [] };
+  const trends =
+    report.trendLabels ||
+    (api?.buildFaceTrendLabels ? api.buildFaceTrendLabels(report, previous, history) : {});
 
   if (photoWrap && photo) {
     if (report.photoDataUrl) {
@@ -2412,7 +2446,7 @@ function fillFaceAnalysisResults(report) {
   if (headline) headline.textContent = writeup.headline;
   const card = $("#reports-face-analysis-card");
   const allTips = api?.buildFaceAnalysisSummary
-    ? api.buildFaceAnalysisSummary(report)
+    ? api.buildFaceAnalysisSummary(report, previous)
     : report.analysisSummary;
   if (summaryEl) fitAnalysisCardTips(card, summaryEl, allTips);
 
@@ -2422,15 +2456,10 @@ function fillFaceAnalysisResults(report) {
     };
   }
 
-  revealAnalysisScores([
-    { el: score, card: $("#face-metric-score"), value: report.jawlineScore },
-    { el: ratio, card: $("#face-metric-ratio"), value: report.jawRatio, decimals: 2 },
-    {
-      el: symmetry,
-      card: $("#face-metric-symmetry"),
-      value: Math.round(Number(report.symmetry) * 100),
-      suffix: "%",
-    },
+  revealAnalysisTrends([
+    { el: score, card: $("#face-metric-score"), text: trends.overall || "—" },
+    { el: ratio, card: $("#face-metric-ratio"), text: trends.ratio || "—" },
+    { el: symmetry, card: $("#face-metric-symmetry"), text: trends.symmetry || "—" },
   ]);
 }
 
@@ -2587,7 +2616,8 @@ async function captureAndAnalyzeFace() {
   setFaceAnalysisView("loading");
 
   try {
-    const report = await api.analyzeFaceFromImage(canvas);
+    const previous = api.loadFaceReport();
+    const report = await api.analyzeFaceFromImage(canvas, previous);
     report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
     renderFaceAnalysis({ scrollToScores: true });
@@ -2727,11 +2757,14 @@ function fillVoiceAnalysisResults(report) {
   const clarity = $("#voice-analysis-clarity");
   const pitchLine = $("#voice-analysis-pitch-line");
 
-  const writeup = report.analysisHeadline
-    ? { headline: report.analysisHeadline }
-    : api?.buildVoiceAnalysis
-      ? api.buildVoiceAnalysis(report)
-      : { headline: "Your voice analysis" };
+  const history = api?.loadVoiceHistory?.() || [];
+  const previous = api?.previousSnapshotFor?.(report, history) || null;
+  const writeup = api?.buildVoiceAnalysis
+    ? api.buildVoiceAnalysis(report, previous)
+    : { headline: report.analysisHeadline || "Your recording" };
+  const trends =
+    report.trendLabels ||
+    (api?.buildVoiceTrendLabels ? api.buildVoiceTrendLabels(report, previous, history) : {});
 
   if (waveWrap && wave) {
     if (report.waveform?.length) {
@@ -2746,19 +2779,17 @@ function fillVoiceAnalysisResults(report) {
   if (headline) headline.textContent = writeup.headline;
   const card = $("#reports-voice-analysis-card");
   const allTips = api?.buildVoiceAnalysisSummary
-    ? api.buildVoiceAnalysisSummary(report)
+    ? api.buildVoiceAnalysisSummary(report, previous)
     : report.analysisSummary;
   if (summaryEl) fitAnalysisCardTips(card, summaryEl, allTips);
 
-  revealAnalysisScores([
-    { el: score, card: $("#voice-metric-score"), value: report.voiceScore },
-    { el: resonance, card: $("#voice-metric-resonance"), value: report.resonanceScore, suffix: "%" },
-    { el: clarity, card: $("#voice-metric-clarity"), value: report.clarityScore, suffix: "%" },
+  revealAnalysisTrends([
+    { el: score, card: $("#voice-metric-score"), text: trends.overall || "—" },
+    { el: resonance, card: $("#voice-metric-resonance"), text: trends.resonance || "—" },
+    { el: clarity, card: $("#voice-metric-clarity"), text: trends.clarity || "—" },
   ]);
   if (pitchLine) {
-    pitchLine.textContent = report.pitchHz
-      ? `Pitch ${Math.round(report.pitchHz)} Hz · score ${report.pitchScore}/100`
-      : "Pitch not detected in this clip";
+    pitchLine.textContent = trends.pitch || "Record again to compare pitch stability to your baseline";
   }
 }
 
@@ -2903,7 +2934,8 @@ async function processVoiceAnalysisRecording() {
   setVoiceAnalysisView("loading");
 
   try {
-    const report = await api.analyzeVoiceFromBlob(blob);
+    const previous = api.loadVoiceReport();
+    const report = await api.analyzeVoiceFromBlob(blob, previous);
     api.saveVoiceReport(report);
     renderVoiceAnalysis({ scrollToScores: true });
   } catch (err) {

@@ -6,6 +6,8 @@
   "use strict";
 
   const STORAGE_KEY = "voiceReport";
+  const HISTORY_KEY = "voiceReportHistory";
+  const MAX_HISTORY = 20;
 
   function rms(samples) {
     let sum = 0;
@@ -173,63 +175,135 @@
     return Math.round(pitchScore * 0.34 + resonanceScore * 0.33 + clarityScore * 0.33);
   }
 
-  function buildVoiceAnalysis(metrics) {
-    const pitchHz = Number(metrics.pitchHz) || 0;
+  function trendLabel(delta, threshold, labels) {
+    if (Math.abs(delta) < threshold) return labels.stable;
+    return delta > 0 ? labels.up : labels.down;
+  }
+
+  function multiSessionTrend(history, field, threshold) {
+    if (!history || history.length < 3) return null;
+    const recent = history.slice(-5);
+    const delta = Number(recent[recent.length - 1][field]) - Number(recent[0][field]);
+    if (Math.abs(delta) < threshold) return `Steady over your last ${recent.length} sessions`;
+    return delta > 0
+      ? `Trending up over your last ${recent.length} sessions`
+      : `Softening over your last ${recent.length} sessions`;
+  }
+
+  function buildVoiceTrendLabels(metrics, previous, history) {
+    const voiceScore = Number(metrics.voiceScore);
+    const resonanceScore = Number(metrics.resonanceScore);
+    const clarityScore = Number(metrics.clarityScore);
+    const pitchScore = Number(metrics.pitchScore);
+
+    if (!previous) {
+      return {
+        overall: "Baseline saved",
+        resonance: "We'll compare future clips to this",
+        clarity: "Starting clarity reference",
+        pitch: "Starting pitch-stability reference",
+      };
+    }
+
+    const voiceDelta = voiceScore - Number(previous.voiceScore);
+    const resDelta = resonanceScore - Number(previous.resonanceScore);
+    const clarDelta = clarityScore - Number(previous.clarityScore);
+    const pitchDelta = pitchScore - Number(previous.pitchScore);
+    const multi = multiSessionTrend(history, "voiceScore", 4);
+
+    return {
+      overall:
+        multi ||
+        trendLabel(voiceDelta, 4, {
+          up: "Stronger than your last recording",
+          stable: "Holding steady since your last session",
+          down: "Softer than your last recording",
+        }),
+      resonance: trendLabel(resDelta, 5, {
+        up: "Resonance fuller than your last clip",
+        stable: "Resonance more stable than your last session",
+        down: "Resonance thinner than your last clip",
+      }),
+      clarity: trendLabel(clarDelta, 5, {
+        up: "Clearer than your last recording",
+        stable: "Clarity similar to your last session",
+        down: "Less clear than your last recording",
+      }),
+      pitch: trendLabel(pitchDelta, 5, {
+        up: "Pitch steadier than your last session",
+        stable: "Pitch stability holding since last week",
+        down: "Pitch less steady than your last session",
+      }),
+    };
+  }
+
+  function buildVoiceAnalysis(metrics, previous) {
     const pitchScore = Number(metrics.pitchScore);
     const resonanceScore = Number(metrics.resonanceScore);
     const clarityScore = Number(metrics.clarityScore);
     const voiceScore = Number(metrics.voiceScore);
 
+    if (!previous) {
+      return {
+        headline: "First recording saved",
+        paragraphs: [
+          "This clip is your personal baseline — future recordings compare to your own history, not to anyone else.",
+          "Re-record the same phrase weekly in a quiet room so trends reflect your training, not background noise.",
+          "CARVE tracks breath support and resonance habits — never larynx size or anatomy.",
+        ],
+      };
+    }
+
+    const voiceDelta = voiceScore - Number(previous.voiceScore);
+    const resDelta = resonanceScore - Number(previous.resonanceScore);
+    const clarDelta = clarityScore - Number(previous.clarityScore);
+    const pitchDelta = pitchScore - Number(previous.pitchScore);
+
+    let headline;
+    if (resDelta >= 5) headline = "Resonance fuller since your last recording";
+    else if (clarDelta >= 5) headline = "Clarity improved since your last recording";
+    else if (pitchDelta >= 5) headline = "Pitch steadier since your last session";
+    else if (voiceDelta >= 4) headline = "Overall tone stronger since your last recording";
+    else if (voiceDelta <= -4) headline = "Tone softer since your last recording — breath work may help";
+    else headline = "Holding steady since your last recording";
+
     let pitchNote;
-    if (!pitchHz) {
-      pitchNote =
-        "We couldn't lock onto a steady pitch — speak a bit louder and hold one phrase for 5–8 seconds.";
-    } else if (pitchHz >= 165) {
-      pitchNote = `Your average pitch landed around ${Math.round(pitchHz)} Hz — bright and forward. Breath support and chest resonance drills can add warmth without strain.`;
-    } else if (pitchHz >= 130) {
-      pitchNote = `Your average pitch reads near ${Math.round(pitchHz)} Hz — a balanced speaking register with room to deepen through resonance work.`;
+    if (pitchDelta >= 5) {
+      pitchNote = "Pitch stability improved compared to your last clip in this spot.";
+    } else if (pitchDelta <= -5) {
+      pitchNote = "Pitch wavered more than your last recording — slow exhales before speaking may help.";
     } else {
-      pitchNote = `Your average pitch sits around ${Math.round(pitchHz)} Hz — a naturally lower register. Focus on clarity and breath so depth stays effortless.`;
+      pitchNote = "Pitch stability is similar to your last recording.";
     }
 
     let resonanceNote;
-    if (resonanceScore >= 80) {
-      resonanceNote = `Resonance score ${resonanceScore}% — strong chest and mid-body tone in this clip.`;
-    } else if (resonanceScore >= 65) {
-      resonanceNote = `Resonance score ${resonanceScore}% — solid foundation. Hum-and-hold drills can widen the sound without pushing.`;
+    if (resDelta >= 5) {
+      resonanceNote = "Resonance reads fuller compared to your last session.";
+    } else if (resDelta <= -5) {
+      resonanceNote = "Resonance reads thinner than your last clip — hum-and-hold drills may help.";
     } else {
-      resonanceNote = `Resonance score ${resonanceScore}% — the voice reads a little thin here. Slow exhales and lip trills can help fill the tone.`;
+      resonanceNote = "Resonance is holding near your last recording.";
     }
 
     let clarityNote;
-    if (clarityScore >= 80) {
-      clarityNote = `Clarity ${clarityScore}% — consonants and vowels come through cleanly in this recording.`;
-    } else if (clarityScore >= 65) {
-      clarityNote = `Clarity ${clarityScore}% — mostly clear. Record closer to the mic in a quiet room for sharper detail.`;
+    if (clarDelta >= 5) {
+      clarityNote = "Consonants and vowels come through clearer than your last clip.";
+    } else if (clarDelta <= -5) {
+      clarityNote = "Detail is softer than your last recording — try a quieter room or closer mic.";
     } else {
-      clarityNote = `Clarity ${clarityScore}% — background noise or distance may be masking detail. Try a quieter spot and speak at a natural volume.`;
+      clarityNote = "Clarity is similar to your last recording.";
     }
 
-    let headline;
-    if (voiceScore >= 85) headline = "Strong vocal presence";
-    else if (voiceScore >= 72) headline = "Balanced tone — keep building";
-    else if (voiceScore >= 58) headline = "Baseline captured";
-    else headline = "Room to grow";
-
     const takeaway =
-      voiceScore >= 72
-        ? "Repeat the same phrase weekly to track pitch stability, resonance, and clarity as you train."
-        : "Use Voice Grain sessions for breath support and resonance, then re-record in the same quiet spot each week.";
-
-    const paragraphs = [pitchNote, resonanceNote, clarityNote, takeaway];
+      "Keep the same phrase and mic distance each week to watch your own trend line grow.";
 
     return {
       headline,
-      paragraphs,
+      paragraphs: [pitchNote, resonanceNote, clarityNote, takeaway],
     };
   }
 
-  function buildVoiceAnalysisSummary(metrics) {
+  function buildVoiceAnalysisSummary(metrics, previous) {
     const voiceScore = Number(metrics.voiceScore);
     const resonanceScore = Number(metrics.resonanceScore);
     const clarityScore = Number(metrics.clarityScore);
@@ -240,16 +314,29 @@
         ? text.replace(phrase, `<strong class="analysis-tip-hl">${phrase}</strong>`)
         : text;
 
+    const tips = [];
+
+    if (!previous) {
+      tips.push(hl("Save this phrase and mic distance — every future clip compares to this baseline.", "this baseline"));
+      tips.push(hl("Take three slow belly breaths before you speak — fill the lower ribs first.", "three slow belly breaths"));
+      tips.push(hl("Record in a quiet room with the mic about a hand-span away.", "quiet room"));
+      tips.push(hl("Re-record the same phrase each week in the same spot to hear what's actually changing.", "same phrase each week"));
+      return tips;
+    }
+
+    const resDelta = resonanceScore - Number(previous.resonanceScore);
+    const clarDelta = clarityScore - Number(previous.clarityScore);
+    const pitchDelta = pitchScore - Number(previous.pitchScore);
+    const voiceDelta = voiceScore - Number(previous.voiceScore);
+
     const weakest =
-      resonanceScore <= clarityScore && resonanceScore <= pitchScore && resonanceScore <= voiceScore
+      resDelta <= clarDelta && resDelta <= pitchDelta && resDelta <= voiceDelta
         ? "resonance"
-        : clarityScore <= pitchScore && clarityScore <= voiceScore
+        : clarDelta <= pitchDelta && clarDelta <= voiceDelta
           ? "clarity"
-          : pitchScore <= voiceScore
+          : pitchDelta <= voiceDelta
             ? "pitch"
             : "balance";
-
-    const tips = [];
 
     if (weakest === "resonance") {
       tips.push(hl("Take three slow belly breaths before you speak — fill the lower ribs first.", "three slow belly breaths"));
@@ -364,7 +451,7 @@
     }
   }
 
-  async function analyzeVoiceFromBlob(blob) {
+  async function analyzeVoiceFromBlob(blob, previousReport) {
     if (!blob || !blob.size) throw new Error("No audio recorded");
 
     const audioBuffer = await decodeAudioBlob(blob);
@@ -390,7 +477,10 @@
       clarityScore,
       voiceScore,
     };
-    const analysis = buildVoiceAnalysis(metrics);
+    const baseline = previousReport || null;
+    const history = loadVoiceHistory();
+    const analysis = buildVoiceAnalysis(metrics, baseline);
+    const trendLabels = buildVoiceTrendLabels(metrics, baseline, history);
 
     return {
       pitchHz: Number(pitchHz.toFixed(1)),
@@ -400,11 +490,45 @@
       voiceScore,
       analysisHeadline: analysis.headline,
       analysisParagraphs: analysis.paragraphs,
-      analysisSummary: buildVoiceAnalysisSummary(metrics),
+      analysisSummary: buildVoiceAnalysisSummary(metrics, baseline),
+      trendLabels,
       waveform: buildWaveformPeaks(samples),
       durationMs: Math.round((samples.length / sampleRate) * 1000),
       analyzedAt: new Date().toISOString(),
     };
+  }
+
+  function loadVoiceHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function appendVoiceHistory(snapshot) {
+    const history = loadVoiceHistory();
+    const last = history[history.length - 1];
+    if (last && last.analyzedAt === snapshot.analyzedAt) return;
+    history.push(snapshot);
+    while (history.length > MAX_HISTORY) history.shift();
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  }
+
+  function previousSnapshotFor(report, history) {
+    const list = history || loadVoiceHistory();
+    if (!list.length) return null;
+    const idx = list.findIndex((h) => h.analyzedAt === report.analyzedAt);
+    if (idx > 0) return list[idx - 1];
+    if (idx === -1) {
+      const last = list[list.length - 1];
+      if (last.analyzedAt !== report.analyzedAt) return last;
+      if (list.length >= 2) return list[list.length - 2];
+    }
+    return null;
   }
 
   function loadVoiceReport() {
@@ -422,6 +546,13 @@
 
   function saveVoiceReport(report) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(report));
+    appendVoiceHistory({
+      analyzedAt: report.analyzedAt,
+      voiceScore: report.voiceScore,
+      resonanceScore: report.resonanceScore,
+      clarityScore: report.clarityScore,
+      pitchScore: report.pitchScore,
+    });
   }
 
   function clearVoiceReport() {
@@ -434,6 +565,9 @@
     startLiveAudioMonitor,
     buildVoiceAnalysis,
     buildVoiceAnalysisSummary,
+    buildVoiceTrendLabels,
+    loadVoiceHistory,
+    previousSnapshotFor,
     loadVoiceReport,
     saveVoiceReport,
     clearVoiceReport,
