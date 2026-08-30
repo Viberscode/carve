@@ -4121,10 +4121,8 @@ button {
 
 .me-streak-badge {
   position: relative;
-  width: 52px;
-  height: 58px;
-  display: grid;
-  place-items: end center;
+  width: 56px;
+  height: 62px;
   flex-shrink: 0;
 }
 
@@ -4136,8 +4134,8 @@ button {
 }
 
 .me-streak-flame-svg {
-  width: 52px;
-  height: 58px;
+  width: 56px;
+  height: 62px;
   display: block;
   overflow: visible;
   filter:
@@ -4146,12 +4144,22 @@ button {
 }
 
 .me-streak-flame-body {
-  transform-origin: 36px 76px;
+  transform-origin: 32px 68px;
   animation: meStreakFlameSway 1.6s ease-in-out infinite;
 }
 
 .me-streak-flame-outer {
   animation: meStreakFlameOuter 0.7s ease-in-out infinite alternate;
+}
+
+.me-streak-flame-tongue-l {
+  transform-origin: 20px 24px;
+  animation: meStreakTongueL 0.6s ease-in-out infinite alternate;
+}
+
+.me-streak-flame-tongue-r {
+  transform-origin: 44px 24px;
+  animation: meStreakTongueR 0.55s ease-in-out infinite alternate-reverse;
 }
 
 .me-streak-flame-mid {
@@ -4188,11 +4196,13 @@ button {
 }
 
 .me-streak-num {
-  position: relative;
+  position: absolute;
+  top: 54%;
+  left: 50%;
   z-index: 2;
-  margin-bottom: 4px;
+  transform: translate(-50%, -50%);
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -4208,7 +4218,7 @@ button {
 }
 
 .me-streak-num.is-wide {
-  font-size: 14px;
+  font-size: 13px;
   -webkit-text-stroke-width: 2px;
 }
 
@@ -4322,36 +4332,60 @@ button {
 @keyframes meStreakNumPulse {
   0%,
   100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    transform: scale(1.04);
+    transform: translate(-50%, -50%) scale(1.04);
   }
 }
 
 @keyframes meStreakNumPulseActive {
   0%,
   100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
   40% {
-    transform: scale(1.06);
+    transform: translate(-50%, -50%) scale(1.06);
   }
 }
 
 @keyframes meStreakNumPulseIdle {
   0%,
   100% {
-    transform: scale(1);
+    transform: translate(-50%, -50%) scale(1);
   }
   50% {
-    transform: scale(1.02);
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+}
+
+@keyframes meStreakTongueL {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.08) rotate(-4deg);
+    opacity: 1;
+  }
+}
+
+@keyframes meStreakTongueR {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.08) rotate(4deg);
+    opacity: 1;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .me-streak-flame-body,
   .me-streak-flame-outer,
+  .me-streak-flame-tongue-l,
+  .me-streak-flame-tongue-r,
   .me-streak-flame-mid,
   .me-streak-flame-core,
   .me-streak-flame-shine,
