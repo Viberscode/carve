@@ -1642,9 +1642,11 @@ function bindTrackExtras() {
       showView("reports");
       $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "reports"));
       showToast(
-        isVoiceProgressMode()
-          ? "Add weekly voice recordings in Reports"
-          : "Add weekly progress photos in Reports"
+        isFullPresenceMode()
+          ? "Add weekly photos and voice recordings in Reports"
+          : isVoiceProgressMode()
+            ? "Add weekly voice recordings in Reports"
+            : "Add weekly progress photos in Reports"
       );
     }
   });
@@ -1658,11 +1660,24 @@ function isVoiceProgressMode() {
   return state.track === "voice";
 }
 
+function isFullPresenceMode() {
+  return state.track === "both";
+}
+
+function showsFaceReports() {
+  return state.track === "face" || isFullPresenceMode();
+}
+
+function showsVoiceReports() {
+  return state.track === "voice" || isFullPresenceMode();
+}
+
 function applyReportsProgressCopy() {
   const kicker = $("#reports-photos-kicker");
   const title = $("#reports-photos-card .card-title");
   const lead = $("#reports-photos-card .reports-photos-lead");
-  const cta = $("#btn-reports-add-photo");
+  const photoCta = $("#btn-reports-add-photo");
+  const voiceCta = $("#btn-reports-add-voice");
   const faceCard = $("#reports-face-analysis-card");
   const voiceCard = $("#reports-voice-analysis-card");
 
@@ -1673,8 +1688,29 @@ function applyReportsProgressCopy() {
       lead.textContent =
         "Record the same phrase each week in a quiet room. Clips stay on this device — never uploaded.";
     }
-    if (cta) cta.textContent = "Record this week’s voice";
+    if (photoCta) {
+      photoCta.textContent = "Record this week’s voice";
+      photoCta.hidden = false;
+    }
+    if (voiceCta) voiceCta.hidden = true;
     if (faceCard) faceCard.hidden = true;
+    if (voiceCard) voiceCard.hidden = false;
+  } else if (isFullPresenceMode()) {
+    if (kicker) kicker.textContent = "Face & voice progress";
+    if (title) title.textContent = "Weekly check-ins";
+    if (lead) {
+      lead.textContent =
+        "Capture a front-facing photo and record the same phrase each week. Everything stays on this device — never uploaded.";
+    }
+    if (photoCta) {
+      photoCta.textContent = "Capture this week’s photo";
+      photoCta.hidden = false;
+    }
+    if (voiceCta) {
+      voiceCta.textContent = "Record this week’s voice";
+      voiceCta.hidden = false;
+    }
+    if (faceCard) faceCard.hidden = false;
     if (voiceCard) voiceCard.hidden = false;
   } else {
     if (kicker) kicker.textContent = "Visual progress";
@@ -1683,15 +1719,22 @@ function applyReportsProgressCopy() {
       lead.textContent =
         "Capture the same angle and light each week. Photos stay on this device — never uploaded.";
     }
-    if (cta) cta.textContent = "Capture this week’s photo";
+    if (photoCta) {
+      photoCta.textContent = "Capture this week’s photo";
+      photoCta.hidden = false;
+    }
+    if (voiceCta) voiceCta.hidden = true;
     if (faceCard) faceCard.hidden = false;
     if (voiceCard) voiceCard.hidden = true;
   }
 }
 
 function loadReportProgressCount() {
-  const store = isVoiceProgressMode() ? loadReportVoice() : loadReportPhotos();
-  return Object.keys(store).filter((k) => store[k]).length;
+  const photoCount = Object.keys(loadReportPhotos()).filter((k) => loadReportPhotos()[k]).length;
+  const voiceCount = Object.keys(loadReportVoice()).filter((k) => loadReportVoice()[k]).length;
+  if (isFullPresenceMode()) return photoCount + voiceCount;
+  if (isVoiceProgressMode()) return voiceCount;
+  return photoCount;
 }
 
 const PHOTO_STORAGE_KEY = "carve-report-photos-v1";
@@ -2027,6 +2070,47 @@ function renderReportPhotos() {
   const root = $("#reports-photos");
   if (!root) return;
   const slots = ["Week 1", "Week 2", "Week 3", "Week 4"];
+
+  if (isFullPresenceMode()) {
+    const photos = loadReportPhotos();
+    const clips = loadReportVoice();
+    const tiles = [];
+    slots.forEach((label, i) => {
+      const key = `week${i + 1}`;
+      const src = photos[key];
+      if (src) {
+        tiles.push(`<button type="button" class="reports-photo has-image" data-photo-slot="${key}" aria-label="${label} photo">
+          <img src="${src}" alt="${label} photo" />
+          <span>${label} · photo</span>
+        </button>`);
+      } else {
+        tiles.push(`<button type="button" class="reports-photo" data-photo-slot="${key}" aria-label="Capture ${label} photo">
+          <span class="reports-photo-plus" aria-hidden="true">＋</span>
+          <strong>${label} · photo</strong>
+          <span class="reports-photo-hint">Tap to capture</span>
+        </button>`);
+      }
+
+      const clip = clips[key];
+      if (clip?.dataUrl) {
+        const dur = clip.durationMs ? formatVoiceDuration(clip.durationMs) : "0:00";
+        tiles.push(`<button type="button" class="reports-photo has-voice" data-voice-slot="${key}" aria-label="${label} recording">
+          <span class="reports-voice-play" aria-hidden="true">▶</span>
+          <strong>${label} · voice</strong>
+          <span class="reports-photo-hint">${dur} · tap ▶ to listen</span>
+          <audio preload="metadata" src="${clip.dataUrl}"></audio>
+        </button>`);
+      } else {
+        tiles.push(`<button type="button" class="reports-photo reports-photo-voice" data-voice-slot="${key}" aria-label="Record ${label} voice">
+          <span class="reports-photo-mic" aria-hidden="true">🎙️</span>
+          <strong>${label} · voice</strong>
+          <span class="reports-photo-hint">Tap to record</span>
+        </button>`);
+      }
+    });
+    root.innerHTML = tiles.join("");
+    return;
+  }
 
   if (isVoiceProgressMode()) {
     const clips = loadReportVoice();
@@ -2795,7 +2879,7 @@ function fillVoiceAnalysisResults(report) {
 
 function renderVoiceAnalysis(opts = {}) {
   const api = window.CarveVoiceAnalysis;
-  if (!api || !isVoiceProgressMode()) return;
+  if (!api || !showsVoiceReports()) return;
   stopVoiceAnalysisMic();
   const report = api.loadVoiceReport();
   const meta = $("#voice-analysis-meta");
@@ -3469,12 +3553,12 @@ function rootPauseOtherVoiceClips(activeBtn) {
   });
 }
 
-function openReportsProgressPicker(slot) {
-  if (isVoiceProgressMode()) {
-    startVoiceRecorder(slot);
-  } else {
-    startProgressCamera(slot);
+function openReportsProgressPicker(slot, kind) {
+  if (kind === "voice") {
+    startVoiceRecorder(slot || preferredProgressVoiceSlot());
+    return;
   }
+  startProgressCamera(slot || preferredProgressPhotoSlot());
 }
 
 function renderDayList() {
@@ -4018,6 +4102,7 @@ function bind() {
       saveState();
       refreshHome();
       renderDayList();
+      renderReports();
       renderMe();
       showToast(
         track === "voice" ? "Switched to Voice Grain" : track === "both" ? "Switched to Full Presence" : "Switched to Face Form"
@@ -4070,7 +4155,14 @@ function bind() {
         return;
       }
       if (e.target.closest("#btn-reports-add-photo")) {
-        openReportsProgressPicker(preferredProgressSlot());
+        openReportsProgressPicker(
+          isVoiceProgressMode() ? preferredProgressVoiceSlot() : preferredProgressPhotoSlot(),
+          isVoiceProgressMode() ? "voice" : "photo"
+        );
+        return;
+      }
+      if (e.target.closest("#btn-reports-add-voice")) {
+        openReportsProgressPicker(preferredProgressVoiceSlot(), "voice");
         return;
       }
       if (e.target.closest("#btn-reports-photo-capture")) {

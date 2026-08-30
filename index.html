@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=trends1" />
+  <link rel="stylesheet" href="styles.css?v=fullReports1" />
 </head>
 <body>
   <div class="device">
@@ -212,9 +212,14 @@
             </p>
             <div id="reports-photos-grid-wrap">
               <div class="reports-photos reports-photos-lg" id="reports-photos"></div>
-              <button type="button" class="reports-photo-cta" id="btn-reports-add-photo">
-                Capture this week’s photo
-              </button>
+              <div class="reports-progress-actions" id="reports-progress-actions">
+                <button type="button" class="reports-photo-cta" id="btn-reports-add-photo">
+                  Capture this week’s photo
+                </button>
+                <button type="button" class="reports-photo-cta reports-photo-cta-secondary" id="btn-reports-add-voice" hidden>
+                  Record this week’s voice
+                </button>
+              </div>
             </div>
             <div id="reports-photos-camera" hidden>
               <p class="reports-photos-slot-label" id="reports-photos-slot-label">Week 1</p>
@@ -798,6 +803,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=fullPresence1"></script>
+  <script src="script.js?v=fullReports1"></script>
 </body>
 </html>

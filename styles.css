@@ -2658,6 +2658,23 @@ button {
   box-shadow: none;
 }
 
+.reports-progress-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.reports-progress-actions .reports-photo-cta {
+  margin-top: 0;
+}
+
+.reports-photo-cta-secondary {
+  background: var(--white);
+  color: var(--blue);
+  border: 1.5px solid var(--line-gray);
+}
+
 .badge-next-hint {
   margin: 0 0 14px;
   padding: 10px 12px;
