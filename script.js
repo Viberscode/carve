@@ -1799,6 +1799,11 @@ function renderFaceAnalysis() {
 
   if (!report) {
     if (meta) meta.textContent = "On-device";
+    const photoWrap = $("#face-analysis-photo-wrap");
+    const photo = $("#face-analysis-photo");
+    if (photo) photo.removeAttribute("src");
+    if (photoWrap) photoWrap.hidden = true;
+    renderFaceAnalysisOverlay(null);
     setFaceAnalysisView("idle");
     return;
   }
@@ -2713,6 +2718,9 @@ function bind() {
 function init() {
   bind();
   preloadCoachFrames();
+  if (window.CarveFaceAnalysis?.clearFaceReport) {
+    window.CarveFaceAnalysis.clearFaceReport();
+  }
   loadState();
   applySettingsUi();
   state.stack = ["landing"];
