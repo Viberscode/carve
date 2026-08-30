@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=voiceAnalysis1" />
+  <link rel="stylesheet" href="styles.css?v=voiceScores1" />
 </head>
 <body>
   <div class="device">
@@ -365,22 +365,21 @@
               <div class="voice-analysis-wave-wrap" id="voice-analysis-wave-wrap" hidden>
                 <div class="voice-analysis-wave" id="voice-analysis-wave" aria-hidden="true"></div>
               </div>
-              <div class="face-analysis-writeup">
+              <div class="face-analysis-writeup voice-analysis-writeup">
                 <p class="face-analysis-writeup-kicker">Your analysis</p>
                 <h3 class="face-analysis-writeup-title" id="voice-analysis-headline">—</h3>
-                <div class="face-analysis-writeup-body" id="voice-analysis-analysis"></div>
               </div>
               <p class="face-analysis-scores-label">Scores</p>
-              <div class="face-analysis-metrics">
-                <div class="face-analysis-metric">
+              <div class="face-analysis-metrics voice-analysis-metrics">
+                <div class="face-analysis-metric voice-analysis-metric" id="voice-metric-score">
                   <span class="face-analysis-metric-label">Voice Score</span>
                   <strong id="voice-analysis-score">—</strong>
                 </div>
-                <div class="face-analysis-metric">
+                <div class="face-analysis-metric voice-analysis-metric" id="voice-metric-resonance">
                   <span class="face-analysis-metric-label">Resonance</span>
                   <strong id="voice-analysis-resonance">—</strong>
                 </div>
-                <div class="face-analysis-metric">
+                <div class="face-analysis-metric voice-analysis-metric" id="voice-metric-clarity">
                   <span class="face-analysis-metric-label">Clarity</span>
                   <strong id="voice-analysis-clarity">—</strong>
                 </div>
@@ -761,6 +760,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
   <script src="voiceAnalysis.js?v=1"></script>
-  <script src="script.js?v=voiceAutoStart2"></script>
+  <script src="script.js?v=voiceScores1"></script>
 </body>
 </html>

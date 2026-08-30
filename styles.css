@@ -3297,6 +3297,54 @@ button {
   animation-delay: 0.56s;
 }
 
+.voice-analysis-writeup {
+  margin-bottom: 4px;
+}
+
+.voice-analysis-writeup .face-analysis-writeup-title {
+  margin-bottom: 0;
+}
+
+.voice-analysis-metric {
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.voice-analysis-metric.score-low {
+  background: linear-gradient(165deg, #fff5f5 0%, #ffe8ec 100%);
+  border-color: #fecdd3;
+}
+
+.voice-analysis-metric.score-low strong {
+  color: #be123c;
+}
+
+.voice-analysis-metric.score-mid {
+  background: linear-gradient(165deg, #fffbeb 0%, #fef3c7 100%);
+  border-color: #fde68a;
+}
+
+.voice-analysis-metric.score-mid strong {
+  color: #b45309;
+}
+
+.voice-analysis-metric.score-good {
+  background: linear-gradient(165deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #bfdbfe;
+}
+
+.voice-analysis-metric.score-good strong {
+  color: #1d4ed8;
+}
+
+.voice-analysis-metric.score-high {
+  background: linear-gradient(165deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #a7f3d0;
+}
+
+.voice-analysis-metric.score-high strong {
+  color: #047857;
+}
+
 .voice-analysis-pitch-line {
   margin: 10px 0 0;
   text-align: center;
