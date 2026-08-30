@@ -721,6 +721,7 @@ const state = {
   modalTab: "animation",
   stack: ["landing"],
   settings: { ...defaultSettings },
+  carvePlus: false,
   toastTimer: null,
 };
 
@@ -758,6 +759,7 @@ function saveState() {
         memberSince: state.memberSince,
         startedAt: state.startedAt,
         settings: state.settings,
+        carvePlus: state.carvePlus,
       })
     );
   } catch (_) {
@@ -784,6 +786,7 @@ function loadState() {
     state.memberSince = data.memberSince || "Jul 2026";
     state.startedAt = data.startedAt || null;
     state.settings = { ...defaultSettings, ...(data.settings || {}) };
+    state.carvePlus = Boolean(data.carvePlus);
     ensureStartedAt();
     return true;
   } catch (_) {
@@ -1864,6 +1867,17 @@ function renderMe() {
     streakBadge.setAttribute("aria-label", `${displayStreak} day streak`);
   }
 
+  const plusChip = $("#me-plus-chip");
+  const plusDetail = $("#me-plus-detail");
+  const plusCard = $("#btn-carve-plus");
+  if (plusChip) plusChip.textContent = hasCarvePlus() ? "Active" : "Upgrade";
+  if (plusDetail) {
+    plusDetail.innerHTML = hasCarvePlus()
+      ? "Renews <em>Sep 24</em> · <em>$12.99</em>/mo"
+      : 'Unlock unlimited face & voice scans · <em>$12.99</em>/mo';
+  }
+  if (plusCard) plusCard.classList.toggle("is-subscribed", hasCarvePlus());
+
   $$("[data-me-track]").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));
   });
@@ -2444,7 +2458,51 @@ function renderFaceAnalysis(opts = {}) {
   if (opts.scrollToScores) scrollAnalysisCardIntoView("#reports-face-analysis-card");
 }
 
+function hasCarvePlus() {
+  return Boolean(state.carvePlus);
+}
+
+function canRunFaceAnalysisScan() {
+  if (hasCarvePlus()) return true;
+  return !window.CarveFaceAnalysis?.loadFaceReport();
+}
+
+function canRunVoiceAnalysisScan() {
+  if (hasCarvePlus()) return true;
+  return !window.CarveVoiceAnalysis?.loadVoiceReport();
+}
+
+function redirectToCarvePlusHighlight() {
+  state.stack = ["me"];
+  renderMe();
+  showView("me");
+  window.requestAnimationFrame(() => {
+    window.setTimeout(() => {
+      const plus = $("#btn-carve-plus");
+      const scroll = $(".me-scroll");
+      if (plus && scroll) {
+        const scrollRect = scroll.getBoundingClientRect();
+        const plusRect = plus.getBoundingClientRect();
+        const top = scroll.scrollTop + (plusRect.top - scrollRect.top) - 20;
+        scroll.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+      }
+      if (plus) {
+        plus.classList.add("is-highlighted");
+        window.setTimeout(() => plus.classList.remove("is-highlighted"), 3600);
+      }
+    }, 80);
+  });
+}
+
+function requireAnalysisScanAccess(kind) {
+  const allowed = kind === "face" ? canRunFaceAnalysisScan() : canRunVoiceAnalysisScan();
+  if (allowed) return true;
+  redirectToCarvePlusHighlight();
+  return false;
+}
+
 async function startFaceCamera() {
+  if (!requireAnalysisScanAccess("face")) return;
   const meta = $("#face-analysis-meta");
   stopProgressCamera();
   stopFaceCamera();
@@ -2533,7 +2591,6 @@ async function captureAndAnalyzeFace() {
     report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
     renderFaceAnalysis({ scrollToScores: true });
-    showToast("Face analysis saved on this device");
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
     let friendly = "Face analysis failed. Try another capture.";
@@ -2725,6 +2782,7 @@ function renderVoiceAnalysis(opts = {}) {
 }
 
 async function startVoiceAnalysisRecorder() {
+  if (!requireAnalysisScanAccess("voice")) return;
   const meta = $("#voice-analysis-meta");
   stopFaceCamera();
   stopProgressCamera();
@@ -2848,7 +2906,6 @@ async function processVoiceAnalysisRecording() {
     const report = await api.analyzeVoiceFromBlob(blob);
     api.saveVoiceReport(report);
     renderVoiceAnalysis({ scrollToScores: true });
-    showToast("Voice analysis saved on this device");
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
     let friendly = "Voice analysis failed. Try another recording.";
@@ -3937,7 +3994,6 @@ function bind() {
   });
 
   const meToasts = {
-    "btn-carve-plus": "CARVE Plus — coming soon",
     "btn-export-data": "Export stays on-device — coming soon",
     "btn-delete-data": "Delete data requires confirmation — coming soon",
     "btn-sign-out": "Signed out of this device session",
@@ -3947,6 +4003,17 @@ function bind() {
   };
   Object.keys(meToasts).forEach((id) => {
     $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
+  });
+
+  $("#btn-carve-plus")?.addEventListener("click", () => {
+    if (hasCarvePlus()) {
+      showToast("CARVE Plus is active on this device");
+      return;
+    }
+    showToast("Subscribe to CARVE Plus for unlimited scans");
+    const plus = $("#btn-carve-plus");
+    plus?.classList.add("is-highlighted");
+    window.setTimeout(() => plus?.classList.remove("is-highlighted"), 2400);
   });
 
   const reportsRoot = $("#view-reports");
@@ -4065,9 +4132,6 @@ function bind() {
 function init() {
   bind();
   preloadCoachFrames();
-  if (window.CarveFaceAnalysis?.clearFaceReport) {
-    window.CarveFaceAnalysis.clearFaceReport();
-  }
   loadState();
   applySettingsUi();
   state.stack = ["landing"];

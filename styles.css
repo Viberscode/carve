@@ -4423,6 +4423,34 @@ button {
   border-color: var(--blue);
 }
 
+.me-plus-card.is-highlighted {
+  border-color: var(--blue);
+  box-shadow:
+    0 0 0 3px #1e3fe022,
+    0 8px 28px #1e3fe018;
+  animation: mePlusHighlight 0.9s ease-in-out 3;
+}
+
+.me-plus-card.is-highlighted .me-plus-gem {
+  background: linear-gradient(145deg, #1e3fe0 0%, #4a6cf0 100%);
+}
+
+.me-plus-card:not(.is-subscribed) .me-plus-chip {
+  color: var(--blue);
+  background: #eef2ff;
+  border-color: #c7d7fe;
+}
+
+@keyframes mePlusHighlight {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+
 .me-plus-gem {
   width: 44px;
   height: 44px;
