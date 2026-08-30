@@ -1217,34 +1217,27 @@ function ensureStartedAt() {
   return state.startedAt;
 }
 
-function getJourneyCalendarDays() {
+function getJourneyCalendarDays(planDays = 30) {
   const now = new Date();
   now.setHours(12, 0, 0, 0);
   const todayKey = dateKey(now);
   const startKey = ensureStartedAt();
   const start = new Date(`${startKey}T12:00:00`);
   const days = [];
-  const cursor = new Date(start);
 
-  while (cursor <= now) {
+  for (let dayNum = 1; dayNum <= planDays; dayNum += 1) {
+    const cursor = new Date(start);
+    cursor.setDate(start.getDate() + (dayNum - 1));
     const key = dateKey(cursor);
+    const isFuture = cursor.getTime() > now.getTime();
+    const isToday = key === todayKey;
+
     days.push({
       key,
-      dayNum: days.length + 1,
-      isToday: key === todayKey,
-      isFuture: false,
-      done: hasSessionOnDate(key),
-    });
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  if (!days.length) {
-    days.push({
-      key: todayKey,
-      dayNum: 1,
-      isToday: true,
-      isFuture: false,
-      done: hasSessionOnDate(todayKey),
+      dayNum,
+      isToday,
+      isFuture,
+      done: !isFuture && hasSessionOnDate(key),
     });
   }
 
@@ -1840,22 +1833,28 @@ function renderReports() {
   const cal = $("#streak-cal");
   const calLabel = $("#reports-streak-cal-label");
   const journey = getJourneyCalendarDays();
+  const currentDay = journey.find((d) => d.isToday)?.dayNum || journey.filter((d) => !d.isFuture).length;
   if (calLabel) {
     calLabel.textContent =
-      journey.length <= 1 ? "Day 1 · your journey starts here" : `Day 1 → Day ${journey.length}`;
+      currentDay <= 1
+        ? "Day 1 · your journey starts here"
+        : `Day 1 → Day 30 · you're on Day ${currentDay}`;
   }
   if (cal) {
     cal.innerHTML = "";
     journey.forEach((d) => {
       const s = document.createElement("span");
-      if (d.done) s.classList.add("done");
+      if (d.isFuture) s.classList.add("future");
+      else if (d.done) s.classList.add("done");
       else if (d.isToday) s.classList.add("today");
       else s.classList.add("missed");
-      s.title = d.isToday
-        ? `Day ${d.dayNum} · Today`
-        : d.done
-          ? `Day ${d.dayNum} · Session done`
-          : `Day ${d.dayNum} · Missed`;
+      s.title = d.isFuture
+        ? `Day ${d.dayNum} · Upcoming`
+        : d.isToday
+          ? `Day ${d.dayNum} · Today`
+          : d.done
+            ? `Day ${d.dayNum} · Session done`
+            : `Day ${d.dayNum} · Missed`;
       cal.appendChild(s);
     });
   }

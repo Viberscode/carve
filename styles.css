@@ -2334,6 +2334,12 @@ button {
   background: #eab308;
   box-shadow: 0 0 0 2px #ca8a0433;
 }
+.cal span.future {
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: none;
+  opacity: 0.38;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
 
 /* ========== REPORTS DASHBOARD ========== */
 .reports-view {
@@ -2491,17 +2497,32 @@ button {
 
 .streak-hero-cal {
   margin-top: 0;
-  gap: 6px;
+  gap: 5px;
   justify-content: flex-start;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.streak-hero-cal::-webkit-scrollbar {
+  display: none;
 }
 
 .streak-hero-cal span {
-  flex: 0 0 12px;
-  width: 12px;
-  min-width: 12px;
-  max-width: 12px;
+  flex: 0 0 11px;
+  width: 11px;
+  min-width: 11px;
+  max-width: 11px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.streak-hero-cal span.future {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  opacity: 0.32;
+  border: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .streak-hero-legend {
@@ -2537,6 +2558,12 @@ button {
 
 .streak-legend-dot.missed {
   background: #ef4444;
+}
+
+.streak-legend-dot.future {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  opacity: 0.6;
 }
 
 @keyframes streakFlamePulse {
