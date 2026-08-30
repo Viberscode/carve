@@ -2261,32 +2261,40 @@ function revealAnalysisScores(entries) {
   });
 }
 
-function scrollAnalysisScoresIntoView(selector) {
+function scrollAnalysisCardIntoView(selector) {
   const target = typeof selector === "string" ? $(selector) : selector;
   if (!target) return;
 
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
-      const scrollRoot = target.closest(".scroll") || $("#view-reports .scroll");
-      if (!scrollRoot) {
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        return;
-      }
+      window.setTimeout(() => {
+        const scrollRoot = target.closest(".scroll") || $("#view-reports .scroll");
+        if (!scrollRoot) {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          return;
+        }
 
-      const rootRect = scrollRoot.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
+        const pad = 12;
+        const rootRect = scrollRoot.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const available = rootRect.height - pad * 2;
+        const cardHeight = targetRect.height;
 
-      // Align scores block ~42% down the viewport — keeps analysis tips above, button below.
-      const viewAnchor = rootRect.top + rootRect.height * 0.42;
-      const blockAnchor = targetRect.top + targetRect.height * 0.45;
-      const delta = blockAnchor - viewAnchor;
+        let delta;
+        if (cardHeight <= available) {
+          const viewCenter = rootRect.top + rootRect.height / 2;
+          const cardCenter = targetRect.top + cardHeight / 2;
+          delta = cardCenter - viewCenter;
+        } else {
+          delta = targetRect.top - (rootRect.top + pad);
+        }
 
-      if (Math.abs(delta) < 8) return;
+        if (Math.abs(delta) < 6) return;
 
-      scrollRoot.scrollTo({
-        top: Math.max(0, scrollRoot.scrollTop + delta),
-        behavior: "smooth",
-      });
+        const maxScroll = scrollRoot.scrollHeight - scrollRoot.clientHeight;
+        const nextTop = Math.max(0, Math.min(maxScroll, scrollRoot.scrollTop + delta));
+        scrollRoot.scrollTo({ top: nextTop, behavior: "smooth" });
+      }, 60);
     });
   });
 }
@@ -2359,7 +2367,7 @@ function renderFaceAnalysis(opts = {}) {
   if (meta) meta.textContent = "Saved";
   setFaceAnalysisView("results");
   fillFaceAnalysisResults(report);
-  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#face-analysis-scores-block");
+  if (opts.scrollToScores) scrollAnalysisCardIntoView("#reports-face-analysis-card");
 }
 
 async function startFaceCamera() {
@@ -2640,7 +2648,7 @@ function renderVoiceAnalysis(opts = {}) {
   if (meta) meta.textContent = "Saved";
   setVoiceAnalysisView("results");
   fillVoiceAnalysisResults(report);
-  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#voice-analysis-scores-block");
+  if (opts.scrollToScores) scrollAnalysisCardIntoView("#reports-voice-analysis-card");
 }
 
 async function startVoiceAnalysisRecorder() {
