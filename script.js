@@ -1097,19 +1097,22 @@ function selectTrack(track) {
 
   const landing = $("#view-landing");
   landing.classList.add("view-leaving");
+  const resumeSameTrack = Boolean(state.track === track && state.days?.length);
 
   window.setTimeout(() => {
-    state.track = track;
-    state.days = buildDays(track);
-    state.currentDay = 1;
-    state.streak = 0;
-    state.sessionDates = {};
-    state.unlockedBadges = {};
-    state.habitChecks = {};
-    state.startedAt = dateKey();
+    if (!resumeSameTrack) {
+      state.track = track;
+      state.days = buildDays(track);
+      state.currentDay = 1;
+      state.streak = 0;
+      state.sessionDates = {};
+      state.unlockedBadges = {};
+      state.habitChecks = {};
+      state.startedAt = dateKey();
+      saveState();
+    }
     refreshHome();
     renderDayList();
-    saveState();
     state.stack = ["home"];
     showView("home");
 
@@ -3062,17 +3065,10 @@ function init() {
   if (window.CarveFaceAnalysis?.clearFaceReport) {
     window.CarveFaceAnalysis.clearFaceReport();
   }
-  const hasSession = loadState();
+  loadState();
   applySettingsUi();
-  if (hasSession && state.track) {
-    refreshHome();
-    renderDayList();
-    state.stack = ["home"];
-    showView("home");
-  } else {
-    state.stack = ["landing"];
-    showView("landing");
-  }
+  state.stack = ["landing"];
+  showView("landing");
 }
 
 init();
