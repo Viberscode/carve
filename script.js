@@ -1179,64 +1179,6 @@ function getWeekTrainingDays() {
   });
 }
 
-function formatActivityDate(isoOrKey) {
-  const d = new Date(isoOrKey.includes("T") ? isoOrKey : `${isoOrKey}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function buildActivityFeed(photos, faceReport) {
-  const items = [];
-
-  Object.entries(state.unlockedBadges || {}).forEach(([id, data]) => {
-    const badge = BADGE_CATALOG.find((b) => b.id === id);
-    if (!badge || !data?.unlockedAt) return;
-    items.push({
-      at: data.unlockedAt,
-      icon: badge.emoji,
-      title: `${badge.title} earned`,
-      sub: badge.sub,
-    });
-  });
-
-  Object.keys(state.sessionDates || {})
-    .filter((key) => state.sessionDates[key])
-    .sort()
-    .reverse()
-    .forEach((key) => {
-      items.push({
-        at: `${key}T18:00:00`,
-        icon: "✓",
-        title: "Session completed",
-        sub: formatActivityDate(key),
-      });
-    });
-
-  if (faceReport?.analyzedAt) {
-    items.push({
-      at: faceReport.analyzedAt,
-      icon: "📐",
-      title: "Face scan recorded",
-      sub: `Jawline score ${faceReport.jawlineScore}`,
-    });
-  }
-
-  const photoLabels = { week1: "Week 1", week2: "Week 2", week3: "Week 3", week4: "Week 4" };
-  Object.entries(photos || {})
-    .filter(([, src]) => src)
-    .forEach(([slot]) => {
-      items.push({
-        at: `${dateKey()}T12:00:00`,
-        icon: "📷",
-        title: "Progress photo saved",
-        sub: photoLabels[slot] || "Weekly check-in",
-      });
-    });
-
-  items.sort((a, b) => new Date(b.at) - new Date(a.at));
-  return items.slice(0, 6);
-}
-
 function getWeekDays() {
   const now = new Date();
   now.setHours(12, 0, 0, 0);
@@ -1476,26 +1418,28 @@ function renderMe() {
 }
 
 function renderReports() {
-  const track = state.track || "face";
   const sessionsDone = Math.max(0, state.currentDay - 1);
   const totalMinutes = sessionsDone * 9;
   const photos = loadReportPhotos();
   const photoCount = Object.keys(photos).filter((k) => photos[k]).length;
-  const faceReport =
-    typeof window.CarveFaceAnalysis !== "undefined" ? window.CarveFaceAnalysis.loadFaceReport() : null;
 
   const setText = (id, value) => {
     const el = $("#" + id);
     if (el) el.textContent = value;
   };
 
-  setText("reports-stat-streak", String(state.streak));
   setText("reports-stat-sessions", String(sessionsDone));
   setText("reports-stat-minutes", String(totalMinutes));
   setText("reports-streak", String(state.streak));
   setText(
     "reports-sessions",
-    sessionsDone === 0 ? "No sessions yet · start Day 1" : `${sessionsDone} sessions completed`
+    sessionsDone === 0
+      ? "Start Day 1 — your streak begins with one session."
+      : state.streak >= 7
+        ? `${state.streak}-day fire — you're building real momentum.`
+        : state.streak >= 3
+          ? `${state.streak} days strong — keep the chain alive.`
+          : `${sessionsDone} session${sessionsDone === 1 ? "" : "s"} done · show up again tomorrow.`
   );
 
   const cal = $("#streak-cal");
@@ -1516,7 +1460,6 @@ function renderReports() {
   syncUnlockedBadges(badgeCtx);
   renderReportBadges(badgeCtx);
   renderReportWeekly(badgeCtx);
-  renderReportActivity(photos, faceReport);
   renderFaceAnalysis();
 }
 
@@ -1593,35 +1536,6 @@ function renderReportWeekly(ctx) {
         <div class="reports-week-circle">${inner}</div>
       </div>`;
     })
-    .join("");
-}
-
-function renderReportActivity(photos, faceReport) {
-  const root = $("#reports-activity");
-  if (!root) return;
-
-  const items = buildActivityFeed(photos, faceReport);
-  const meta = $("#reports-activity-meta");
-  if (meta) meta.textContent = items.length ? `${items.length} recent` : "Your journey";
-
-  if (!items.length) {
-    root.innerHTML = `<div class="reports-activity-empty">
-      <span aria-hidden="true">🏁</span>
-      <p>Finish a session, earn a badge, or capture a photo — your wins show up here.</p>
-    </div>`;
-    return;
-  }
-
-  root.innerHTML = items
-    .map(
-      (item) => `<div class="reports-activity-item">
-        <span class="reports-activity-icon" aria-hidden="true">${item.icon}</span>
-        <div class="reports-activity-copy">
-          <strong>${item.title}</strong>
-          <span>${item.sub}</span>
-        </div>
-      </div>`
-    )
     .join("");
 }
 

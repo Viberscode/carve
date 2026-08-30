@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=faceOverlay1" />
+  <link rel="stylesheet" href="styles.css?v=streakHero1" />
 </head>
 <body>
   <div class="device">
@@ -158,32 +158,6 @@
           <h1 class="page-title">Reports</h1>
         </header>
         <div class="scroll reports-scroll">
-          <div class="reports-overview" id="reports-overview">
-            <div class="reports-stat">
-              <span class="reports-stat-label">Streak</span>
-              <strong id="reports-stat-streak">0</strong>
-              <span class="reports-stat-unit">days</span>
-            </div>
-            <div class="reports-stat">
-              <span class="reports-stat-label">Sessions</span>
-              <strong id="reports-stat-sessions">0</strong>
-              <span class="reports-stat-unit">done</span>
-            </div>
-            <div class="reports-stat">
-              <span class="reports-stat-label">Minutes</span>
-              <strong id="reports-stat-minutes">0</strong>
-              <span class="reports-stat-unit">total</span>
-            </div>
-          </div>
-
-          <div class="card reports-card">
-            <div class="panel-head">
-              <h2 class="card-title">🔥 <span id="reports-streak">0</span>-day streak</h2>
-              <span class="panel-meta" id="reports-sessions">No sessions yet</span>
-            </div>
-            <div class="cal" id="streak-cal"></div>
-          </div>
-
           <div class="card reports-card reports-photos-hero" id="reports-photos-card">
             <div class="panel-head">
               <div>
@@ -314,12 +288,40 @@
             </div>
           </div>
 
-          <div class="card reports-card" id="reports-activity-card">
-            <div class="panel-head">
-              <h2 class="card-title">Recent wins</h2>
-              <span class="panel-meta" id="reports-activity-meta">Your journey</span>
+          <div class="streak-hero" id="reports-streak-card">
+            <div class="streak-hero-bg" aria-hidden="true"></div>
+            <div class="streak-hero-body">
+              <div class="streak-hero-top">
+                <div class="streak-hero-flame" aria-hidden="true">🔥</div>
+                <div class="streak-hero-headline">
+                  <p class="streak-hero-kicker">Current streak</p>
+                  <p class="streak-hero-count">
+                    <strong id="reports-streak">0</strong>
+                    <span>days</span>
+                  </p>
+                </div>
+              </div>
+              <p class="streak-hero-sub" id="reports-sessions">No sessions yet · start Day 1</p>
+              <div class="streak-hero-mini">
+                <div class="streak-hero-mini-stat">
+                  <strong id="reports-stat-sessions">0</strong>
+                  <span>Sessions</span>
+                </div>
+                <div class="streak-hero-mini-stat">
+                  <strong id="reports-stat-minutes">0</strong>
+                  <span>Minutes</span>
+                </div>
+              </div>
+              <div class="streak-hero-cal-wrap">
+                <p class="streak-hero-cal-label">Last 14 days</p>
+                <div class="cal streak-hero-cal" id="streak-cal"></div>
+                <div class="streak-hero-legend">
+                  <span><i class="streak-legend-dot done"></i> Done</span>
+                  <span><i class="streak-legend-dot today"></i> Today</span>
+                  <span><i class="streak-legend-dot missed"></i> Missed</span>
+                </div>
+              </div>
             </div>
-            <div class="reports-activity" id="reports-activity"></div>
           </div>
         </div>
       </section>
@@ -624,6 +626,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=faceRefresh1"></script>
+  <script src="script.js?v=streakHero1"></script>
 </body>
 </html>
