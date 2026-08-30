@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=meFocus1" />
+  <link rel="stylesheet" href="styles.css?v=voiceGrain1" />
 </head>
 <body>
   <div class="device">
@@ -227,6 +227,27 @@
                 </button>
                 <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-reports-photo-capture">
                   Capture photo
+                </button>
+              </div>
+            </div>
+            <div id="reports-voice-recorder" hidden>
+              <p class="reports-photos-slot-label" id="reports-voice-slot-label">Week 1</p>
+              <div class="reports-voice-stage">
+                <div class="reports-voice-ring" id="reports-voice-ring" aria-hidden="true">
+                  <span class="reports-voice-mic">🎙️</span>
+                </div>
+                <div class="reports-voice-meter" id="reports-voice-meter" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="reports-voice-timer" id="reports-voice-timer">0:00</p>
+                <p class="reports-voice-status" id="reports-voice-status">Find a quiet spot · speak naturally</p>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-reports-voice-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-reports-voice-record">
+                  Start recording
                 </button>
               </div>
             </div>
@@ -668,6 +689,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=landingHome1"></script>
+  <script src="script.js?v=voiceGrain1"></script>
 </body>
 </html>
