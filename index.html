@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=scoreAnim1" />
+  <link rel="stylesheet" href="styles.css?v=presencePanels1" />
 </head>
 <body>
   <div class="device">
@@ -274,31 +274,27 @@
                 Complete both check-ins to establish your personal baseline — trends compare to your own history, never anyone else’s.
               </p>
               <div class="presence-analysis-status" id="presence-analysis-status">
-                <div class="presence-analysis-status-item" id="presence-status-face">
+                <button type="button" class="presence-analysis-status-item presence-box-face" id="presence-status-face" aria-expanded="false">
                   <span class="presence-analysis-status-icon" aria-hidden="true">🪞</span>
                   <div>
-                    <strong>Face capture</strong>
-                    <span id="presence-status-face-label">Not started</span>
+                    <strong>Face analysis</strong>
+                    <span id="presence-status-face-label">Tap to open</span>
                   </div>
-                </div>
-                <div class="presence-analysis-status-item" id="presence-status-voice">
+                </button>
+                <button type="button" class="presence-analysis-status-item presence-box-voice" id="presence-status-voice" aria-expanded="false">
                   <span class="presence-analysis-status-icon" aria-hidden="true">🎙️</span>
                   <div>
-                    <strong>Voice recording</strong>
-                    <span id="presence-status-voice-label">Not started</span>
+                    <strong>Voice analysis</strong>
+                    <span id="presence-status-voice-label">Tap to open</span>
                   </div>
-                </div>
+                </button>
               </div>
               <p class="presence-analysis-free-note" id="presence-analysis-free-note">One free face scan and one free voice scan on this device.</p>
-              <div class="presence-analysis-actions" id="presence-analysis-actions">
-                <button type="button" class="reports-photo-cta" id="btn-presence-face-scan">Start face analysis</button>
-                <button type="button" class="reports-photo-cta reports-photo-cta-secondary" id="btn-presence-voice-scan">Start voice analysis</button>
-              </div>
             </div>
           </div>
 
           <div id="reports-analysis-cards">
-          <div class="card reports-card" id="reports-face-analysis-card">
+          <div class="card reports-card" id="reports-face-analysis-card" hidden>
             <div class="panel-head">
               <h2 class="card-title">Face analysis</h2>
               <span class="panel-meta" id="face-analysis-meta">On-device</span>
@@ -844,6 +840,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=scoreAnim1"></script>
+  <script src="script.js?v=presencePanels1"></script>
 </body>
 </html>

@@ -1134,6 +1134,7 @@ function selectTrack(track) {
   window.setTimeout(() => {
     if (!resumeSameTrack) {
       state.track = track;
+      resetPresenceAnalysisPanels();
       state.days = buildDays(track);
       state.currentDay = 1;
       state.streak = 0;
@@ -1710,8 +1711,9 @@ function applyReportsProgressCopy() {
       voiceCta.textContent = "Record this week’s voice";
       voiceCta.hidden = false;
     }
-    if (faceCard) faceCard.hidden = false;
-    if (voiceCard) voiceCard.hidden = false;
+    if (faceCard) faceCard.hidden = true;
+    if (voiceCard) voiceCard.hidden = true;
+    syncPresenceAnalysisCards();
   } else {
     if (kicker) kicker.textContent = "Visual progress";
     if (title) title.textContent = "Progress photos";
@@ -2388,6 +2390,56 @@ function scheduleAnalysisCardRefit() {
 }
 
 let analysisScoreAnimGen = 0;
+let presenceAnalysisOpen = { face: false, voice: false };
+
+function resetPresenceAnalysisPanels() {
+  presenceAnalysisOpen.face = false;
+  presenceAnalysisOpen.voice = false;
+}
+
+function syncPresenceAnalysisCards() {
+  const faceCard = $("#reports-face-analysis-card");
+  const voiceCard = $("#reports-voice-analysis-card");
+  const faceBox = $("#presence-status-face");
+  const voiceBox = $("#presence-status-voice");
+
+  if (isFullPresenceMode()) {
+    if (faceCard) {
+      faceCard.hidden = !presenceAnalysisOpen.face;
+      faceCard.classList.toggle("is-presence-panel", presenceAnalysisOpen.face);
+    }
+    if (voiceCard) {
+      voiceCard.hidden = !presenceAnalysisOpen.voice;
+      voiceCard.classList.toggle("is-presence-panel", presenceAnalysisOpen.voice);
+    }
+    if (faceBox) {
+      faceBox.classList.toggle("is-open", presenceAnalysisOpen.face);
+      faceBox.setAttribute("aria-expanded", presenceAnalysisOpen.face ? "true" : "false");
+    }
+    if (voiceBox) {
+      voiceBox.classList.toggle("is-open", presenceAnalysisOpen.voice);
+      voiceBox.setAttribute("aria-expanded", presenceAnalysisOpen.voice ? "true" : "false");
+    }
+    return;
+  }
+
+  resetPresenceAnalysisPanels();
+  if (faceCard) faceCard.classList.remove("is-presence-panel");
+  if (voiceCard) voiceCard.classList.remove("is-presence-panel");
+}
+
+function togglePresenceAnalysisPanel(kind) {
+  if (!isFullPresenceMode()) return;
+  presenceAnalysisOpen[kind] = !presenceAnalysisOpen[kind];
+  syncPresenceAnalysisCards();
+  if (kind === "face" && presenceAnalysisOpen.face) {
+    renderFaceAnalysis();
+    scrollAnalysisCardIntoView("#reports-face-analysis-card");
+  } else if (kind === "voice" && presenceAnalysisOpen.voice) {
+    renderVoiceAnalysis();
+    scrollAnalysisCardIntoView("#reports-voice-analysis-card");
+  }
+}
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
@@ -2688,13 +2740,10 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
   const meta = $("#presence-analysis-meta");
   const lead = $("#presence-analysis-lead");
   const freeNote = $("#presence-analysis-free-note");
-  const actions = $("#presence-analysis-actions");
   const faceStatus = $("#presence-status-face");
   const voiceStatus = $("#presence-status-voice");
   const faceLabel = $("#presence-status-face-label");
   const voiceLabel = $("#presence-status-voice-label");
-  const faceBtn = $("#btn-presence-face-scan");
-  const voiceBtn = $("#btn-presence-voice-scan");
 
   if (faceStatus) {
     faceStatus.classList.toggle("is-done", hasFace);
@@ -2705,18 +2754,24 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
     voiceStatus.classList.toggle("is-used", hasVoice && !voiceAllowed && !hasCarvePlus());
   }
   if (faceLabel) {
-    faceLabel.textContent = hasFace
-      ? hasCarvePlus() || faceAllowed
-        ? "Baseline saved"
-        : "Free scan used"
-      : "Not started";
+    if (presenceAnalysisOpen.face) {
+      faceLabel.textContent = "Open — tap to close";
+    } else if (hasFace) {
+      faceLabel.textContent =
+        hasCarvePlus() || faceAllowed ? "Baseline saved · tap to open" : "Free scan used · tap to view";
+    } else {
+      faceLabel.textContent = "Tap to open";
+    }
   }
   if (voiceLabel) {
-    voiceLabel.textContent = hasVoice
-      ? hasCarvePlus() || voiceAllowed
-        ? "Baseline saved"
-        : "Free scan used"
-      : "Not started";
+    if (presenceAnalysisOpen.voice) {
+      voiceLabel.textContent = "Open — tap to close";
+    } else if (hasVoice) {
+      voiceLabel.textContent =
+        hasCarvePlus() || voiceAllowed ? "Baseline saved · tap to open" : "Free scan used · tap to view";
+    } else {
+      voiceLabel.textContent = "Tap to open";
+    }
   }
 
   const doneCount = (hasFace ? 1 : 0) + (hasVoice ? 1 : 0);
@@ -2724,9 +2779,14 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
     meta.textContent =
       doneCount === 2 ? "Complete" : doneCount === 1 ? "1 / 2 done" : "On-device";
   }
-  if (lead && doneCount === 2) {
-    lead.textContent =
-      "Both baselines saved — scroll down to review face and voice trends against your own history.";
+  if (lead) {
+    if (doneCount === 2 && !presenceAnalysisOpen.face && !presenceAnalysisOpen.voice) {
+      lead.textContent =
+        "Both baselines saved — tap a box to review face and voice trends.";
+    } else if (!presenceAnalysisOpen.face && !presenceAnalysisOpen.voice) {
+      lead.textContent =
+        "Tap the blue or red box to open face or voice analysis — one free scan of each on this device.";
+    }
   }
 
   if (freeNote) {
@@ -2735,22 +2795,7 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
       : "One free face scan and one free voice scan on this device.";
   }
 
-  if (actions) {
-    const showFaceBtn = !hasFace || faceAllowed || hasCarvePlus();
-    const showVoiceBtn = !hasVoice || voiceAllowed || hasCarvePlus();
-    actions.hidden = !showFaceBtn && !showVoiceBtn;
-  }
-
-  if (faceBtn) {
-    faceBtn.hidden = hasFace && !faceAllowed && !hasCarvePlus();
-    faceBtn.textContent = hasFace ? "Run another face scan" : "Start face analysis";
-    faceBtn.disabled = !faceAllowed && !hasCarvePlus();
-  }
-  if (voiceBtn) {
-    voiceBtn.hidden = hasVoice && !voiceAllowed && !hasCarvePlus();
-    voiceBtn.textContent = hasVoice ? "Run another voice scan" : "Start voice analysis";
-    voiceBtn.disabled = !voiceAllowed && !hasCarvePlus();
-  }
+  syncPresenceAnalysisCards();
 }
 
 async function startFaceCamera() {
@@ -4249,6 +4294,7 @@ function bind() {
         return;
       }
       state.track = track;
+      resetPresenceAnalysisPanels();
       state.days = buildDays(track);
       state.currentDay = 1;
       state.streak = 0;
@@ -4338,12 +4384,12 @@ function bind() {
         cancelVoiceRecorder();
         return;
       }
-      if (e.target.closest("#btn-presence-face-scan")) {
-        startFaceCamera();
+      if (e.target.closest("#presence-status-face")) {
+        togglePresenceAnalysisPanel("face");
         return;
       }
-      if (e.target.closest("#btn-presence-voice-scan")) {
-        startVoiceAnalysisRecorder();
+      if (e.target.closest("#presence-status-voice")) {
+        togglePresenceAnalysisPanel("voice");
         return;
       }
       if (

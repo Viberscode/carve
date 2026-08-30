@@ -2690,20 +2690,69 @@ button {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px;
+  padding: 14px 12px;
   border-radius: var(--radius-card);
-  border: 1px solid var(--line-gray);
+  border: 1.5px solid var(--line-gray);
   background: #f8fafc;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
 
-.presence-analysis-status-item.is-done {
-  border-color: #bbf7d0;
-  background: #f0fdf4;
+.presence-analysis-status-item:hover {
+  transform: translateY(-1px);
+}
+
+.presence-analysis-status-item:active {
+  transform: translateY(0);
+}
+
+.presence-box-face {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.presence-box-face strong {
+  color: #1d4ed8;
+}
+
+.presence-box-face.is-open {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.presence-box-face.is-done {
+  background: #dbeafe;
+  border-color: #60a5fa;
+}
+
+.presence-box-voice {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.presence-box-voice strong {
+  color: #b91c1c;
+}
+
+.presence-box-voice.is-open {
+  box-shadow: 0 0 0 2px #ef4444;
+}
+
+.presence-box-voice.is-done {
+  background: #fee2e2;
+  border-color: #f87171;
 }
 
 .presence-analysis-status-item.is-used {
   border-color: #fde68a;
   background: #fffbeb;
+}
+
+.presence-analysis-status-item.is-used strong {
+  color: #92400e;
 }
 
 .presence-analysis-status-icon {
@@ -2734,13 +2783,11 @@ button {
 }
 
 .presence-analysis-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: none;
 }
 
-.presence-analysis-actions .reports-photo-cta {
-  margin-top: 0;
+#reports-analysis-cards .reports-card.is-presence-panel {
+  margin-top: 12px;
 }
 
 .face-analysis-reanalyze.is-paywall-cta {
