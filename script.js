@@ -1837,6 +1837,10 @@ function profileInitials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function meStreakDisplayCount() {
+  return Math.max(1, state.streak || 0);
+}
+
 function renderMe() {
   const meta = trackMeta();
   const avatar = $("#profile-avatar");
@@ -1848,12 +1852,16 @@ function renderMe() {
   }
 
   const streak = state.streak || 0;
+  const displayStreak = meStreakDisplayCount();
   const streakNum = $("#me-streak-num");
-  if (streakNum) streakNum.textContent = String(streak);
+  if (streakNum) {
+    streakNum.textContent = String(displayStreak);
+    streakNum.classList.toggle("is-wide", displayStreak >= 10);
+  }
   const streakBadge = $("#me-streak-badge");
   if (streakBadge) {
     streakBadge.classList.toggle("is-active", streak > 0);
-    streakBadge.setAttribute("aria-label", `${streak} day streak`);
+    streakBadge.setAttribute("aria-label", `${displayStreak} day streak`);
   }
 
   $$("[data-me-track]").forEach((btn) => {
