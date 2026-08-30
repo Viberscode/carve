@@ -707,6 +707,7 @@ const state = {
   habitChecks: {},
   profileName: "Priya",
   memberSince: "Jul 2026",
+  startedAt: null,
   sessionIds: [],
   sessionItems: [],
   sessionIndex: 0,
@@ -754,6 +755,7 @@ function saveState() {
         habitChecks: state.habitChecks,
         profileName: state.profileName,
         memberSince: state.memberSince,
+        startedAt: state.startedAt,
         settings: state.settings,
       })
     );
@@ -779,7 +781,9 @@ function loadState() {
     state.habitChecks = data.habitChecks && typeof data.habitChecks === "object" ? data.habitChecks : {};
     state.profileName = data.profileName || "Priya";
     state.memberSince = data.memberSince || "Jul 2026";
+    state.startedAt = data.startedAt || null;
     state.settings = { ...defaultSettings, ...(data.settings || {}) };
+    ensureStartedAt();
     return true;
   } catch (_) {
     return false;
@@ -889,6 +893,7 @@ function selectTrack(track) {
     state.sessionDates = {};
     state.unlockedBadges = {};
     state.habitChecks = {};
+    state.startedAt = dateKey();
     refreshHome();
     renderDayList();
     saveState();
@@ -988,6 +993,49 @@ function markSessionDoneForToday() {
     state.sessionDates = {};
   }
   state.sessionDates[dateKey()] = true;
+}
+
+function ensureStartedAt() {
+  if (state.startedAt) return state.startedAt;
+  const keys = Object.keys(state.sessionDates || {})
+    .filter((key) => state.sessionDates[key])
+    .sort();
+  state.startedAt = keys[0] || dateKey();
+  return state.startedAt;
+}
+
+function getJourneyCalendarDays() {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const todayKey = dateKey(now);
+  const startKey = ensureStartedAt();
+  const start = new Date(`${startKey}T12:00:00`);
+  const days = [];
+  const cursor = new Date(start);
+
+  while (cursor <= now) {
+    const key = dateKey(cursor);
+    days.push({
+      key,
+      dayNum: days.length + 1,
+      isToday: key === todayKey,
+      isFuture: false,
+      done: hasSessionOnDate(key),
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  if (!days.length) {
+    days.push({
+      key: todayKey,
+      dayNum: 1,
+      isToday: true,
+      isFuture: false,
+      done: hasSessionOnDate(todayKey),
+    });
+  }
+
+  return days;
 }
 
 function getStreakCalendarDays(count = 14) {
@@ -1354,6 +1402,124 @@ function renderProgressBox() {
   /* Home uses hero card only — day rail lives on plan screen */
 }
 
+const PHOTO_STORAGE_KEY = "carve-report-photos-v1";
+const PROFILE_PHOTO_KEY = "carve-profile-photo-v1";
+const PROFILE_PHOTO_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+const DEFAULT_HERO_PHOTO = "assets/hero-jawline.png";
+
+function loadProfilePhoto() {
+  try {
+    const raw = localStorage.getItem(PROFILE_PHOTO_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.dataUrl || !parsed?.updatedAt) return null;
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveProfilePhoto(dataUrl) {
+  localStorage.setItem(
+    PROFILE_PHOTO_KEY,
+    JSON.stringify({
+      dataUrl,
+      updatedAt: new Date().toISOString(),
+    })
+  );
+}
+
+function profilePhotoUpdateStatus() {
+  const photo = loadProfilePhoto();
+  if (!photo) return { allowed: true, daysLeft: 0, hasPhoto: false };
+  const elapsed = Date.now() - new Date(photo.updatedAt).getTime();
+  if (elapsed >= PROFILE_PHOTO_COOLDOWN_MS) {
+    return { allowed: true, daysLeft: 0, hasPhoto: true };
+  }
+  const daysLeft = Math.ceil((PROFILE_PHOTO_COOLDOWN_MS - elapsed) / (24 * 60 * 60 * 1000));
+  return { allowed: false, daysLeft, hasPhoto: true };
+}
+
+function compressProfilePhoto(dataUrl, maxSize = 512) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => reject(new Error("Image load failure"));
+    img.src = dataUrl;
+  });
+}
+
+function renderHeroPhoto() {
+  const img = $("#hero-photo");
+  const badge = $("#hero-photo-badge");
+  const btn = $("#btn-hero-photo");
+  if (!img) return;
+
+  const photo = loadProfilePhoto();
+  const status = profilePhotoUpdateStatus();
+  img.src = photo?.dataUrl || DEFAULT_HERO_PHOTO;
+  img.classList.toggle("is-user", Boolean(photo?.dataUrl));
+
+  if (badge) badge.hidden = status.hasPhoto;
+  if (btn) {
+    btn.classList.toggle("is-locked", status.hasPhoto && !status.allowed);
+    const label = status.hasPhoto
+      ? status.allowed
+        ? "Update your photo"
+        : `Photo locked · update in ${status.daysLeft} day${status.daysLeft === 1 ? "" : "s"}`
+      : "Add your photo";
+    btn.title = label;
+    btn.setAttribute("aria-label", label);
+  }
+}
+
+function openHeroPhotoPicker() {
+  const status = profilePhotoUpdateStatus();
+  if (!status.allowed) {
+    showToast(`You can update your photo in ${status.daysLeft} day${status.daysLeft === 1 ? "" : "s"}`);
+    return;
+  }
+  $("#hero-photo-input")?.click();
+}
+
+async function handleHeroPhotoSelected(file) {
+  if (!file) return;
+  const status = profilePhotoUpdateStatus();
+  if (!status.allowed) {
+    showToast(`You can update your photo in ${status.daysLeft} day${status.daysLeft === 1 ? "" : "s"}`);
+    return;
+  }
+
+  try {
+    if (!String(file.type || "").startsWith("image/")) {
+      showToast("Please choose an image file");
+      return;
+    }
+    const raw = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Read failed"));
+      reader.readAsDataURL(file);
+    });
+    const dataUrl = await compressProfilePhoto(raw);
+    saveProfilePhoto(dataUrl);
+    renderHeroPhoto();
+    showToast(status.hasPhoto ? "Photo updated · next change in 7 days" : "Photo added · next change in 7 days");
+  } catch (_) {
+    showToast("Could not load that image");
+  }
+}
+
 function refreshHome() {
   const meta = trackMeta();
   const sessionsDone = Math.max(0, state.currentDay - 1);
@@ -1396,6 +1562,7 @@ function refreshHome() {
   if (profileName) profileName.textContent = state.profileName || "Priya";
   const profileMember = $("#profile-member");
   if (profileMember) profileMember.textContent = `Member since ${state.memberSince || "Jul 2026"}`;
+  renderHeroPhoto();
   renderMe();
   renderTrackExtras();
 }
@@ -1443,14 +1610,24 @@ function renderReports() {
   );
 
   const cal = $("#streak-cal");
+  const calLabel = $("#reports-streak-cal-label");
+  const journey = getJourneyCalendarDays();
+  if (calLabel) {
+    calLabel.textContent =
+      journey.length <= 1 ? "Day 1 · your journey starts here" : `Day 1 → Day ${journey.length}`;
+  }
   if (cal) {
     cal.innerHTML = "";
-    getStreakCalendarDays(14).forEach((d) => {
+    journey.forEach((d) => {
       const s = document.createElement("span");
       if (d.done) s.classList.add("done");
       else if (d.isToday) s.classList.add("today");
-      else if (!d.isFuture) s.classList.add("missed");
-      s.title = d.isToday ? "Today" : d.done ? "Session done" : d.isFuture ? "Upcoming" : "Missed";
+      else s.classList.add("missed");
+      s.title = d.isToday
+        ? `Day ${d.dayNum} · Today`
+        : d.done
+          ? `Day ${d.dayNum} · Session done`
+          : `Day ${d.dayNum} · Missed`;
       cal.appendChild(s);
     });
   }
@@ -1462,8 +1639,6 @@ function renderReports() {
   renderReportWeekly(badgeCtx);
   renderFaceAnalysis();
 }
-
-const PHOTO_STORAGE_KEY = "carve-report-photos-v1";
 
 function loadReportPhotos() {
   try {
@@ -2463,6 +2638,18 @@ function bind() {
     }
   });
 
+  $("#btn-hero-photo")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openHeroPhotoPicker();
+  });
+
+  $("#hero-photo-input")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (file) handleHeroPhotoSelected(file);
+  });
+
   $$("[data-back]").forEach((b) => b.addEventListener("click", goBack));
 
   $("#btn-start-session").addEventListener("click", startSession);
@@ -2529,6 +2716,7 @@ function bind() {
       state.sessionDates = {};
       state.unlockedBadges = {};
       state.habitChecks = {};
+      state.startedAt = dateKey();
       saveState();
       refreshHome();
       renderDayList();

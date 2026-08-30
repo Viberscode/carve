@@ -628,6 +628,23 @@ button {
   flex-shrink: 0;
 }
 
+.hero-photo-btn {
+  position: relative;
+  display: block;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 22px;
+  line-height: 0;
+}
+
+.hero-photo-btn:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
 .hero-photo {
   width: 96px;
   height: 96px;
@@ -637,6 +654,54 @@ button {
   display: block;
   border: 2px solid #ffffffcc;
   box-shadow: 0 12px 28px #1e3fe033;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.hero-photo-btn:hover .hero-photo,
+.hero-photo-btn:focus-visible .hero-photo {
+  transform: scale(1.02);
+  box-shadow: 0 14px 32px #1e3fe044;
+}
+
+.hero-photo.is-user {
+  object-position: center center;
+}
+
+.hero-photo-badge {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #4a6cf0, #1e3fe0);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px #1e3fe044;
+  pointer-events: none;
+}
+
+.hero-photo-btn.is-locked::after {
+  content: "🔒";
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  background: rgba(12, 18, 34, 0.72);
+  border: 1.5px solid #ffffff88;
+  pointer-events: none;
 }
 
 .hero-ring {
@@ -2358,11 +2423,16 @@ button {
 
 .streak-hero-cal {
   margin-top: 0;
-  gap: 5px;
+  gap: 6px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
 .streak-hero-cal span {
-  max-width: 20px;
+  flex: 0 0 12px;
+  width: 12px;
+  min-width: 12px;
+  max-width: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -3447,7 +3517,7 @@ button {
 }
 
 .me-scroll {
-  padding: calc(14px + var(--safe-t)) 16px calc(28px + var(--safe-b));
+  padding: calc(14px + var(--safe-t)) 16px calc(100px + var(--safe-b));
 }
 
 .me-section-label {
@@ -3731,7 +3801,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .me-lock {

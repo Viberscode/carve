@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=streakTop1" />
+  <link rel="stylesheet" href="styles.css?v=meScroll1" />
 </head>
 <body>
   <div class="device">
@@ -119,9 +119,12 @@
                 <p class="hero-kicker">Today’s session</p>
                 <p class="hero-day" id="hero-day">Day 1</p>
               </div>
-              <div class="hero-visual" aria-hidden="true">
-                <img src="assets/hero-jawline.png" alt="" class="hero-photo" />
-                <div class="hero-ring" id="hero-ring" style="--pct:0">
+              <div class="hero-visual">
+                <button type="button" class="hero-photo-btn" id="btn-hero-photo" aria-label="Add your photo">
+                  <img src="assets/hero-jawline.png" alt="" class="hero-photo" id="hero-photo" />
+                  <span class="hero-photo-badge" id="hero-photo-badge" aria-hidden="true">+</span>
+                </button>
+                <div class="hero-ring" id="hero-ring" style="--pct:0" aria-hidden="true">
                   <span id="hero-ring-label">0%</span>
                 </div>
               </div>
@@ -149,6 +152,7 @@
           <p class="disclaimer" id="home-disclaimer">
             CARVE trains muscles, posture, habits, skin tone, and vocal technique — never bone structure.
           </p>
+          <input type="file" id="hero-photo-input" accept="image/*" capture="user" hidden />
         </div>
       </section>
 
@@ -183,7 +187,7 @@
                 </div>
               </div>
               <div class="streak-hero-cal-wrap">
-                <p class="streak-hero-cal-label">Last 14 days</p>
+                <p class="streak-hero-cal-label" id="reports-streak-cal-label">Day 1 · your journey starts here</p>
                 <div class="cal streak-hero-cal" id="streak-cal"></div>
                 <div class="streak-hero-legend">
                   <span><i class="streak-legend-dot done"></i> Done</span>
@@ -626,6 +630,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=streakHero1"></script>
+  <script src="script.js?v=journeyCal1"></script>
 </body>
 </html>
