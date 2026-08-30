@@ -269,21 +269,47 @@
   }
 
   function buildVoiceAnalysisSummary(metrics) {
-    const pitchHz = Number(metrics.pitchHz) || 0;
     const voiceScore = Number(metrics.voiceScore);
     const resonanceScore = Number(metrics.resonanceScore);
     const clarityScore = Number(metrics.clarityScore);
-    const pitchPart = pitchHz ? `${Math.round(pitchHz)} Hz pitch` : "pitch not locked";
-    const focus =
-      resonanceScore < clarityScore && resonanceScore < voiceScore
-        ? "Prioritize breath support and resonance drills."
-        : clarityScore < 65
-          ? "Record closer in a quieter room for sharper detail."
-          : "Keep the same phrase and spot each week to track change.";
-    const meshPart = metrics.usedMesh
-      ? ` MediaPipe tracked ${Math.round((Number(metrics.avgMouthOpen) || 0) * 100)}% mouth opening.`
+    const pitchScore = Number(metrics.pitchScore);
+    const usedMesh = Boolean(metrics.usedMesh);
+
+    const weakest =
+      resonanceScore <= clarityScore && resonanceScore <= pitchScore && resonanceScore <= voiceScore
+        ? "resonance"
+        : clarityScore <= pitchScore && clarityScore <= voiceScore
+          ? "clarity"
+          : pitchScore <= voiceScore
+            ? "pitch"
+            : "balance";
+
+    const open =
+      weakest === "resonance"
+        ? "Your tone reads a little thin in this clip — that usually means the sound is staying high in the throat instead of dropping into the chest."
+        : weakest === "clarity"
+          ? "Your words come through, but the recording could carry more detail — often that’s distance, background noise, or speaking too softly."
+          : weakest === "pitch"
+            ? "Your pitch wavered more than ideal here — steady breath support usually smooths that out without forcing a lower voice."
+            : "This is a solid baseline capture — you have a workable foundation to build on with consistent practice.";
+
+    const tips =
+      weakest === "resonance"
+        ? "Before you speak, take three slow belly breaths and hum gently until you feel vibration in your chest. Keep the jaw loose, the tongue relaxed, and avoid pushing volume — let resonance do the work."
+        : weakest === "clarity"
+          ? "Record in a quiet room, sit upright, and speak at a calm conversational volume about a hand-span from the mic. Sip warm water first, open your mouth naturally, and finish consonants without rushing."
+          : weakest === "pitch"
+            ? "Practice speaking on a steady exhale — count from one to five on a single breath, then say your phrase the same way. Stop if anything feels strained; depth should feel easy, not forced."
+            : "Keep training breath support, resonance hums, and easy articulation drills. Small daily sessions beat long occasional pushes.";
+
+    const meshTip = usedMesh
+      ? " Face the camera when you record so your mouth stays relaxed and open — tension in the jaw and lips can quietly thin the sound."
       : "";
-    return `Main points: ${pitchPart}, ${resonanceScore}% resonance, ${clarityScore}% clarity.${meshPart} ${focus}`;
+
+    const habit =
+      " Re-record the same phrase each week in the same spot so you can hear what’s actually changing — not just how you feel on the day.";
+
+    return `${open} ${tips}${meshTip}${habit}`;
   }
 
   function buildWaveformPeaks(samples, count = 48) {

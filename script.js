@@ -2608,9 +2608,9 @@ function fillVoiceAnalysisResults(report) {
 
   if (headline) headline.textContent = writeup.headline;
   if (summaryEl) {
-    summaryEl.textContent =
-      report.analysisSummary ||
-      (api?.buildVoiceAnalysisSummary ? api.buildVoiceAnalysisSummary(report) : "");
+    summaryEl.textContent = api?.buildVoiceAnalysisSummary
+      ? api.buildVoiceAnalysisSummary(report)
+      : report.analysisSummary || "";
   }
 
   if (score) score.textContent = String(report.voiceScore);
