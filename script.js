@@ -1789,14 +1789,16 @@ function renderMe() {
   const progressLabel = $("#me-progress-label");
   if (progressLabel) progressLabel.textContent = String(state.currentDay);
 
-  const planFill = $("#me-plan-fill");
-  if (planFill) planFill.style.width = `${Math.max(3, pct)}%`;
-
   const avatar = $("#profile-avatar");
   if (avatar) avatar.textContent = profileInitials(state.profileName);
 
-  const dayNum = $("#me-day-num");
-  if (dayNum) dayNum.textContent = String(state.currentDay);
+  const meta = trackMeta();
+  const trackArt = $("#me-track-art");
+  const trackLabel = $("#me-track-label");
+  const trackTags = $("#me-track-tags");
+  if (trackArt) trackArt.textContent = meta.art || "✦";
+  if (trackLabel) trackLabel.textContent = meta.label || "Face Form";
+  if (trackTags) trackTags.textContent = meta.tags || meta.subtitle || "";
 
   $$("[data-me-track]").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));

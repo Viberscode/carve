@@ -3756,29 +3756,40 @@ button {
   line-height: 1;
 }
 
-.me-plan-strip {
+.me-focus-strip {
   position: relative;
   z-index: 1;
   margin-top: 18px;
   padding: 14px 14px 14px 16px;
   border-radius: 18px;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 10px 12px;
+  display: flex;
   align-items: center;
+  gap: 12px;
   background: linear-gradient(135deg, #f8faff 0%, #eef3ff 100%);
   border: 1px solid #dde5f8;
   box-shadow: inset 0 1px 0 #ffffffcc;
 }
 
-.me-plan-copy {
-  grid-column: 1;
-  grid-row: 1;
+.me-focus-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  background: linear-gradient(145deg, #ffffff, #eef2ff);
+  border: 1px solid #d7defe;
+  box-shadow: 0 6px 14px #1e3fe012;
 }
 
-.me-plan-kicker {
-  margin: 0 0 4px;
+.me-focus-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.me-focus-kicker {
+  margin: 0 0 3px;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -3786,46 +3797,32 @@ button {
   color: var(--blue);
 }
 
-.me-plan-day {
+.me-focus-title {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
-  line-height: 1.2;
-}
-
-.me-plan-day strong {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 800;
+  letter-spacing: -0.02em;
   color: #0c1222;
-  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
-.me-plan-track {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  height: 6px;
-  border-radius: 999px;
-  background: #dfe6f4;
+.me-focus-sub {
+  margin: 3px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8e96a3;
+  line-height: 1.35;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.me-plan-fill {
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #1e3fe0, #2bb673);
-  min-width: 4px;
-  transition: width 0.35s ease;
-}
-
-.me-plan-reports {
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
-  padding: 10px 16px;
+.me-focus-reports {
+  flex-shrink: 0;
+  padding: 10px 14px;
   border-radius: 999px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.01em;
   color: #fff;
@@ -3835,13 +3832,13 @@ button {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.me-plan-reports:hover,
-.me-plan-reports:focus-visible {
+.me-focus-reports:hover,
+.me-focus-reports:focus-visible {
   box-shadow: 0 10px 22px #1e3fe044;
   outline: none;
 }
 
-.me-plan-reports:active {
+.me-focus-reports:active {
   transform: scale(0.98);
 }
 
