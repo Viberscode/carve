@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=voiceGrain1" />
+  <link rel="stylesheet" href="styles.css?v=voiceAnalysis1" />
 </head>
 <body>
   <div class="device">
@@ -319,6 +319,77 @@
               </button>
             </div>
             <canvas id="face-analysis-canvas" hidden></canvas>
+          </div>
+
+          <div class="card reports-card" id="reports-voice-analysis-card" hidden>
+            <div class="panel-head">
+              <h2 class="card-title">Voice analysis</h2>
+              <span class="panel-meta" id="voice-analysis-meta">On-device</span>
+            </div>
+            <div id="voice-analysis-idle">
+              <p class="muted reports-photos-lead">
+                Use your microphone for a short recording to estimate pitch, resonance, and clarity.
+              </p>
+              <button type="button" class="reports-photo-cta" id="btn-voice-analysis-start">
+                Start recording
+              </button>
+            </div>
+            <div id="voice-analysis-recorder" hidden>
+              <div class="reports-voice-stage">
+                <div class="reports-voice-ring" id="voice-analysis-ring" aria-hidden="true">
+                  <span class="reports-voice-mic">🎙️</span>
+                </div>
+                <div class="reports-voice-meter" id="voice-analysis-meter" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="reports-voice-timer" id="voice-analysis-timer">0:00</p>
+                <p class="reports-voice-status" id="voice-analysis-status">Say a steady phrase for 5–8 seconds</p>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-voice-analysis-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-voice-analysis-record">
+                  Start recording
+                </button>
+              </div>
+            </div>
+            <div id="voice-analysis-loading" hidden>
+              <div class="voice-analysis-wave-loading" id="voice-analysis-wave-loading" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <p class="face-analysis-loading-text">Analyzing your voice...</p>
+            </div>
+            <div id="voice-analysis-error" class="face-analysis-error" hidden></div>
+            <div id="voice-analysis-results" hidden>
+              <div class="voice-analysis-wave-wrap" id="voice-analysis-wave-wrap" hidden>
+                <div class="voice-analysis-wave" id="voice-analysis-wave" aria-hidden="true"></div>
+              </div>
+              <div class="face-analysis-writeup">
+                <p class="face-analysis-writeup-kicker">Your analysis</p>
+                <h3 class="face-analysis-writeup-title" id="voice-analysis-headline">—</h3>
+                <div class="face-analysis-writeup-body" id="voice-analysis-analysis"></div>
+              </div>
+              <p class="face-analysis-scores-label">Scores</p>
+              <div class="face-analysis-metrics">
+                <div class="face-analysis-metric">
+                  <span class="face-analysis-metric-label">Voice Score</span>
+                  <strong id="voice-analysis-score">—</strong>
+                </div>
+                <div class="face-analysis-metric">
+                  <span class="face-analysis-metric-label">Resonance</span>
+                  <strong id="voice-analysis-resonance">—</strong>
+                </div>
+                <div class="face-analysis-metric">
+                  <span class="face-analysis-metric-label">Clarity</span>
+                  <strong id="voice-analysis-clarity">—</strong>
+                </div>
+              </div>
+              <p class="voice-analysis-pitch-line" id="voice-analysis-pitch-line">Pitch —</p>
+              <button type="button" class="face-analysis-reanalyze" id="btn-voice-analysis-reanalyze">
+                Record again
+              </button>
+            </div>
           </div>
 
           <div class="card reports-card" id="reports-badges-card">
@@ -689,6 +760,7 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=voiceGrain1"></script>
+  <script src="voiceAnalysis.js?v=1"></script>
+  <script src="script.js?v=voiceAnalysis1"></script>
 </body>
 </html>

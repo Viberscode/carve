@@ -3246,6 +3246,65 @@ button {
   font-weight: 800;
 }
 
+.voice-analysis-wave-wrap {
+  margin-bottom: 14px;
+  padding: 14px 12px;
+  border-radius: 18px;
+  background: linear-gradient(165deg, #f8faff 0%, #eef2ff 100%);
+  border: 1.5px solid #d7defe;
+}
+
+.voice-analysis-wave,
+.voice-analysis-wave-loading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 56px;
+}
+
+.voice-analysis-wave span,
+.voice-analysis-wave-loading span {
+  width: 4px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #4a6cf0, #1e3fe0);
+  min-height: 8px;
+}
+
+.voice-analysis-wave-loading span {
+  animation: voice-meter-live 0.55s ease-in-out infinite alternate;
+}
+
+.voice-analysis-wave-loading span:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.voice-analysis-wave-loading span:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.voice-analysis-wave-loading span:nth-child(4) {
+  animation-delay: 0.24s;
+}
+.voice-analysis-wave-loading span:nth-child(5) {
+  animation-delay: 0.32s;
+}
+.voice-analysis-wave-loading span:nth-child(6) {
+  animation-delay: 0.4s;
+}
+.voice-analysis-wave-loading span:nth-child(7) {
+  animation-delay: 0.48s;
+}
+.voice-analysis-wave-loading span:nth-child(8) {
+  animation-delay: 0.56s;
+}
+
+.voice-analysis-pitch-line {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+}
+
 .reports-habits-list {
   display: flex;
   flex-direction: column;

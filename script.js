@@ -1632,6 +1632,7 @@ function applyReportsProgressCopy() {
   const lead = $("#reports-photos-card .reports-photos-lead");
   const cta = $("#btn-reports-add-photo");
   const faceCard = $("#reports-face-analysis-card");
+  const voiceCard = $("#reports-voice-analysis-card");
 
   if (isVoiceProgressMode()) {
     if (kicker) kicker.textContent = "Vocal progress";
@@ -1642,6 +1643,7 @@ function applyReportsProgressCopy() {
     }
     if (cta) cta.textContent = "Record this week’s voice";
     if (faceCard) faceCard.hidden = true;
+    if (voiceCard) voiceCard.hidden = false;
   } else {
     if (kicker) kicker.textContent = "Visual progress";
     if (title) title.textContent = "Progress photos";
@@ -1651,6 +1653,7 @@ function applyReportsProgressCopy() {
     }
     if (cta) cta.textContent = "Capture this week’s photo";
     if (faceCard) faceCard.hidden = false;
+    if (voiceCard) voiceCard.hidden = true;
   }
 }
 
@@ -1921,6 +1924,7 @@ function renderReports() {
   renderReportBadges(badgeCtx);
   renderReportWeekly(badgeCtx);
   renderFaceAnalysis();
+  renderVoiceAnalysis();
 }
 
 function loadReportPhotos() {
@@ -2364,6 +2368,332 @@ function cancelFaceCamera() {
   }
 }
 
+function setVoiceAnalysisView(mode, errorMsg) {
+  const idle = $("#voice-analysis-idle");
+  const recorder = $("#voice-analysis-recorder");
+  const loading = $("#voice-analysis-loading");
+  const results = $("#voice-analysis-results");
+  const error = $("#voice-analysis-error");
+  if (idle) idle.hidden = mode !== "idle";
+  if (recorder) recorder.hidden = mode !== "recorder";
+  if (loading) loading.hidden = mode !== "loading";
+  if (results) results.hidden = mode !== "results";
+  if (error) {
+    if (mode === "error" && errorMsg) {
+      error.hidden = false;
+      error.textContent = errorMsg;
+    } else if (errorMsg && (mode === "idle" || mode === "recorder" || mode === "results")) {
+      error.hidden = false;
+      error.textContent = errorMsg;
+    } else {
+      error.hidden = true;
+      error.textContent = "";
+    }
+  }
+}
+
+let voiceAnalysisStream = null;
+let voiceAnalysisRecorder = null;
+let voiceAnalysisChunks = [];
+let voiceAnalysisTimer = null;
+let voiceAnalysisStartedAt = 0;
+let voiceAnalysisActive = false;
+let voiceAnalysisDiscard = false;
+const VOICE_ANALYSIS_MAX_MS = 30000;
+const VOICE_ANALYSIS_MIN_MS = 3000;
+
+function setVoiceAnalysisUi(recording) {
+  const ring = $("#voice-analysis-ring");
+  const meter = $("#voice-analysis-meter");
+  const btn = $("#btn-voice-analysis-record");
+  const status = $("#voice-analysis-status");
+  if (ring) ring.classList.toggle("is-recording", recording);
+  if (meter) meter.classList.toggle("is-live", recording);
+  if (btn) btn.textContent = recording ? "Stop & analyze" : "Start recording";
+  if (status) {
+    status.textContent = recording
+      ? "Recording… hold one steady phrase"
+      : "Say a steady phrase for 5–8 seconds";
+  }
+}
+
+function updateVoiceAnalysisTimer() {
+  const el = $("#voice-analysis-timer");
+  if (!el || !voiceAnalysisActive) return;
+  const ms = Date.now() - voiceAnalysisStartedAt;
+  el.textContent = formatVoiceDuration(ms);
+  if (ms >= VOICE_ANALYSIS_MAX_MS) {
+    finishVoiceAnalysisRecording();
+  }
+}
+
+function renderVoiceAnalysisWaveform(container, peaks) {
+  if (!container || !peaks?.length) return;
+  const max = Math.max(...peaks, 0.001);
+  container.innerHTML = peaks
+    .map((p) => {
+      const h = Math.max(12, Math.round((p / max) * 100));
+      return `<span style="height:${h}%"></span>`;
+    })
+    .join("");
+}
+
+function fillVoiceAnalysisResults(report) {
+  const api = window.CarveVoiceAnalysis;
+  const waveWrap = $("#voice-analysis-wave-wrap");
+  const wave = $("#voice-analysis-wave");
+  const headline = $("#voice-analysis-headline");
+  const analysis = $("#voice-analysis-analysis");
+  const score = $("#voice-analysis-score");
+  const resonance = $("#voice-analysis-resonance");
+  const clarity = $("#voice-analysis-clarity");
+  const pitchLine = $("#voice-analysis-pitch-line");
+
+  const writeup = report.analysisHeadline
+    ? { headline: report.analysisHeadline, paragraphs: report.analysisParagraphs || [] }
+    : api?.buildVoiceAnalysis
+      ? api.buildVoiceAnalysis(report)
+      : { headline: "Your voice analysis", paragraphs: [] };
+
+  if (waveWrap && wave) {
+    if (report.waveform?.length) {
+      renderVoiceAnalysisWaveform(wave, report.waveform);
+      waveWrap.hidden = false;
+    } else {
+      wave.innerHTML = "";
+      waveWrap.hidden = true;
+    }
+  }
+
+  if (headline) headline.textContent = writeup.headline;
+  if (analysis) {
+    analysis.innerHTML = (writeup.paragraphs || [])
+      .map((p) => `<p>${p}</p>`)
+      .join("");
+  }
+
+  if (score) score.textContent = String(report.voiceScore);
+  if (resonance) resonance.textContent = `${report.resonanceScore}%`;
+  if (clarity) clarity.textContent = `${report.clarityScore}%`;
+  if (pitchLine) {
+    pitchLine.textContent = report.pitchHz
+      ? `Pitch ${Math.round(report.pitchHz)} Hz · score ${report.pitchScore}/100`
+      : "Pitch not detected in this clip";
+  }
+}
+
+function renderVoiceAnalysis() {
+  const api = window.CarveVoiceAnalysis;
+  if (!api || !isVoiceProgressMode()) return;
+  stopVoiceAnalysisMic();
+  const report = api.loadVoiceReport();
+  const meta = $("#voice-analysis-meta");
+
+  if (!report) {
+    if (meta) meta.textContent = "On-device";
+    setVoiceAnalysisView("idle");
+    return;
+  }
+
+  if (meta) meta.textContent = "Saved";
+  fillVoiceAnalysisResults(report);
+  setVoiceAnalysisView("results");
+}
+
+async function startVoiceAnalysisRecorder() {
+  const meta = $("#voice-analysis-meta");
+  stopFaceCamera();
+  stopProgressMedia();
+  stopVoiceAnalysisMic();
+
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setVoiceAnalysisView("idle", "Microphone not supported in this browser.");
+    return;
+  }
+  if (typeof MediaRecorder === "undefined") {
+    setVoiceAnalysisView("idle", "Voice recording not supported in this browser.");
+    return;
+  }
+
+  try {
+    voiceAnalysisStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  } catch (_) {
+    const existing = window.CarveVoiceAnalysis?.loadVoiceReport();
+    setVoiceAnalysisView(existing ? "results" : "idle", "Could not access microphone. Allow permission and try again.");
+    if (existing) {
+      fillVoiceAnalysisResults(existing);
+      if (meta) meta.textContent = "Saved";
+    }
+    return;
+  }
+
+  voiceAnalysisChunks = [];
+  voiceAnalysisDiscard = false;
+  setVoiceAnalysisUi(false);
+  const timer = $("#voice-analysis-timer");
+  if (timer) timer.textContent = "0:00";
+  if (meta) meta.textContent = "Ready";
+  setVoiceAnalysisView("recorder");
+}
+
+function beginVoiceAnalysisRecording() {
+  if (!voiceAnalysisStream) return;
+  voiceAnalysisDiscard = false;
+  voiceAnalysisChunks = [];
+  const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+    ? "audio/webm;codecs=opus"
+    : MediaRecorder.isTypeSupported("audio/webm")
+      ? "audio/webm"
+      : "";
+
+  try {
+    voiceAnalysisRecorder = mimeType
+      ? new MediaRecorder(voiceAnalysisStream, { mimeType })
+      : new MediaRecorder(voiceAnalysisStream);
+  } catch (_) {
+    setVoiceAnalysisView("recorder", "Could not start recorder on this device.");
+    return;
+  }
+
+  voiceAnalysisRecorder.ondataavailable = (e) => {
+    if (e.data?.size) voiceAnalysisChunks.push(e.data);
+  };
+  voiceAnalysisRecorder.onstop = () => {
+    processVoiceAnalysisRecording();
+  };
+
+  voiceAnalysisStartedAt = Date.now();
+  voiceAnalysisActive = true;
+  voiceAnalysisRecorder.start(250);
+  setVoiceAnalysisUi(true);
+  if (voiceAnalysisTimer) clearInterval(voiceAnalysisTimer);
+  voiceAnalysisTimer = window.setInterval(updateVoiceAnalysisTimer, 200);
+  const meta = $("#voice-analysis-meta");
+  if (meta) meta.textContent = "Recording";
+}
+
+function finishVoiceAnalysisRecording() {
+  if (!voiceAnalysisActive || !voiceAnalysisRecorder) return;
+  const elapsed = Date.now() - voiceAnalysisStartedAt;
+  if (elapsed < VOICE_ANALYSIS_MIN_MS) {
+    setVoiceAnalysisView("recorder", "Keep going — speak for at least 3 seconds.");
+    return;
+  }
+  voiceAnalysisDiscard = false;
+  voiceAnalysisActive = false;
+  if (voiceAnalysisTimer) {
+    clearInterval(voiceAnalysisTimer);
+    voiceAnalysisTimer = null;
+  }
+  setVoiceAnalysisUi(false);
+  if (voiceAnalysisRecorder.state !== "inactive") {
+    voiceAnalysisRecorder.stop();
+  } else {
+    processVoiceAnalysisRecording();
+  }
+}
+
+async function processVoiceAnalysisRecording() {
+  const api = window.CarveVoiceAnalysis;
+  const meta = $("#voice-analysis-meta");
+  if (voiceAnalysisDiscard) {
+    voiceAnalysisDiscard = false;
+    voiceAnalysisChunks = [];
+    stopVoiceAnalysisMic(true);
+    return;
+  }
+
+  const chunks = voiceAnalysisChunks.slice();
+  voiceAnalysisChunks = [];
+  if (!chunks.length) {
+    setVoiceAnalysisView("recorder", "Nothing recorded — try again.");
+    stopVoiceAnalysisMic(true);
+    return;
+  }
+
+  const blob = new Blob(chunks, { type: chunks[0]?.type || "audio/webm" });
+  stopVoiceAnalysisMic(false);
+  if (meta) meta.textContent = "Analyzing…";
+  setVoiceAnalysisView("loading");
+
+  try {
+    const report = await api.analyzeVoiceFromBlob(blob);
+    api.saveVoiceReport(report);
+    renderVoiceAnalysis();
+    showToast("Voice analysis saved on this device");
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+    let friendly = "Voice analysis failed. Try another recording.";
+    if (/too short/i.test(msg)) friendly = "Recording too short — speak for at least 3 seconds.";
+    else if (/no audio/i.test(msg)) friendly = "No audio detected. Check your mic and try again.";
+
+    const existing = api.loadVoiceReport();
+    if (existing) {
+      fillVoiceAnalysisResults(existing);
+      setVoiceAnalysisView("results", friendly);
+      if (meta) meta.textContent = "Saved";
+    } else {
+      setVoiceAnalysisView("idle", friendly);
+      if (meta) meta.textContent = "On-device";
+    }
+  }
+}
+
+function stopVoiceAnalysisMic(keepRecorderOpen) {
+  if (voiceAnalysisActive) voiceAnalysisDiscard = true;
+  voiceAnalysisActive = false;
+  if (voiceAnalysisTimer) {
+    clearInterval(voiceAnalysisTimer);
+    voiceAnalysisTimer = null;
+  }
+
+  const recorder = voiceAnalysisRecorder;
+  voiceAnalysisRecorder = null;
+  if (recorder && recorder.state !== "inactive") {
+    if (voiceAnalysisDiscard) recorder.onstop = null;
+    try {
+      recorder.stop();
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  if (voiceAnalysisStream) {
+    voiceAnalysisStream.getTracks().forEach((t) => t.stop());
+    voiceAnalysisStream = null;
+  }
+
+  setVoiceAnalysisUi(false);
+  if (!keepRecorderOpen) {
+    const meta = $("#voice-analysis-meta");
+    if (meta && meta.textContent === "Recording") meta.textContent = "On-device";
+  }
+}
+
+function cancelVoiceAnalysisRecorder() {
+  voiceAnalysisDiscard = true;
+  stopVoiceAnalysisMic(false);
+  const api = window.CarveVoiceAnalysis;
+  const existing = api?.loadVoiceReport();
+  const meta = $("#voice-analysis-meta");
+  if (existing) {
+    fillVoiceAnalysisResults(existing);
+    setVoiceAnalysisView("results");
+    if (meta) meta.textContent = "Saved";
+  } else {
+    setVoiceAnalysisView("idle");
+    if (meta) meta.textContent = "On-device";
+  }
+}
+
+function toggleVoiceAnalysisRecording() {
+  if (voiceAnalysisActive) {
+    finishVoiceAnalysisRecording();
+  } else {
+    beginVoiceAnalysisRecording();
+  }
+}
+
 function openReportsPhotoPicker(slot) {
   startProgressCamera(slot);
 }
@@ -2397,6 +2727,7 @@ function stopProgressCamera() {
 function stopProgressMedia() {
   stopProgressCamera();
   stopVoiceRecorder(false);
+  stopVoiceAnalysisMic(false);
 }
 
 function setProgressPhotoError(msg) {
@@ -3417,6 +3748,21 @@ function bind() {
       }
       if (e.target.closest("#btn-face-analysis-cancel")) {
         cancelFaceCamera();
+        return;
+      }
+      if (
+        e.target.closest("#btn-voice-analysis-start") ||
+        e.target.closest("#btn-voice-analysis-reanalyze")
+      ) {
+        startVoiceAnalysisRecorder();
+        return;
+      }
+      if (e.target.closest("#btn-voice-analysis-record")) {
+        toggleVoiceAnalysisRecording();
+        return;
+      }
+      if (e.target.closest("#btn-voice-analysis-cancel")) {
+        cancelVoiceAnalysisRecorder();
       }
     });
   }
