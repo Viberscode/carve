@@ -458,6 +458,7 @@ button {
 .home-week {
   margin-top: 20px;
   margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 .week-panel-top {
@@ -495,7 +496,8 @@ button {
   text-align: left;
   border-radius: 24px;
   padding: 0;
-  min-height: 0;
+  min-height: 168px;
+  flex-shrink: 0;
   background: #e8eef8;
   color: #0c1222;
   overflow: hidden;
@@ -561,6 +563,7 @@ button {
   justify-content: center;
   align-items: center;
   margin: 18px 0;
+  flex-shrink: 0;
 }
 
 .plan-box-btn {
@@ -1082,6 +1085,7 @@ button {
   margin-top: 0;
   margin-bottom: 24px;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .home-week,
@@ -1090,6 +1094,7 @@ button {
 .disclaimer {
   width: 100%;
   max-width: 100%;
+  flex-shrink: 0;
 }
 
 .insight-card {
