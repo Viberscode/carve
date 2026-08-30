@@ -2186,6 +2186,16 @@ function renderFaceAnalysisOverlay(report) {
   `;
 }
 
+function renderAnalysisTips(el, tips) {
+  if (!el) return;
+  const list = Array.isArray(tips) ? tips.filter(Boolean) : tips ? [String(tips)] : [];
+  if (!list.length) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = `<ul class="analysis-tips">${list.map((t) => `<li>${t}</li>`).join("")}</ul>`;
+}
+
 function fillFaceAnalysisResults(report) {
   const api = window.CarveFaceAnalysis;
   const photoWrap = $("#face-analysis-photo-wrap");
@@ -2215,9 +2225,10 @@ function fillFaceAnalysisResults(report) {
 
   if (headline) headline.textContent = writeup.headline;
   if (summaryEl) {
-    summaryEl.textContent =
-      report.analysisSummary ||
-      (api?.buildFaceAnalysisSummary ? api.buildFaceAnalysisSummary(report) : "");
+    renderAnalysisTips(
+      summaryEl,
+      api?.buildFaceAnalysisSummary ? api.buildFaceAnalysisSummary(report) : report.analysisSummary
+    );
   }
 
   if (score) score.textContent = String(report.jawlineScore);
@@ -2608,9 +2619,10 @@ function fillVoiceAnalysisResults(report) {
 
   if (headline) headline.textContent = writeup.headline;
   if (summaryEl) {
-    summaryEl.textContent = api?.buildVoiceAnalysisSummary
-      ? api.buildVoiceAnalysisSummary(report)
-      : report.analysisSummary || "";
+    renderAnalysisTips(
+      summaryEl,
+      api?.buildVoiceAnalysisSummary ? api.buildVoiceAnalysisSummary(report) : report.analysisSummary
+    );
   }
 
   if (score) score.textContent = String(report.voiceScore);

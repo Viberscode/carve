@@ -3376,10 +3376,24 @@ button {
 
 .analysis-summary {
   margin: 10px 0 0;
+}
+
+.analysis-tips {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.analysis-tips li {
   font-size: 13px;
   line-height: 1.55;
   color: #64748b;
   font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.analysis-tips li:last-child {
+  margin-bottom: 0;
 }
 
 .analysis-metric.tint-indigo {

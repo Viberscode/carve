@@ -284,32 +284,34 @@
             ? "pitch"
             : "balance";
 
-    const open =
-      weakest === "resonance"
-        ? "Your tone reads a little thin in this clip — that usually means the sound is staying high in the throat instead of dropping into the chest."
-        : weakest === "clarity"
-          ? "Your words come through, but the recording could carry more detail — often that’s distance, background noise, or speaking too softly."
-          : weakest === "pitch"
-            ? "Your pitch wavered more than ideal here — steady breath support usually smooths that out without forcing a lower voice."
-            : "This is a solid baseline capture — you have a workable foundation to build on with consistent practice.";
+    const tips = [];
 
-    const tips =
-      weakest === "resonance"
-        ? "Before you speak, take three slow belly breaths and hum gently until you feel vibration in your chest. Keep the jaw loose, the tongue relaxed, and avoid pushing volume — let resonance do the work."
-        : weakest === "clarity"
-          ? "Record in a quiet room, sit upright, and speak at a calm conversational volume about a hand-span from the mic. Sip warm water first, open your mouth naturally, and finish consonants without rushing."
-          : weakest === "pitch"
-            ? "Practice speaking on a steady exhale — count from one to five on a single breath, then say your phrase the same way. Stop if anything feels strained; depth should feel easy, not forced."
-            : "Keep training breath support, resonance hums, and easy articulation drills. Small daily sessions beat long occasional pushes.";
+    if (weakest === "resonance") {
+      tips.push("Take three slow belly breaths before you speak — fill the lower ribs first.");
+      tips.push("Hum gently until you feel vibration in your chest, not just the throat.");
+      tips.push("Keep the jaw loose and the tongue relaxed; let resonance do the work.");
+      tips.push("Avoid pushing volume — a supported tone carries farther than a forced one.");
+    } else if (weakest === "clarity") {
+      tips.push("Record in a quiet room with the mic about a hand-span away.");
+      tips.push("Sit upright, sip warm water first, and speak at a calm conversational level.");
+      tips.push("Open your mouth naturally and finish consonants without rushing.");
+      tips.push("Pause between phrases so each word has space to land clearly.");
+    } else if (weakest === "pitch") {
+      tips.push("Practice speaking on a steady exhale — count to five on one breath, then repeat your phrase.");
+      tips.push("Stop if anything feels strained; depth should feel easy, never forced.");
+      tips.push("Use lip trills and hums to smooth pitch before longer speaking.");
+    } else {
+      tips.push("Keep training breath support, resonance hums, and easy articulation drills.");
+      tips.push("Short daily sessions build more than occasional long recordings.");
+    }
 
-    const meshTip = usedMesh
-      ? " Face the camera when you record so your mouth stays relaxed and open — tension in the jaw and lips can quietly thin the sound."
-      : "";
+    if (usedMesh) {
+      tips.push("Face the camera when you record — a relaxed, open mouth helps the tone stay full.");
+    }
 
-    const habit =
-      " Re-record the same phrase each week in the same spot so you can hear what’s actually changing — not just how you feel on the day.";
+    tips.push("Re-record the same phrase each week in the same spot to hear what's actually changing.");
 
-    return `${open} ${tips}${meshTip}${habit}`;
+    return tips;
   }
 
   function buildWaveformPeaks(samples, count = 48) {

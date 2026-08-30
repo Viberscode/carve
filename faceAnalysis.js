@@ -375,14 +375,37 @@
   function buildFaceAnalysisSummary(metrics) {
     const jawlineScore = Number(metrics.jawlineScore);
     const jawRatio = Number(metrics.jawRatio);
-    const symPct = Math.round(Number(metrics.symmetry) * 100);
-    const focus =
-      symPct < 78
-        ? "Use mirrored reps to even left–right balance."
-        : jawlineScore < 70
-          ? "Focus on chin tucks and jaw-release work."
-          : "Re-capture in the same light each week to track change.";
-    return `Main points: ${jawlineScore}/100 jawline, ${jawRatio.toFixed(2)} ratio, ${symPct}% symmetry. ${focus}`;
+    const symmetry = Number(metrics.symmetry);
+
+    const weakest =
+      symmetry < 0.78
+        ? "symmetry"
+        : jawlineScore < 70 || jawRatio < 0.78
+          ? "jawline"
+          : "maintain";
+
+    const tips = [];
+
+    if (weakest === "symmetry") {
+      tips.push("Train both sides evenly — mirror each rep so left and right get equal work.");
+      tips.push("Check head tilt in the mirror; even a small lean can skew how balance reads.");
+      tips.push("Release the tighter jaw side with gentle massage before your session.");
+      tips.push("Favour back-sleeping when you can — it reduces overnight facial asymmetry.");
+    } else if (weakest === "jawline") {
+      tips.push("Add slow chin tucks daily — controlled reps, never forced or strained.");
+      tips.push("Massage along the masseter for two minutes each side to release jaw tension.");
+      tips.push("Stack neck posture resets with jaw work for a cleaner mandible line.");
+      tips.push("Stay hydrated — soft tissue tone responds better when you're well watered.");
+    } else {
+      tips.push("You're building a solid base — small daily sessions beat long occasional pushes.");
+      tips.push("Keep pairing jaw-release work with upright neck and shoulder posture.");
+      tips.push("Add eye and mid-face drills to balance the overall look.");
+    }
+
+    tips.push("Re-capture in the same angle and light each week to track real change.");
+    tips.push("Stop if anything feels painful — CARVE trains soft tissue, not bone.");
+
+    return tips;
   }
 
   function metricsFromLandmarks(landmarks) {
