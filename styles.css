@@ -4140,7 +4140,9 @@ button {
   height: 58px;
   display: block;
   overflow: visible;
-  filter: drop-shadow(0 3px 8px #ff6b3533);
+  filter:
+    drop-shadow(0 2px 4px #a8380844)
+    drop-shadow(0 4px 10px #e85a2033);
 }
 
 .me-streak-flame-body {
@@ -4149,22 +4151,27 @@ button {
 }
 
 .me-streak-flame-outer {
-  fill: var(--streak);
   animation: meStreakFlameOuter 0.7s ease-in-out infinite alternate;
 }
 
 .me-streak-flame-mid {
-  fill: #ffd54a;
   animation: meStreakFlameMid 0.55s ease-in-out infinite alternate-reverse;
 }
 
 .me-streak-flame-core {
-  fill: #fff8e7;
   animation: meStreakFlameCore 0.45s ease-in-out infinite alternate;
 }
 
+.me-streak-flame-shine {
+  animation: meStreakFlameShine 1.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
 .me-streak-badge.is-active .me-streak-flame-svg {
-  filter: drop-shadow(0 4px 12px #ff6b3555);
+  filter:
+    drop-shadow(0 2px 6px #a8380855)
+    drop-shadow(0 5px 14px #ff6b3544)
+    drop-shadow(0 0 10px #ff8c0033);
 }
 
 .me-streak-badge.is-active .me-streak-flame-body {
@@ -4173,15 +4180,11 @@ button {
 
 .me-streak-badge:not(.is-active) .me-streak-flame-body {
   animation: meStreakFlameSwayIdle 2.4s ease-in-out infinite;
-  opacity: 0.82;
+  opacity: 0.92;
 }
 
 .me-streak-badge:not(.is-active) .me-streak-flame-outer {
-  fill: #ff9a6a;
-}
-
-.me-streak-badge:not(.is-active) .me-streak-flame-mid {
-  fill: #ffe08a;
+  stroke: #ffb74d;
 }
 
 .me-streak-num {
@@ -4195,8 +4198,12 @@ button {
   line-height: 1;
   letter-spacing: -0.04em;
   color: #fff;
-  -webkit-text-stroke: 2.5px var(--streak);
+  -webkit-text-stroke: 2.5px #c94810;
   paint-order: stroke fill;
+  text-shadow:
+    0 0 8px #ff8c0066,
+    0 1px 0 #ffe082,
+    0 2px 6px #a8380844;
   animation: meStreakNumPulse 2.2s ease-in-out infinite;
 }
 
@@ -4206,11 +4213,20 @@ button {
 }
 
 .me-streak-badge.is-active .me-streak-num {
+  -webkit-text-stroke-color: #a83808;
+  text-shadow:
+    0 0 10px #ff8c0088,
+    0 1px 0 #fff8e1,
+    0 2px 8px #a8380855;
   animation: meStreakNumPulseActive 1.5s ease-in-out infinite;
 }
 
 .me-streak-badge:not(.is-active) .me-streak-num {
-  -webkit-text-stroke-color: #ff9a6a;
+  -webkit-text-stroke-color: #d94f0f;
+  text-shadow:
+    0 0 6px #ff8c0044,
+    0 1px 0 #ffe082aa,
+    0 2px 5px #a8380833;
   animation: meStreakNumPulseIdle 2.8s ease-in-out infinite;
 }
 
@@ -4285,11 +4301,21 @@ button {
 @keyframes meStreakFlameCore {
   0% {
     transform: scale(0.94) translateY(1px);
-    opacity: 0.88;
+    opacity: 0.9;
   }
   100% {
     transform: scale(1.06) translateY(-0.5px);
     opacity: 1;
+  }
+}
+
+@keyframes meStreakFlameShine {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.85;
   }
 }
 
@@ -4328,6 +4354,7 @@ button {
   .me-streak-flame-outer,
   .me-streak-flame-mid,
   .me-streak-flame-core,
+  .me-streak-flame-shine,
   .me-streak-num {
     animation: none !important;
   }
