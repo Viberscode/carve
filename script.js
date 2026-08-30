@@ -2193,6 +2193,64 @@ function renderAnalysisTips(el, tips) {
   el.innerHTML = `<ul class="analysis-tips">${list.map((t) => `<li>${t}</li>`).join("")}</ul>`;
 }
 
+const analysisTipsCache = new WeakMap();
+let analysisFitResizeTimer = null;
+
+function normalizeAnalysisTips(tips) {
+  if (Array.isArray(tips)) return tips.filter(Boolean);
+  if (tips) return [String(tips)];
+  return [];
+}
+
+function analysisCardMaxHeight(cardEl) {
+  const scrollRoot = cardEl?.closest(".scroll") || $("#view-reports .scroll");
+  if (scrollRoot) return scrollRoot.clientHeight - 20;
+  return Math.round(window.innerHeight * 0.82);
+}
+
+function fitAnalysisCardTips(cardEl, summaryEl, tips, minTips = 1) {
+  if (!cardEl || !summaryEl) return;
+  const allTips = normalizeAnalysisTips(tips);
+  analysisTipsCache.set(cardEl, allTips);
+  if (!allTips.length) {
+    renderAnalysisTips(summaryEl, []);
+    return;
+  }
+
+  const maxHeight = analysisCardMaxHeight(cardEl);
+  const floor = Math.max(1, Math.min(minTips, allTips.length));
+  let fitCount = allTips.length;
+
+  while (fitCount >= floor) {
+    renderAnalysisTips(summaryEl, allTips.slice(0, fitCount));
+    if (cardEl.offsetHeight <= maxHeight) return;
+    fitCount -= 1;
+  }
+
+  renderAnalysisTips(summaryEl, allTips.slice(0, floor));
+}
+
+function refitVisibleAnalysisCards() {
+  const faceCard = $("#reports-face-analysis-card");
+  const faceResults = $("#face-analysis-results");
+  if (faceCard && faceResults && !faceResults.hidden) {
+    const tips = analysisTipsCache.get(faceCard);
+    if (tips) fitAnalysisCardTips(faceCard, $("#face-analysis-summary"), tips);
+  }
+
+  const voiceCard = $("#reports-voice-analysis-card");
+  const voiceResults = $("#voice-analysis-results");
+  if (voiceCard && voiceResults && !voiceResults.hidden && !voiceCard.hidden) {
+    const tips = analysisTipsCache.get(voiceCard);
+    if (tips) fitAnalysisCardTips(voiceCard, $("#voice-analysis-summary"), tips);
+  }
+}
+
+function scheduleAnalysisCardRefit() {
+  if (analysisFitResizeTimer) clearTimeout(analysisFitResizeTimer);
+  analysisFitResizeTimer = window.setTimeout(refitVisibleAnalysisCards, 120);
+}
+
 let analysisScoreAnimGen = 0;
 
 function easeOutCubic(t) {
@@ -2330,11 +2388,16 @@ function fillFaceAnalysisResults(report) {
   }
 
   if (headline) headline.textContent = writeup.headline;
-  if (summaryEl) {
-    renderAnalysisTips(
-      summaryEl,
-      api?.buildFaceAnalysisSummary ? api.buildFaceAnalysisSummary(report) : report.analysisSummary
-    );
+  const card = $("#reports-face-analysis-card");
+  const allTips = api?.buildFaceAnalysisSummary
+    ? api.buildFaceAnalysisSummary(report)
+    : report.analysisSummary;
+  if (summaryEl) fitAnalysisCardTips(card, summaryEl, allTips);
+
+  if (photo && report.photoDataUrl) {
+    photo.onload = () => {
+      if (summaryEl && card) fitAnalysisCardTips(card, summaryEl, analysisTipsCache.get(card) || allTips);
+    };
   }
 
   revealAnalysisScores([
@@ -2616,12 +2679,11 @@ function fillVoiceAnalysisResults(report) {
   }
 
   if (headline) headline.textContent = writeup.headline;
-  if (summaryEl) {
-    renderAnalysisTips(
-      summaryEl,
-      api?.buildVoiceAnalysisSummary ? api.buildVoiceAnalysisSummary(report) : report.analysisSummary
-    );
-  }
+  const card = $("#reports-voice-analysis-card");
+  const allTips = api?.buildVoiceAnalysisSummary
+    ? api.buildVoiceAnalysisSummary(report)
+    : report.analysisSummary;
+  if (summaryEl) fitAnalysisCardTips(card, summaryEl, allTips);
 
   revealAnalysisScores([
     { el: score, card: $("#voice-metric-score"), value: report.voiceScore },
@@ -3988,6 +4050,8 @@ function bind() {
       renderModal();
     })
   );
+
+  window.addEventListener("resize", scheduleAnalysisCardRefit);
 }
 
 function init() {
