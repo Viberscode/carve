@@ -891,6 +891,15 @@ function showView(id) {
   if (tabsVisible) {
     $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === (id === "home" ? "training" : id)));
   }
+  if (id === "landing") {
+    const landing = $("#view-landing");
+    landing?.classList.remove("view-leaving");
+    landing?.querySelector(".landing-inner")?.scrollTo(0, 0);
+  }
+  if (id === "reports") {
+    renderReports();
+    $("#view-reports .scroll")?.scrollTo(0, 0);
+  }
 }
 
 function navigate(id) {
@@ -2652,7 +2661,6 @@ function bind() {
       const map = { training: "home", reports: "reports", me: "me" };
       const id = map[tab.dataset.tab];
       state.stack = [id];
-      if (id === "reports") renderReports();
       if (id === "me") renderMe();
       showView(id);
     });

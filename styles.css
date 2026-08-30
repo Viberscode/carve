@@ -71,6 +71,9 @@ button {
   position: relative;
   background: var(--landing-ink);
   color: #ffffff;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
   min-height: 100%;
   display: flex;
   flex-direction: column;
@@ -118,17 +121,19 @@ button {
 .landing-inner {
   position: relative;
   z-index: 1;
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   padding: calc(28px + var(--safe-t)) 20px calc(28px + var(--safe-b));
   min-height: 100%;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  flex-shrink: 0;
 }
 
 .landing-head {
   max-width: 82%;
+  flex-shrink: 0;
 }
 
 .landing-kicker {
@@ -446,6 +451,13 @@ button {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
+}
+
+/* Flex scroll panes must not shrink children to zero height */
+.scroll > * {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .topbar {
@@ -2327,6 +2339,8 @@ button {
   position: relative;
   overflow: hidden;
   border-radius: 24px;
+  flex-shrink: 0;
+  width: 100%;
   box-shadow:
     0 20px 40px #ff6b3522,
     0 8px 20px #1e3fe00f;
@@ -2529,6 +2543,7 @@ button {
   border-radius: 22px;
   border-color: #e4eaf3;
   box-shadow: 0 10px 24px #1e3fe00a;
+  flex-shrink: 0;
 }
 
 .reports-card .panel-head {
