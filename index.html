@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=meScroll1" />
+  <link rel="stylesheet" href="styles.css?v=layoutFix1" />
 </head>
 <body>
   <div class="device">
@@ -375,16 +375,6 @@
           <p class="me-section-label blue">Preferences</p>
           <div class="me-card me-prefs">
             <label class="me-pref">
-              <span class="me-pref-icon" aria-hidden="true">🪞</span>
-              <span class="me-pref-text">Front-camera mirror mode</span>
-              <input type="checkbox" id="set-mirror" checked />
-            </label>
-            <label class="me-pref">
-              <span class="me-pref-icon" aria-hidden="true">🎙️</span>
-              <span class="me-pref-text">Coach voice</span>
-              <input type="checkbox" id="set-coach" checked />
-            </label>
-            <label class="me-pref">
               <span class="me-pref-icon" aria-hidden="true">🎵</span>
               <span class="me-pref-text">Background music</span>
               <input type="checkbox" id="set-music" />
@@ -393,10 +383,16 @@
               <span class="me-pref-icon" aria-hidden="true">🔔</span>
               <span class="me-pref-text">
                 Daily reminders
-                <small>Every day at <button type="button" class="me-inline-link" id="btn-reminder-time">7:30 PM ›</button></small>
+                <small>
+                  Every day at
+                  <button type="button" class="me-inline-link" id="btn-reminder-time">
+                    <span id="reminder-time-label">7:30 PM</span> ›
+                  </button>
+                </small>
               </span>
               <input type="checkbox" id="set-reminders" checked />
             </label>
+            <input type="time" id="reminder-time-input" hidden />
           </div>
 
           <p class="me-section-label blue">Account &amp; data</p>
@@ -588,48 +584,47 @@
           <span>Me</span>
         </button>
       </nav>
-    </div>
-  </div>
 
-  <!-- Exercise detail modal -->
-  <div class="modal" id="modal" hidden>
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="sheet-handle"></div>
-      <header class="sheet-head">
-        <h2 id="modal-title">JAW RELEASE</h2>
-        <button type="button" class="replace-btn" id="btn-replace" aria-label="Swap exercise" hidden>
-          <span>↻</span>
-          Replace
-        </button>
-      </header>
-      <div class="sheet-body">
-        <div class="media" id="modal-media">
-          <div class="coach-player card" id="modal-coach" data-coach-set="jaw_release"></div>
-          <p class="muted" id="modal-media-hint">Copy this person — looping demo</p>
+      <div class="modal" id="modal" hidden>
+        <div class="modal-backdrop" data-close-modal></div>
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div class="sheet-handle"></div>
+          <header class="sheet-head">
+            <h2 id="modal-title">JAW RELEASE</h2>
+            <button type="button" class="replace-btn" id="btn-replace" aria-label="Swap exercise" hidden>
+              <span>↻</span>
+              Replace
+            </button>
+          </header>
+          <div class="sheet-body">
+            <div class="media" id="modal-media">
+              <div class="coach-player card" id="modal-coach" data-coach-set="jaw_release"></div>
+              <p class="muted" id="modal-media-hint">Copy this person — looping demo</p>
+            </div>
+            <div class="tabs-pill" role="tablist">
+              <button type="button" class="tab-pill active" data-mtab="animation">Animation</button>
+              <button type="button" class="tab-pill" data-mtab="muscle">Muscle</button>
+              <button type="button" class="tab-pill" data-mtab="howto">How to do</button>
+            </div>
+            <div id="modal-content"></div>
+          </div>
+          <footer class="sheet-foot">
+            <div class="pager">
+              <button type="button" class="icon-btn blue" id="modal-prev">‹</button>
+              <span id="modal-pager">1/7</span>
+              <button type="button" class="icon-btn blue" id="modal-next">›</button>
+            </div>
+            <button type="button" class="pill pill-gradient" data-close-modal>CLOSE</button>
+          </footer>
         </div>
-        <div class="tabs-pill" role="tablist">
-          <button type="button" class="tab-pill active" data-mtab="animation">Animation</button>
-          <button type="button" class="tab-pill" data-mtab="muscle">Muscle</button>
-          <button type="button" class="tab-pill" data-mtab="howto">How to do</button>
-        </div>
-        <div id="modal-content"></div>
       </div>
-      <footer class="sheet-foot">
-        <div class="pager">
-          <button type="button" class="icon-btn blue" id="modal-prev">‹</button>
-          <span id="modal-pager">1/7</span>
-          <button type="button" class="icon-btn blue" id="modal-next">›</button>
-        </div>
-        <button type="button" class="pill pill-gradient" data-close-modal>CLOSE</button>
-      </footer>
+
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
     </div>
   </div>
-
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=journeyCal1"></script>
+  <script src="script.js?v=layoutFix1"></script>
 </body>
 </html>

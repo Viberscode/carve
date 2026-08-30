@@ -695,6 +695,7 @@ const defaultSettings = {
   coachVoice: true,
   music: false,
   reminders: true,
+  reminderTime: "19:30",
 };
 
 const state = {
@@ -805,16 +806,49 @@ function showToast(message, ms = 2600) {
   }, ms);
 }
 
+function normalizeReminderTime(value) {
+  const match = String(value || "").match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return defaultSettings.reminderTime;
+  const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+  const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function formatReminderTime(value) {
+  const normalized = normalizeReminderTime(value);
+  const [hStr, mStr] = normalized.split(":");
+  let h = parseInt(hStr, 10);
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${mStr} ${ampm}`;
+}
+
 function applySettingsUi() {
   const s = state.settings;
-  const mirror = $("#set-mirror");
-  const coach = $("#set-coach");
   const music = $("#set-music");
   const reminders = $("#set-reminders");
-  if (mirror) mirror.checked = s.mirror;
-  if (coach) coach.checked = s.coachVoice;
+  const reminderInput = $("#reminder-time-input");
+  const reminderLabel = $("#reminder-time-label");
   if (music) music.checked = s.music;
   if (reminders) reminders.checked = s.reminders;
+  s.reminderTime = normalizeReminderTime(s.reminderTime);
+  if (reminderInput) reminderInput.value = s.reminderTime;
+  if (reminderLabel) reminderLabel.textContent = formatReminderTime(s.reminderTime);
+}
+
+function openReminderTimePicker() {
+  const input = $("#reminder-time-input");
+  if (!input) return;
+  applySettingsUi();
+  if (typeof input.showPicker === "function") {
+    try {
+      input.showPicker();
+      return;
+    } catch (_) {
+      /* fall through */
+    }
+  }
+  input.click();
 }
 
 function openSettingsTab() {
@@ -2668,19 +2702,28 @@ function bind() {
     showToast(state.settings.mirror ? "Mirror mode on" : "Mirror mode off");
   });
 
-  ["set-mirror", "set-coach", "set-music", "set-reminders"].forEach((id) => {
+  ["set-music", "set-reminders"].forEach((id) => {
     $("#" + id)?.addEventListener("change", (e) => {
-      const key =
-        id === "set-mirror"
-          ? "mirror"
-          : id === "set-coach"
-            ? "coachVoice"
-            : id === "set-music"
-              ? "music"
-              : "reminders";
+      const key = id === "set-music" ? "music" : "reminders";
       state.settings[key] = e.target.checked;
       saveState();
+      if (key === "reminders" && e.target.checked) {
+        showToast(`Daily reminder set for ${formatReminderTime(state.settings.reminderTime)}`);
+      }
     });
+  });
+
+  $("#btn-reminder-time")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openReminderTimePicker();
+  });
+
+  $("#reminder-time-input")?.addEventListener("change", (e) => {
+    state.settings.reminderTime = normalizeReminderTime(e.target.value);
+    applySettingsUi();
+    saveState();
+    showToast(`Reminder time · ${formatReminderTime(state.settings.reminderTime)}`);
   });
 
   $("#btn-edit-name")?.addEventListener("click", () => {
@@ -2729,7 +2772,6 @@ function bind() {
 
   const meToasts = {
     "btn-carve-plus": "CARVE Plus — coming soon",
-    "btn-reminder-time": "Reminder time — 7:30 PM",
     "btn-export-data": "Export stays on-device — coming soon",
     "btn-delete-data": "Delete data requires confirmation — coming soon",
     "btn-sign-out": "Signed out of this device session",
@@ -2823,10 +2865,17 @@ function init() {
   if (window.CarveFaceAnalysis?.clearFaceReport) {
     window.CarveFaceAnalysis.clearFaceReport();
   }
-  loadState();
+  const hasSession = loadState();
   applySettingsUi();
-  state.stack = ["landing"];
-  showView("landing");
+  if (hasSession && state.track) {
+    refreshHome();
+    renderDayList();
+    state.stack = ["home"];
+    showView("home");
+  } else {
+    state.stack = ["landing"];
+    showView("landing");
+  }
 }
 
 init();
