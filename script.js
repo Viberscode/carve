@@ -2261,6 +2261,25 @@ function revealAnalysisScores(entries) {
   });
 }
 
+function scrollAnalysisScoresIntoView(selector) {
+  const target = typeof selector === "string" ? $(selector) : selector;
+  if (!target) return;
+
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      const scrollRoot = target.closest(".scroll") || $("#view-reports .scroll");
+      if (!scrollRoot) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      const rootRect = scrollRoot.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const top = scrollRoot.scrollTop + (targetRect.top - rootRect.top) - 20;
+      scrollRoot.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    });
+  });
+}
+
 function fillFaceAnalysisResults(report) {
   const api = window.CarveFaceAnalysis;
   const photoWrap = $("#face-analysis-photo-wrap");
@@ -2308,7 +2327,7 @@ function fillFaceAnalysisResults(report) {
   ]);
 }
 
-function renderFaceAnalysis() {
+function renderFaceAnalysis(opts = {}) {
   const api = window.CarveFaceAnalysis;
   if (!api) return;
   stopFaceCamera();
@@ -2327,8 +2346,9 @@ function renderFaceAnalysis() {
   }
 
   if (meta) meta.textContent = "Saved";
-  fillFaceAnalysisResults(report);
   setFaceAnalysisView("results");
+  fillFaceAnalysisResults(report);
+  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#face-analysis-scores");
 }
 
 async function startFaceCamera() {
@@ -2419,7 +2439,7 @@ async function captureAndAnalyzeFace() {
     const report = await api.analyzeFaceFromImage(canvas);
     report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
-    renderFaceAnalysis();
+    renderFaceAnalysis({ scrollToScores: true });
     showToast("Face analysis saved on this device");
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
@@ -2593,7 +2613,7 @@ function fillVoiceAnalysisResults(report) {
   }
 }
 
-function renderVoiceAnalysis() {
+function renderVoiceAnalysis(opts = {}) {
   const api = window.CarveVoiceAnalysis;
   if (!api || !isVoiceProgressMode()) return;
   stopVoiceAnalysisMic();
@@ -2607,8 +2627,9 @@ function renderVoiceAnalysis() {
   }
 
   if (meta) meta.textContent = "Saved";
-  fillVoiceAnalysisResults(report);
   setVoiceAnalysisView("results");
+  fillVoiceAnalysisResults(report);
+  if (opts.scrollToScores) scrollAnalysisScoresIntoView("#voice-analysis-scores");
 }
 
 async function startVoiceAnalysisRecorder() {
@@ -2734,7 +2755,7 @@ async function processVoiceAnalysisRecording() {
   try {
     const report = await api.analyzeVoiceFromBlob(blob);
     api.saveVoiceReport(report);
-    renderVoiceAnalysis();
+    renderVoiceAnalysis({ scrollToScores: true });
     showToast("Voice analysis saved on this device");
   } catch (err) {
     const msg = String(err && err.message ? err.message : err);
