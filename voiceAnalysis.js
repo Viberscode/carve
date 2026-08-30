@@ -1,5 +1,5 @@
 /**
- * Voice analysis utility — Web Audio API on recorded clips.
+ * Voice analysis utility — Web Audio API only (no camera / no MediaPipe).
  * Exposes window.CarveVoiceAnalysis
  */
 (function (global) {
@@ -169,38 +169,6 @@
     return Math.round(Math.min(100, Math.max(32, snrScore * 0.55 + (100 - hissPenalty) * 0.35 + harmonicBonus)));
   }
 
-  function calcMeshResonanceScore(meshStats) {
-    const open = Number(meshStats.avgMouthOpen) || 0;
-    const jaw = Number(meshStats.avgJawDrop) || 0;
-    const openScore = Math.max(0, 100 - Math.abs(open - 0.24) * 280);
-    const jawScore = Math.max(0, 100 - Math.abs(jaw - 0.36) * 220);
-    return Math.round(Math.min(100, Math.max(32, openScore * 0.55 + jawScore * 0.45)));
-  }
-
-  function calcMeshClarityScore(meshStats) {
-    const motion = Math.sqrt(Number(meshStats.mouthOpenVar) || 0);
-    const lipVar = Math.sqrt(Number(meshStats.lipSpreadVar) || 0);
-    const motionScore = Math.min(100, motion * 1400);
-    const articScore = Math.min(100, lipVar * 1600);
-    const frozenPenalty = motion < 0.012 ? 18 : 0;
-    return Math.round(Math.min(100, Math.max(32, motionScore * 0.55 + articScore * 0.45 - frozenPenalty)));
-  }
-
-  function blendMeshIntoScores(audioResonance, audioClarity, meshStats) {
-    if (!meshStats || meshStats.frameCount < 6) {
-      return { resonanceScore: audioResonance, clarityScore: audioClarity, usedMesh: false };
-    }
-    const meshResonance = calcMeshResonanceScore(meshStats);
-    const meshClarity = calcMeshClarityScore(meshStats);
-    return {
-      resonanceScore: Math.round(audioResonance * 0.5 + meshResonance * 0.5),
-      clarityScore: Math.round(audioClarity * 0.5 + meshClarity * 0.5),
-      usedMesh: true,
-      meshResonance,
-      meshClarity,
-    };
-  }
-
   function calcVoiceScore(pitchScore, resonanceScore, clarityScore) {
     return Math.round(pitchScore * 0.34 + resonanceScore * 0.33 + clarityScore * 0.33);
   }
@@ -253,14 +221,7 @@
         ? "Repeat the same phrase weekly to track pitch stability, resonance, and clarity as you train."
         : "Use Voice Grain sessions for breath support and resonance, then re-record in the same quiet spot each week.";
 
-    const paragraphs = [pitchNote, resonanceNote, clarityNote];
-    if (metrics.usedMesh) {
-      const openPct = Math.round((Number(metrics.avgMouthOpen) || 0) * 100);
-      paragraphs.push(
-        `MediaPipe tracked your mouth live — average opening ${openPct}%. Keep the jaw released so the sound can drop into the chest.`
-      );
-    }
-    paragraphs.push(takeaway);
+    const paragraphs = [pitchNote, resonanceNote, clarityNote, takeaway];
 
     return {
       headline,
@@ -273,7 +234,6 @@
     const resonanceScore = Number(metrics.resonanceScore);
     const clarityScore = Number(metrics.clarityScore);
     const pitchScore = Number(metrics.pitchScore);
-    const usedMesh = Boolean(metrics.usedMesh);
 
     const weakest =
       resonanceScore <= clarityScore && resonanceScore <= pitchScore && resonanceScore <= voiceScore
@@ -303,10 +263,6 @@
     } else {
       tips.push("Keep training breath support, resonance hums, and easy articulation drills.");
       tips.push("Short daily sessions build more than occasional long recordings.");
-    }
-
-    if (usedMesh) {
-      tips.push("Face the camera when you record — a relaxed, open mouth helps the tone stay full.");
     }
 
     tips.push("Re-record the same phrase each week in the same spot to hear what's actually changing.");
@@ -403,7 +359,7 @@
     }
   }
 
-  async function analyzeVoiceFromBlob(blob, meshStats) {
+  async function analyzeVoiceFromBlob(blob) {
     if (!blob || !blob.size) throw new Error("No audio recorded");
 
     const audioBuffer = await decodeAudioBlob(blob);
@@ -419,11 +375,8 @@
     const mag = magnitudeSpectrum(samples);
     const bands = bandEnergyRatio(mag, sampleRate, 120, 320, 3200);
     const pitchScore = calcPitchScore(pitchHz, stability);
-    const audioResonance = calcResonanceScore(bands);
-    const audioClarity = calcClarityScore(samples, sampleRate, pitchHz);
-    const blended = blendMeshIntoScores(audioResonance, audioClarity, meshStats);
-    const resonanceScore = blended.resonanceScore;
-    const clarityScore = blended.clarityScore;
+    const resonanceScore = calcResonanceScore(bands);
+    const clarityScore = calcClarityScore(samples, sampleRate, pitchHz);
     const voiceScore = calcVoiceScore(pitchScore, resonanceScore, clarityScore);
     const metrics = {
       pitchHz,
@@ -431,9 +384,6 @@
       resonanceScore,
       clarityScore,
       voiceScore,
-      usedMesh: blended.usedMesh,
-      avgMouthOpen: meshStats ? Number(meshStats.avgMouthOpen) || 0 : 0,
-      avgJawDrop: meshStats ? Number(meshStats.avgJawDrop) || 0 : 0,
     };
     const analysis = buildVoiceAnalysis(metrics);
 
@@ -443,10 +393,6 @@
       resonanceScore,
       clarityScore,
       voiceScore,
-      usedMesh: blended.usedMesh,
-      avgMouthOpen: metrics.avgMouthOpen,
-      avgJawDrop: metrics.avgJawDrop,
-      meshFrames: meshStats ? meshStats.frameCount : 0,
       analysisHeadline: analysis.headline,
       analysisParagraphs: analysis.paragraphs,
       analysisSummary: buildVoiceAnalysisSummary(metrics),

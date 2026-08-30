@@ -328,26 +328,23 @@
             </div>
             <div id="voice-analysis-idle">
               <p class="muted reports-photos-lead">
-                Use your camera and mic. MediaPipe Face Mesh tracks your mouth in real time while you speak.
+                Use your microphone for a short recording to estimate pitch, resonance, and clarity.
               </p>
               <button type="button" class="reports-photo-cta" id="btn-voice-analysis-start">
-                Open camera
+                Start recording
               </button>
             </div>
             <div id="voice-analysis-recorder" hidden>
-              <div class="face-analysis-video-wrap voice-analysis-video-wrap">
-                <video id="voice-analysis-video" playsinline autoplay muted></video>
-                <svg class="face-analysis-overlay" id="voice-analysis-overlay" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg>
-                <div class="voice-analysis-live-hud">
-                  <span id="voice-analysis-live-pitch">Pitch —</span>
-                  <span id="voice-analysis-live-mesh">Mesh warming up</span>
+              <div class="reports-voice-stage">
+                <div class="reports-voice-ring" id="voice-analysis-ring" aria-hidden="true">
+                  <span class="reports-voice-mic">🎙️</span>
                 </div>
+                <div class="reports-voice-meter" id="voice-analysis-meter" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="reports-voice-timer" id="voice-analysis-timer">0:00</p>
+                <p class="reports-voice-status" id="voice-analysis-status">Find a quiet spot · say a steady phrase for 5–8 seconds</p>
               </div>
-              <div class="reports-voice-meter" id="voice-analysis-meter" aria-hidden="true">
-                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-              </div>
-              <p class="reports-voice-timer" id="voice-analysis-timer">0:00</p>
-              <p class="reports-voice-status" id="voice-analysis-status">Face the camera · say a steady phrase for 5–8 seconds</p>
               <div class="face-analysis-camera-actions">
                 <button type="button" class="face-analysis-reanalyze" id="btn-voice-analysis-cancel">
                   Cancel
@@ -358,18 +355,13 @@
               </div>
             </div>
             <div id="voice-analysis-loading" hidden>
-              <div class="face-analysis-photo-wrap face-analysis-photo-loading" id="voice-analysis-loading-wrap" hidden>
-                <img id="voice-analysis-loading-photo" alt="Analyzing capture" />
-                <div class="face-analysis-scan-shine" aria-hidden="true"></div>
+              <div class="voice-analysis-wave-loading" id="voice-analysis-wave-loading" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
               </div>
               <p class="face-analysis-loading-text">Analyzing your voice...</p>
             </div>
             <div id="voice-analysis-error" class="face-analysis-error" hidden></div>
             <div id="voice-analysis-results" hidden>
-              <div class="face-analysis-photo-wrap voice-analysis-photo-wrap" id="voice-analysis-photo-wrap" hidden>
-                <img id="voice-analysis-photo" alt="Voice capture" />
-                <svg class="face-analysis-overlay" id="voice-analysis-result-overlay" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg>
-              </div>
               <div class="voice-analysis-wave-wrap" id="voice-analysis-wave-wrap" hidden>
                 <div class="voice-analysis-wave" id="voice-analysis-wave" aria-hidden="true"></div>
               </div>
@@ -398,7 +390,6 @@
                 Record again
               </button>
             </div>
-            <canvas id="voice-analysis-canvas" hidden></canvas>
           </div>
 
           <div class="card reports-card" id="reports-badges-card">
@@ -769,7 +760,7 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=7"></script>
-  <script src="voiceAnalysis.js?v=5"></script>
-  <script src="script.js?v=analysisTips1"></script>
+  <script src="voiceAnalysis.js?v=6"></script>
+  <script src="script.js?v=voiceMicOnly2"></script>
 </body>
 </html>
