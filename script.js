@@ -1780,15 +1780,32 @@ function refreshHome() {
   renderTrackExtras();
 }
 
+function profileInitials(name) {
+  const parts = String(name || "You")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return "Y";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 function renderMe() {
   const pct = Math.min(100, Math.max(0, ((state.currentDay - 1) / 30) * 100));
   const ring = $("#me-progress-ring");
   if (ring) ring.style.setProperty("--pct", String(pct));
 
-  const streakEl = $("#me-streak-text");
-  if (streakEl) {
-    streakEl.textContent = `${state.streak}-day streak · Day ${state.currentDay} of 30`;
-  }
+  const progressLabel = $("#me-progress-label");
+  if (progressLabel) progressLabel.textContent = String(state.currentDay);
+
+  const avatar = $("#profile-avatar");
+  if (avatar) avatar.textContent = profileInitials(state.profileName);
+
+  const streakCount = $("#me-streak-count");
+  if (streakCount) streakCount.textContent = String(state.streak);
+
+  const dayNum = $("#me-day-num");
+  if (dayNum) dayNum.textContent = String(state.currentDay);
 
   $$("[data-me-track]").forEach((btn) => {
     btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=clockPicker1" />
+  <link rel="stylesheet" href="styles.css?v=meProfile1" />
 </head>
 <body>
   <div class="device">
@@ -336,7 +336,7 @@
           <p class="me-section-label">Me</p>
           <div class="me-card me-profile-card">
             <div class="me-profile-row">
-              <div class="me-avatar" id="profile-avatar" aria-hidden="true">◆</div>
+              <div class="me-avatar" id="profile-avatar" aria-hidden="true">P</div>
               <div class="me-profile-main">
                 <div class="me-name-row">
                   <h1 class="me-name" id="profile-name">Priya</h1>
@@ -345,15 +345,24 @@
                 <p class="me-member" id="profile-member">Member since Jul 2026</p>
               </div>
               <div class="me-progress-ring" id="me-progress-ring" style="--pct:0" aria-label="Plan progress">
-                <span class="me-progress-hole"></span>
+                <span class="me-progress-label" id="me-progress-label">1</span>
               </div>
             </div>
-            <p class="me-streak-line">
-              <span aria-hidden="true">🔥</span>
-              <span id="me-streak-text">0-day streak · Day 1 of 30</span>
-              <span class="me-dot">·</span>
-              <button type="button" class="me-link" id="btn-me-reports">full detail in Reports</button>
-            </p>
+            <div class="me-streak-strip">
+              <div class="me-streak-chip">
+                <span class="me-streak-flame" aria-hidden="true">🔥</span>
+                <div class="me-streak-stat">
+                  <strong id="me-streak-count">0</strong>
+                  <span>day streak</span>
+                </div>
+              </div>
+              <div class="me-streak-chip me-streak-day">
+                <span class="me-streak-day-label">Day</span>
+                <strong id="me-day-num">1</strong>
+                <span class="me-streak-day-of">/ 30</span>
+              </div>
+              <button type="button" class="me-streak-link" id="btn-me-reports">Reports ›</button>
+            </div>
           </div>
 
           <p class="me-section-label blue">My program</p>
@@ -665,6 +674,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=clockPicker1"></script>
+  <script src="script.js?v=meProfile1"></script>
 </body>
 </html>
