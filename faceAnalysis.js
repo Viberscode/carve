@@ -11,12 +11,26 @@
   // MediaPipe Face Mesh landmark indices
   const LM = {
     noseTip: 1,
+    forehead: 10,
     leftCheek: 234,
     rightCheek: 454,
     leftJaw: 172,
     rightJaw: 397,
     chin: 152,
+    upperInnerLip: 13,
+    lowerInnerLip: 14,
+    leftInnerMouth: 78,
+    rightInnerMouth: 308,
+    leftOuterMouth: 61,
+    rightOuterMouth: 291,
   };
+
+  const LIP_OUTER_INDICES = [
+    61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185,
+  ];
+  const LIP_INNER_INDICES = [
+    78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308, 415, 310, 311, 312, 13, 82, 81, 80, 191,
+  ];
 
   // Jaw contour landmarks for on-photo overlay (left → chin → right)
   const JAW_OVERLAY_INDICES = [
@@ -38,6 +52,8 @@
 
   let meshInstance = null;
   let meshReady = null;
+  let liveMeshActive = false;
+  let liveMeshGeneration = 0;
 
   function dist(a, b) {
     const dx = a.x - b.x;
@@ -129,6 +145,7 @@
   }
 
   function detectLandmarks(faceMesh, image) {
+    stopLiveMesh();
     return new Promise((resolve, reject) => {
       let settled = false;
       let timer = null;
@@ -176,6 +193,115 @@
     const ratioScore = Math.max(0, 100 - Math.abs(jawRatio - ideal) * 220);
     const symScore = symmetry * 100;
     return Math.round(Math.min(100, Math.max(0, ratioScore * 0.55 + symScore * 0.45)));
+  }
+
+  function landmarkPoint(landmarks, i) {
+    return {
+      x: Number(landmarks[i].x.toFixed(4)),
+      y: Number(landmarks[i].y.toFixed(4)),
+    };
+  }
+
+  function mouthMetricsFromLandmarks(landmarks) {
+    if (!landmarks || landmarks.length < 468) return null;
+    const mouthWidth = dist(landmarks[LM.leftInnerMouth], landmarks[LM.rightInnerMouth]);
+    const mouthHeight = dist(landmarks[LM.upperInnerLip], landmarks[LM.lowerInnerLip]);
+    const faceHeight =
+      dist(landmarks[LM.forehead], landmarks[LM.chin]) ||
+      Math.abs((landmarks[LM.chin].y || 0) - (landmarks[LM.forehead].y || 0)) ||
+      1e-6;
+    const faceWidth = dist(landmarks[LM.leftCheek], landmarks[LM.rightCheek]) || 1e-6;
+    const mouthOpen = mouthWidth ? mouthHeight / mouthWidth : 0;
+    const jawDrop = dist(landmarks[LM.upperInnerLip], landmarks[LM.chin]) / faceHeight;
+    const lipSpread = dist(landmarks[LM.leftOuterMouth], landmarks[LM.rightOuterMouth]) / faceWidth;
+    return {
+      mouthOpen: Number(mouthOpen.toFixed(4)),
+      jawDrop: Number(jawDrop.toFixed(4)),
+      lipSpread: Number(lipSpread.toFixed(4)),
+    };
+  }
+
+  function aggregateMouthFrames(frames) {
+    if (!frames || !frames.length) return null;
+    const mean = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+    const variance = (arr, m) => arr.reduce((s, v) => s + (v - m) * (v - m), 0) / arr.length;
+    const opens = frames.map((f) => Number(f.mouthOpen) || 0);
+    const jaws = frames.map((f) => Number(f.jawDrop) || 0);
+    const lips = frames.map((f) => Number(f.lipSpread) || 0);
+    const avgMouthOpen = mean(opens);
+    const avgJawDrop = mean(jaws);
+    const avgLipSpread = mean(lips);
+    return {
+      frameCount: frames.length,
+      avgMouthOpen: Number(avgMouthOpen.toFixed(4)),
+      maxMouthOpen: Number(Math.max(...opens).toFixed(4)),
+      mouthOpenVar: Number(variance(opens, avgMouthOpen).toFixed(5)),
+      avgJawDrop: Number(avgJawDrop.toFixed(4)),
+      avgLipSpread: Number(avgLipSpread.toFixed(4)),
+      lipSpreadVar: Number(variance(lips, avgLipSpread).toFixed(5)),
+    };
+  }
+
+  function buildMouthOverlay(landmarks) {
+    if (!landmarks || landmarks.length < 468) return null;
+    return {
+      outer: LIP_OUTER_INDICES.map((i) => landmarkPoint(landmarks, i)),
+      inner: LIP_INNER_INDICES.map((i) => landmarkPoint(landmarks, i)),
+      upper: landmarkPoint(landmarks, LM.upperInnerLip),
+      lower: landmarkPoint(landmarks, LM.lowerInnerLip),
+      left: landmarkPoint(landmarks, LM.leftInnerMouth),
+      right: landmarkPoint(landmarks, LM.rightInnerMouth),
+      chin: landmarkPoint(landmarks, LM.chin),
+      noseTip: landmarkPoint(landmarks, LM.noseTip),
+    };
+  }
+
+  function stopLiveMesh() {
+    liveMeshActive = false;
+    liveMeshGeneration += 1;
+    if (meshInstance) {
+      try {
+        meshInstance.onResults(() => {});
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }
+
+  /**
+   * Run MediaPipe Face Mesh on a live <video> element until stopLiveMesh().
+   * @param {HTMLVideoElement} video
+   * @param {(landmarks: object[] | null) => void} onFrame
+   */
+  async function startLiveMesh(video, onFrame) {
+    if (!video) throw new Error("MediaPipe Face Mesh failed to load");
+    const startToken = ++liveMeshGeneration;
+    liveMeshActive = false;
+    const faceMesh = await ensureFaceMesh();
+    if (startToken !== liveMeshGeneration) return null;
+
+    liveMeshActive = true;
+    faceMesh.onResults((results) => {
+      if (!liveMeshActive || startToken !== liveMeshGeneration) return;
+      const faces = results && results.multiFaceLandmarks;
+      onFrame(faces && faces.length ? faces[0] : null);
+    });
+
+    (async function loop() {
+      while (liveMeshActive && startToken === liveMeshGeneration) {
+        if (video.readyState >= 2) {
+          try {
+            await faceMesh.send({ image: video });
+          } catch (_) {
+            await new Promise((resolve) => setTimeout(resolve, 40));
+          }
+        } else {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
+      }
+    })();
+
+    return faceMesh;
   }
 
   function buildOverlayData(landmarks) {
@@ -340,6 +466,11 @@
     STORAGE_KEY,
     analyzeFaceFromFile,
     analyzeFaceFromImage,
+    startLiveMesh,
+    stopLiveMesh,
+    mouthMetricsFromLandmarks,
+    aggregateMouthFrames,
+    buildMouthOverlay,
     buildFaceAnalysis,
     buildFaceAnalysisSummary,
     loadFaceReport,

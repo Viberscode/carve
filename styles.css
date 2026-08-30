@@ -3246,6 +3246,75 @@ button {
   font-weight: 800;
 }
 
+.voice-analysis-video-wrap + .reports-voice-meter {
+  margin-top: 12px;
+}
+
+.voice-analysis-video-wrap + .reports-voice-meter + .reports-voice-timer {
+  margin-top: 8px;
+}
+
+.voice-analysis-video-wrap .face-analysis-overlay {
+  transform: scaleX(-1);
+}
+
+.voice-analysis-live-hud {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.voice-analysis-live-hud span {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.voice-analysis-live-hud span.is-locked {
+  color: #5eead4;
+}
+
+.voice-analysis-photo-wrap img,
+.voice-analysis-photo-wrap .face-analysis-overlay {
+  transform: scaleX(-1);
+}
+
+.va-lip-outer {
+  fill: rgba(244, 114, 182, 0.12);
+  stroke: #f472b6;
+  stroke-width: 0.0045;
+  stroke-linejoin: round;
+}
+
+.va-lip-inner {
+  fill: none;
+  stroke: #22d3ee;
+  stroke-width: 0.0035;
+  stroke-linejoin: round;
+}
+
+.va-mouth-open {
+  stroke: rgba(52, 211, 153, 0.95);
+  stroke-width: 0.003;
+  stroke-dasharray: 0.012 0.008;
+}
+
+.va-jaw-line {
+  stroke: rgba(250, 204, 21, 0.9);
+  stroke-width: 0.0035;
+  stroke-linecap: round;
+}
+
 .voice-analysis-wave-wrap {
   margin-bottom: 14px;
   padding: 14px 12px;
@@ -3997,20 +4066,17 @@ button {
   display: grid;
   place-items: center;
   background:
-    radial-gradient(circle at center, #fff 58%, transparent 59%),
+    radial-gradient(circle at center, #fff 54%, #f8faff 58%, transparent 59%),
     conic-gradient(#1e3fe0 0%, #2bb673 calc(var(--pct) * 1%), #e8edf5 0);
   box-shadow:
     0 0 0 3px #fff,
     0 6px 16px #1e3fe018;
 }
 
-.me-progress-label {
-  font-family: var(--font-display);
-  font-size: 15px;
-  font-weight: 800;
-  color: #0c1222;
-  letter-spacing: -0.02em;
+.me-progress-glyph {
+  font-size: 22px;
   line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(30, 63, 224, 0.12));
 }
 
 .me-focus-strip {

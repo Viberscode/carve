@@ -169,6 +169,38 @@
     return Math.round(Math.min(100, Math.max(32, snrScore * 0.55 + (100 - hissPenalty) * 0.35 + harmonicBonus)));
   }
 
+  function calcMeshResonanceScore(meshStats) {
+    const open = Number(meshStats.avgMouthOpen) || 0;
+    const jaw = Number(meshStats.avgJawDrop) || 0;
+    const openScore = Math.max(0, 100 - Math.abs(open - 0.24) * 280);
+    const jawScore = Math.max(0, 100 - Math.abs(jaw - 0.36) * 220);
+    return Math.round(Math.min(100, Math.max(32, openScore * 0.55 + jawScore * 0.45)));
+  }
+
+  function calcMeshClarityScore(meshStats) {
+    const motion = Math.sqrt(Number(meshStats.mouthOpenVar) || 0);
+    const lipVar = Math.sqrt(Number(meshStats.lipSpreadVar) || 0);
+    const motionScore = Math.min(100, motion * 1400);
+    const articScore = Math.min(100, lipVar * 1600);
+    const frozenPenalty = motion < 0.012 ? 18 : 0;
+    return Math.round(Math.min(100, Math.max(32, motionScore * 0.55 + articScore * 0.45 - frozenPenalty)));
+  }
+
+  function blendMeshIntoScores(audioResonance, audioClarity, meshStats) {
+    if (!meshStats || meshStats.frameCount < 6) {
+      return { resonanceScore: audioResonance, clarityScore: audioClarity, usedMesh: false };
+    }
+    const meshResonance = calcMeshResonanceScore(meshStats);
+    const meshClarity = calcMeshClarityScore(meshStats);
+    return {
+      resonanceScore: Math.round(audioResonance * 0.5 + meshResonance * 0.5),
+      clarityScore: Math.round(audioClarity * 0.5 + meshClarity * 0.5),
+      usedMesh: true,
+      meshResonance,
+      meshClarity,
+    };
+  }
+
   function calcVoiceScore(pitchScore, resonanceScore, clarityScore) {
     return Math.round(pitchScore * 0.34 + resonanceScore * 0.33 + clarityScore * 0.33);
   }
@@ -221,9 +253,18 @@
         ? "Repeat the same phrase weekly to track pitch stability, resonance, and clarity as you train."
         : "Use Voice Grain sessions for breath support and resonance, then re-record in the same quiet spot each week.";
 
+    const paragraphs = [pitchNote, resonanceNote, clarityNote];
+    if (metrics.usedMesh) {
+      const openPct = Math.round((Number(metrics.avgMouthOpen) || 0) * 100);
+      paragraphs.push(
+        `MediaPipe tracked your mouth live — average opening ${openPct}%. Keep the jaw released so the sound can drop into the chest.`
+      );
+    }
+    paragraphs.push(takeaway);
+
     return {
       headline,
-      paragraphs: [pitchNote, resonanceNote, clarityNote, takeaway],
+      paragraphs,
     };
   }
 
@@ -239,7 +280,10 @@
         : clarityScore < 65
           ? "Record closer in a quieter room for sharper detail."
           : "Keep the same phrase and spot each week to track change.";
-    return `Main points: ${pitchPart}, ${resonanceScore}% resonance, ${clarityScore}% clarity. ${focus}`;
+    const meshPart = metrics.usedMesh
+      ? ` MediaPipe tracked ${Math.round((Number(metrics.avgMouthOpen) || 0) * 100)}% mouth opening.`
+      : "";
+    return `Main points: ${pitchPart}, ${resonanceScore}% resonance, ${clarityScore}% clarity.${meshPart} ${focus}`;
   }
 
   function buildWaveformPeaks(samples, count = 48) {
@@ -256,6 +300,71 @@
     return peaks;
   }
 
+  function startLiveAudioMonitor(stream, onFrame) {
+    if (!stream) throw new Error("No audio recorded");
+    const AudioCtx = global.AudioContext || global.webkitAudioContext;
+    if (!AudioCtx) throw new Error("Voice recording not supported in this browser.");
+
+    const ctx = new AudioCtx();
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.35;
+    source.connect(analyser);
+
+    const floatBuf = new Float32Array(analyser.fftSize);
+    const byteBuf = new Uint8Array(analyser.fftSize);
+    let running = true;
+    let raf = 0;
+
+    function readTimeDomain() {
+      if (typeof analyser.getFloatTimeDomainData === "function") {
+        analyser.getFloatTimeDomainData(floatBuf);
+        return floatBuf;
+      }
+      analyser.getByteTimeDomainData(byteBuf);
+      for (let i = 0; i < byteBuf.length; i++) floatBuf[i] = (byteBuf[i] - 128) / 128;
+      return floatBuf;
+    }
+
+    function tick() {
+      if (!running) return;
+      const samples = readTimeDomain();
+      const level = rms(samples);
+      const pitchHz = level > 0.018 ? estimatePitchHz(samples, ctx.sampleRate) : 0;
+      onFrame({ pitchHz, level, sampleRate: ctx.sampleRate });
+      raf = requestAnimationFrame(tick);
+    }
+
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    tick();
+
+    return {
+      async stop() {
+        running = false;
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        try {
+          source.disconnect();
+        } catch (_) {
+          /* ignore */
+        }
+        try {
+          analyser.disconnect();
+        } catch (_) {
+          /* ignore */
+        }
+        try {
+          await ctx.close();
+        } catch (_) {
+          /* ignore */
+        }
+      },
+    };
+  }
+
   async function decodeAudioBlob(blob) {
     const arrayBuffer = await blob.arrayBuffer();
     const ctx = new (global.AudioContext || global.webkitAudioContext)();
@@ -266,7 +375,7 @@
     }
   }
 
-  async function analyzeVoiceFromBlob(blob) {
+  async function analyzeVoiceFromBlob(blob, meshStats) {
     if (!blob || !blob.size) throw new Error("No audio recorded");
 
     const audioBuffer = await decodeAudioBlob(blob);
@@ -282,16 +391,23 @@
     const mag = magnitudeSpectrum(samples);
     const bands = bandEnergyRatio(mag, sampleRate, 120, 320, 3200);
     const pitchScore = calcPitchScore(pitchHz, stability);
-    const resonanceScore = calcResonanceScore(bands);
-    const clarityScore = calcClarityScore(samples, sampleRate, pitchHz);
+    const audioResonance = calcResonanceScore(bands);
+    const audioClarity = calcClarityScore(samples, sampleRate, pitchHz);
+    const blended = blendMeshIntoScores(audioResonance, audioClarity, meshStats);
+    const resonanceScore = blended.resonanceScore;
+    const clarityScore = blended.clarityScore;
     const voiceScore = calcVoiceScore(pitchScore, resonanceScore, clarityScore);
-    const analysis = buildVoiceAnalysis({
+    const metrics = {
       pitchHz,
       pitchScore,
       resonanceScore,
       clarityScore,
       voiceScore,
-    });
+      usedMesh: blended.usedMesh,
+      avgMouthOpen: meshStats ? Number(meshStats.avgMouthOpen) || 0 : 0,
+      avgJawDrop: meshStats ? Number(meshStats.avgJawDrop) || 0 : 0,
+    };
+    const analysis = buildVoiceAnalysis(metrics);
 
     return {
       pitchHz: Number(pitchHz.toFixed(1)),
@@ -299,8 +415,13 @@
       resonanceScore,
       clarityScore,
       voiceScore,
+      usedMesh: blended.usedMesh,
+      avgMouthOpen: metrics.avgMouthOpen,
+      avgJawDrop: metrics.avgJawDrop,
+      meshFrames: meshStats ? meshStats.frameCount : 0,
       analysisHeadline: analysis.headline,
       analysisParagraphs: analysis.paragraphs,
+      analysisSummary: buildVoiceAnalysisSummary(metrics),
       waveform: buildWaveformPeaks(samples),
       durationMs: Math.round((samples.length / sampleRate) * 1000),
       analyzedAt: new Date().toISOString(),
@@ -331,6 +452,7 @@
   global.CarveVoiceAnalysis = {
     STORAGE_KEY,
     analyzeVoiceFromBlob,
+    startLiveAudioMonitor,
     buildVoiceAnalysis,
     buildVoiceAnalysisSummary,
     loadVoiceReport,
