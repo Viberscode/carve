@@ -2441,6 +2441,23 @@ function animateAnalysisScore(el, card, target, opts = {}) {
   }, delay);
 }
 
+function revealAnalysisScores(entries) {
+  analysisScoreAnimGen += 1;
+  entries.forEach((entry, i) => {
+    if (!entry?.el) return;
+    entry.el.textContent = "…";
+    if (entry.card) {
+      entry.card.classList.remove("is-revealed");
+      entry.card.classList.add("is-calculating");
+    }
+    animateAnalysisScore(entry.el, entry.card, entry.value, {
+      suffix: entry.suffix || "",
+      decimals: entry.decimals ?? 0,
+      delay: 120 + i * 200,
+    });
+  });
+}
+
 function revealAnalysisTrends(entries) {
   analysisScoreAnimGen += 1;
   entries.forEach((entry, i) => {
@@ -2513,9 +2530,6 @@ function fillFaceAnalysisResults(report) {
   const writeup = api?.buildFaceAnalysis
     ? api.buildFaceAnalysis(report, previous)
     : { headline: report.analysisHeadline || "Your check-in", paragraphs: report.analysisParagraphs || [] };
-  const trends =
-    report.trendLabels ||
-    (api?.buildFaceTrendLabels ? api.buildFaceTrendLabels(report, previous, history) : {});
 
   if (photoWrap && photo) {
     if (report.photoDataUrl) {
@@ -2541,10 +2555,15 @@ function fillFaceAnalysisResults(report) {
     };
   }
 
-  revealAnalysisTrends([
-    { el: score, card: $("#face-metric-score"), text: trends.overall || "—" },
-    { el: ratio, card: $("#face-metric-ratio"), text: trends.ratio || "—" },
-    { el: symmetry, card: $("#face-metric-symmetry"), text: trends.symmetry || "—" },
+  revealAnalysisScores([
+    { el: score, card: $("#face-metric-score"), value: report.jawlineScore },
+    { el: ratio, card: $("#face-metric-ratio"), value: report.jawRatio, decimals: 2 },
+    {
+      el: symmetry,
+      card: $("#face-metric-symmetry"),
+      value: Math.round(Number(report.symmetry) * 100),
+      suffix: "%",
+    },
   ]);
 }
 
@@ -2971,9 +2990,6 @@ function fillVoiceAnalysisResults(report) {
   const writeup = api?.buildVoiceAnalysis
     ? api.buildVoiceAnalysis(report, previous)
     : { headline: report.analysisHeadline || "Your recording" };
-  const trends =
-    report.trendLabels ||
-    (api?.buildVoiceTrendLabels ? api.buildVoiceTrendLabels(report, previous, history) : {});
 
   if (waveWrap && wave) {
     if (report.waveform?.length) {
@@ -2992,13 +3008,15 @@ function fillVoiceAnalysisResults(report) {
     : report.analysisSummary;
   if (summaryEl) fitAnalysisCardTips(card, summaryEl, allTips);
 
-  revealAnalysisTrends([
-    { el: score, card: $("#voice-metric-score"), text: trends.overall || "—" },
-    { el: resonance, card: $("#voice-metric-resonance"), text: trends.resonance || "—" },
-    { el: clarity, card: $("#voice-metric-clarity"), text: trends.clarity || "—" },
+  revealAnalysisScores([
+    { el: score, card: $("#voice-metric-score"), value: report.voiceScore },
+    { el: resonance, card: $("#voice-metric-resonance"), value: report.resonanceScore, suffix: "%" },
+    { el: clarity, card: $("#voice-metric-clarity"), value: report.clarityScore, suffix: "%" },
   ]);
   if (pitchLine) {
-    pitchLine.textContent = trends.pitch || "Record again to compare pitch stability to your baseline";
+    pitchLine.textContent = report.pitchHz
+      ? `Pitch ${Math.round(report.pitchHz)} Hz · score ${report.pitchScore}/100`
+      : "Pitch not detected in this clip";
   }
 }
 
