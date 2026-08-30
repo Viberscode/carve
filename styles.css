@@ -3613,16 +3613,26 @@ button {
 }
 
 .me-profile-card {
+  position: relative;
   margin-bottom: 4px;
-  padding: 18px 18px 16px;
+  padding: 20px 18px 18px;
   background:
-    radial-gradient(ellipse 90% 70% at 100% 0%, #1e3fe014, transparent 55%),
-    radial-gradient(ellipse 60% 50% at 0% 100%, #2bb67310, transparent 50%),
-    linear-gradient(165deg, #ffffff 0%, #f8faff 100%);
-  border-color: #dfe6f4;
+    radial-gradient(ellipse 85% 65% at 100% 0%, #1e3fe018, transparent 58%),
+    radial-gradient(ellipse 55% 45% at 0% 100%, #2bb67312, transparent 52%),
+    linear-gradient(160deg, #ffffff 0%, #f6f9ff 52%, #f2f6fc 100%);
+  border: 1px solid #e3eaf6;
   box-shadow:
-    0 12px 28px #1e3fe00c,
-    0 1px 0 #ffffff inset;
+    0 16px 36px #1e3fe00e,
+    0 2px 0 #ffffff inset;
+  overflow: hidden;
+}
+
+.me-profile-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ffffff44 0%, transparent 42%);
+  pointer-events: none;
 }
 
 .me-profile-row {
@@ -3663,7 +3673,7 @@ button {
 
 .me-name {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: #0c1222;
@@ -3719,96 +3729,92 @@ button {
   line-height: 1;
 }
 
-.me-streak-strip {
-  margin-top: 16px;
-  display: flex;
+.me-plan-strip {
+  position: relative;
+  z-index: 1;
+  margin-top: 18px;
+  padding: 14px 14px 14px 16px;
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 10px 12px;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  background: linear-gradient(135deg, #f8faff 0%, #eef3ff 100%);
+  border: 1px solid #dde5f8;
+  box-shadow: inset 0 1px 0 #ffffffcc;
 }
 
-.me-streak-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 14px;
-  background: #f3f6fb;
-  border: 1px solid #e8edf5;
+.me-plan-copy {
+  grid-column: 1;
+  grid-row: 1;
 }
 
-.me-streak-flame {
-  font-size: 18px;
-  line-height: 1;
+.me-plan-kicker {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
 }
 
-.me-streak-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  line-height: 1;
+.me-plan-day {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #6b7280;
+  line-height: 1.2;
 }
 
-.me-streak-stat strong {
+.me-plan-day strong {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 22px;
   font-weight: 800;
   color: #0c1222;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
-.me-streak-stat span {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #8e96a3;
-}
-
-.me-streak-day {
-  gap: 4px;
-  padding: 8px 14px;
-}
-
-.me-streak-day-label,
-.me-streak-day-of {
-  font-size: 12px;
-  font-weight: 600;
-  color: #8e96a3;
-}
-
-.me-streak-day strong {
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--blue);
-  letter-spacing: -0.02em;
-}
-
-.me-streak-link {
-  margin-left: auto;
-  padding: 8px 12px;
+.me-plan-track {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: 6px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: var(--blue);
-  background: #eef2ff;
-  border: 1px solid #d7defe;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
+  background: #dfe6f4;
+  overflow: hidden;
 }
 
-.me-streak-link:hover,
-.me-streak-link:focus-visible {
-  background: #e4ebff;
-  border-color: #b8c4ff;
+.me-plan-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1e3fe0, #2bb673);
+  min-width: 4px;
+  transition: width 0.35s ease;
+}
+
+.me-plan-reports {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: linear-gradient(135deg, #1e3fe0, #3a5cf0);
+  border: none;
+  box-shadow: 0 8px 18px #1e3fe033;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.me-plan-reports:hover,
+.me-plan-reports:focus-visible {
+  box-shadow: 0 10px 22px #1e3fe044;
   outline: none;
 }
 
-.me-streak-link:active {
+.me-plan-reports:active {
   transform: scale(0.98);
 }
 

@@ -1773,8 +1773,6 @@ function refreshHome() {
   }
   const profileName = $("#profile-name");
   if (profileName) profileName.textContent = state.profileName || "Priya";
-  const profileMember = $("#profile-member");
-  if (profileMember) profileMember.textContent = `Member since ${state.memberSince || "Jul 2026"}`;
   renderHeroPhoto();
   renderMe();
   renderTrackExtras();
@@ -1798,11 +1796,11 @@ function renderMe() {
   const progressLabel = $("#me-progress-label");
   if (progressLabel) progressLabel.textContent = String(state.currentDay);
 
+  const planFill = $("#me-plan-fill");
+  if (planFill) planFill.style.width = `${Math.max(3, pct)}%`;
+
   const avatar = $("#profile-avatar");
   if (avatar) avatar.textContent = profileInitials(state.profileName);
-
-  const streakCount = $("#me-streak-count");
-  if (streakCount) streakCount.textContent = String(state.streak);
 
   const dayNum = $("#me-day-num");
   if (dayNum) dayNum.textContent = String(state.currentDay);
