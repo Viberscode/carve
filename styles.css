@@ -3396,31 +3396,87 @@ button {
   margin-bottom: 0;
 }
 
-.analysis-metric.tint-indigo {
-  background: linear-gradient(165deg, #eef2ff 0%, #e0e7ff 100%);
-  border-color: #c7d2fe;
+.analysis-tip-hl {
+  color: #1e3fe0;
+  font-weight: 800;
 }
 
-.analysis-metric.tint-indigo strong {
-  color: #4338ca;
+.analysis-metric {
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
-.analysis-metric.tint-violet {
-  background: linear-gradient(165deg, #f5f3ff 0%, #ede9fe 100%);
-  border-color: #ddd6fe;
+.analysis-metric.is-calculating {
+  animation: metric-calc-pulse 0.85s ease-in-out infinite;
 }
 
-.analysis-metric.tint-violet strong {
-  color: #7c3aed;
+.analysis-metric.is-calculating strong {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
 
-.analysis-metric.tint-teal {
-  background: linear-gradient(165deg, #ecfdf5 0%, #ccfbf1 100%);
-  border-color: #99f6e4;
+.analysis-metric.is-revealed {
+  animation: metric-score-pop 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.analysis-metric.tint-teal strong {
-  color: #0f766e;
+.analysis-metric.is-revealed strong {
+  animation: metric-number-flash 0.6s ease;
+}
+
+@keyframes metric-calc-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(30, 63, 224, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(30, 63, 224, 0.06);
+  }
+}
+
+@keyframes metric-score-pop {
+  0% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes metric-number-flash {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.88);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.analysis-metric.tint-blue {
+  background: linear-gradient(165deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #93c5fd;
+}
+
+.analysis-metric.tint-blue strong {
+  color: #1d4ed8;
+}
+
+.analysis-metric.tint-red {
+  background: linear-gradient(165deg, #fff1f2 0%, #ffe4e6 100%);
+  border-color: #fecdd3;
+}
+
+.analysis-metric.tint-red strong {
+  color: #dc2626;
+}
+
+.analysis-metric.tint-green {
+  background: linear-gradient(165deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #86efac;
+}
+
+.analysis-metric.tint-green strong {
+  color: #059669;
 }
 
 .voice-analysis-pitch-line {

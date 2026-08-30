@@ -2196,6 +2196,77 @@ function renderAnalysisTips(el, tips) {
   el.innerHTML = `<ul class="analysis-tips">${list.map((t) => `<li>${t}</li>`).join("")}</ul>`;
 }
 
+let analysisScoreAnimGen = 0;
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function animateAnalysisScore(el, card, target, opts = {}) {
+  const { suffix = "", decimals = 0, delay = 0, duration = 1100 } = opts;
+  const endVal = Number(target);
+  if (!el || Number.isNaN(endVal)) return;
+
+  window.setTimeout(() => {
+    if (card) {
+      card.classList.remove("is-revealed");
+      card.classList.add("is-calculating");
+    }
+
+    let flickerTimer = null;
+    const startTime = performance.now();
+
+    flickerTimer = window.setInterval(() => {
+      if (!card?.classList.contains("is-calculating")) return;
+      let shown;
+      if (decimals) {
+        shown = (Math.random() * Math.max(endVal, 0.1)).toFixed(decimals);
+      } else {
+        shown = String(Math.floor(Math.random() * Math.max(endVal * 0.65, 9)));
+      }
+      el.textContent = `${shown}${suffix}`;
+    }, 65);
+
+    function frame(now) {
+      const t = Math.min(1, (now - startTime) / duration);
+      const eased = easeOutCubic(t);
+      const current = endVal * eased;
+      const shown = decimals ? current.toFixed(decimals) : String(Math.round(current));
+      el.textContent = `${shown}${suffix}`;
+
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        if (flickerTimer) clearInterval(flickerTimer);
+        el.textContent = `${decimals ? endVal.toFixed(decimals) : String(Math.round(endVal))}${suffix}`;
+        if (card) {
+          card.classList.remove("is-calculating");
+          card.classList.add("is-revealed");
+        }
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }, delay);
+}
+
+function revealAnalysisScores(entries) {
+  analysisScoreAnimGen += 1;
+  entries.forEach((entry, i) => {
+    if (!entry?.el) return;
+    entry.el.textContent = "…";
+    if (entry.card) {
+      entry.card.classList.remove("is-revealed");
+      entry.card.classList.add("is-calculating");
+    }
+    animateAnalysisScore(entry.el, entry.card, entry.value, {
+      suffix: entry.suffix || "",
+      decimals: entry.decimals ?? 0,
+      delay: 120 + i * 200,
+    });
+  });
+}
+
 function fillFaceAnalysisResults(report) {
   const api = window.CarveFaceAnalysis;
   const photoWrap = $("#face-analysis-photo-wrap");
@@ -2231,9 +2302,16 @@ function fillFaceAnalysisResults(report) {
     );
   }
 
-  if (score) score.textContent = String(report.jawlineScore);
-  if (ratio) ratio.textContent = Number(report.jawRatio).toFixed(2);
-  if (symmetry) symmetry.textContent = `${Math.round(Number(report.symmetry) * 100)}%`;
+  revealAnalysisScores([
+    { el: score, card: $("#face-metric-score"), value: report.jawlineScore },
+    { el: ratio, card: $("#face-metric-ratio"), value: report.jawRatio, decimals: 2 },
+    {
+      el: symmetry,
+      card: $("#face-metric-symmetry"),
+      value: Math.round(Number(report.symmetry) * 100),
+      suffix: "%",
+    },
+  ]);
 }
 
 function renderFaceAnalysis() {
@@ -2509,9 +2587,11 @@ function fillVoiceAnalysisResults(report) {
     );
   }
 
-  if (score) score.textContent = String(report.voiceScore);
-  if (resonance) resonance.textContent = `${report.resonanceScore}%`;
-  if (clarity) clarity.textContent = `${report.clarityScore}%`;
+  revealAnalysisScores([
+    { el: score, card: $("#voice-metric-score"), value: report.voiceScore },
+    { el: resonance, card: $("#voice-metric-resonance"), value: report.resonanceScore, suffix: "%" },
+    { el: clarity, card: $("#voice-metric-clarity"), value: report.clarityScore, suffix: "%" },
+  ]);
   if (pitchLine) {
     pitchLine.textContent = report.pitchHz
       ? `Pitch ${Math.round(report.pitchHz)} Hz · score ${report.pitchScore}/100`

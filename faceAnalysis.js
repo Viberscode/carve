@@ -377,6 +377,11 @@
     const jawRatio = Number(metrics.jawRatio);
     const symmetry = Number(metrics.symmetry);
 
+    const hl = (text, phrase) =>
+      phrase && text.includes(phrase)
+        ? text.replace(phrase, `<strong class="analysis-tip-hl">${phrase}</strong>`)
+        : text;
+
     const weakest =
       symmetry < 0.78
         ? "symmetry"
@@ -387,23 +392,23 @@
     const tips = [];
 
     if (weakest === "symmetry") {
-      tips.push("Train both sides evenly — mirror each rep so left and right get equal work.");
-      tips.push("Check head tilt in the mirror; even a small lean can skew how balance reads.");
-      tips.push("Release the tighter jaw side with gentle massage before your session.");
-      tips.push("Favour back-sleeping when you can — it reduces overnight facial asymmetry.");
+      tips.push(hl("Train both sides evenly — mirror each rep so left and right get equal work.", "mirror each rep"));
+      tips.push(hl("Check head tilt in the mirror; even a small lean can skew how balance reads.", "head tilt"));
+      tips.push(hl("Release the tighter jaw side with gentle massage before your session.", "gentle massage"));
+      tips.push(hl("Favour back-sleeping when you can — it reduces overnight facial asymmetry.", "back-sleeping"));
     } else if (weakest === "jawline") {
-      tips.push("Add slow chin tucks daily — controlled reps, never forced or strained.");
-      tips.push("Massage along the masseter for two minutes each side to release jaw tension.");
-      tips.push("Stack neck posture resets with jaw work for a cleaner mandible line.");
-      tips.push("Stay hydrated — soft tissue tone responds better when you're well watered.");
+      tips.push(hl("Add slow chin tucks daily — controlled reps, never forced or strained.", "chin tucks"));
+      tips.push(hl("Massage along the masseter for two minutes each side to release jaw tension.", "masseter"));
+      tips.push(hl("Stack neck posture resets with jaw work for a cleaner mandible line.", "posture resets"));
+      tips.push(hl("Stay hydrated — soft tissue tone responds better when you're well watered.", "Stay hydrated"));
     } else {
-      tips.push("You're building a solid base — small daily sessions beat long occasional pushes.");
-      tips.push("Keep pairing jaw-release work with upright neck and shoulder posture.");
-      tips.push("Add eye and mid-face drills to balance the overall look.");
+      tips.push(hl("You're building a solid base — small daily sessions beat long occasional pushes.", "daily sessions"));
+      tips.push(hl("Keep pairing jaw-release work with upright neck and shoulder posture.", "jaw-release"));
+      tips.push(hl("Add eye and mid-face drills to balance the overall look.", "mid-face drills"));
     }
 
-    tips.push("Re-capture in the same angle and light each week to track real change.");
-    tips.push("Stop if anything feels painful — CARVE trains soft tissue, not bone.");
+    tips.push(hl("Re-capture in the same angle and light each week to track real change.", "same angle and light"));
+    tips.push(hl("Stop if anything feels painful — CARVE trains soft tissue, not bone.", "soft tissue, not bone"));
 
     return tips;
   }

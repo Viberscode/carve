@@ -235,6 +235,11 @@
     const clarityScore = Number(metrics.clarityScore);
     const pitchScore = Number(metrics.pitchScore);
 
+    const hl = (text, phrase) =>
+      phrase && text.includes(phrase)
+        ? text.replace(phrase, `<strong class="analysis-tip-hl">${phrase}</strong>`)
+        : text;
+
     const weakest =
       resonanceScore <= clarityScore && resonanceScore <= pitchScore && resonanceScore <= voiceScore
         ? "resonance"
@@ -247,25 +252,25 @@
     const tips = [];
 
     if (weakest === "resonance") {
-      tips.push("Take three slow belly breaths before you speak — fill the lower ribs first.");
-      tips.push("Hum gently until you feel vibration in your chest, not just the throat.");
-      tips.push("Keep the jaw loose and the tongue relaxed; let resonance do the work.");
-      tips.push("Avoid pushing volume — a supported tone carries farther than a forced one.");
+      tips.push(hl("Take three slow belly breaths before you speak — fill the lower ribs first.", "three slow belly breaths"));
+      tips.push(hl("Hum gently until you feel vibration in your chest, not just the throat.", "vibration in your chest"));
+      tips.push(hl("Keep the jaw loose and the tongue relaxed; let resonance do the work.", "jaw loose"));
+      tips.push(hl("Avoid pushing volume — a supported tone carries farther than a forced one.", "supported tone"));
     } else if (weakest === "clarity") {
-      tips.push("Record in a quiet room with the mic about a hand-span away.");
-      tips.push("Sit upright, sip warm water first, and speak at a calm conversational level.");
-      tips.push("Open your mouth naturally and finish consonants without rushing.");
-      tips.push("Pause between phrases so each word has space to land clearly.");
+      tips.push(hl("Record in a quiet room with the mic about a hand-span away.", "quiet room"));
+      tips.push(hl("Sit upright, sip warm water first, and speak at a calm conversational level.", "warm water"));
+      tips.push(hl("Open your mouth naturally and finish consonants without rushing.", "finish consonants"));
+      tips.push(hl("Pause between phrases so each word has space to land clearly.", "Pause between phrases"));
     } else if (weakest === "pitch") {
-      tips.push("Practice speaking on a steady exhale — count to five on one breath, then repeat your phrase.");
-      tips.push("Stop if anything feels strained; depth should feel easy, never forced.");
-      tips.push("Use lip trills and hums to smooth pitch before longer speaking.");
+      tips.push(hl("Practice speaking on a steady exhale — count to five on one breath, then repeat your phrase.", "steady exhale"));
+      tips.push(hl("Stop if anything feels strained; depth should feel easy, never forced.", "never forced"));
+      tips.push(hl("Use lip trills and hums to smooth pitch before longer speaking.", "lip trills and hums"));
     } else {
-      tips.push("Keep training breath support, resonance hums, and easy articulation drills.");
-      tips.push("Short daily sessions build more than occasional long recordings.");
+      tips.push(hl("Keep training breath support, resonance hums, and easy articulation drills.", "breath support"));
+      tips.push(hl("Short daily sessions build more than occasional long recordings.", "daily sessions"));
     }
 
-    tips.push("Re-record the same phrase each week in the same spot to hear what's actually changing.");
+    tips.push(hl("Re-record the same phrase each week in the same spot to hear what's actually changing.", "same phrase each week"));
 
     return tips;
   }
