@@ -2392,7 +2392,6 @@ function setVoiceAnalysisView(mode, errorMsg) {
   }
 }
 
-let voiceAnalysisStream = null;
 let voiceAnalysisRecorder = null;
 let voiceAnalysisChunks = [];
 let voiceAnalysisTimer = null;
@@ -2503,23 +2502,24 @@ function renderVoiceAnalysis() {
 async function startVoiceAnalysisRecorder() {
   const meta = $("#voice-analysis-meta");
   stopFaceCamera();
-  stopProgressMedia();
-  stopVoiceAnalysisMic();
+  stopProgressCamera();
+  stopVoiceRecorder(false);
+  stopVoiceAnalysisMic(false);
 
-  if (!navigator.mediaDevices?.getUserMedia) {
-    setVoiceAnalysisView("idle", "Microphone not supported in this browser.");
-    return;
-  }
   if (typeof MediaRecorder === "undefined") {
     setVoiceAnalysisView("idle", "Voice recording not supported in this browser.");
     return;
   }
 
   try {
-    voiceAnalysisStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-  } catch (_) {
+    await ensureMicStream();
+  } catch (err) {
     const existing = window.CarveVoiceAnalysis?.loadVoiceReport();
-    setVoiceAnalysisView(existing ? "results" : "idle", "Could not access microphone. Allow permission and try again.");
+    const msg =
+      err?.message === "Microphone not supported in this browser."
+        ? err.message
+        : "Could not access microphone. Allow permission and try again.";
+    setVoiceAnalysisView(existing ? "results" : "idle", msg);
     if (existing) {
       fillVoiceAnalysisResults(existing);
       if (meta) meta.textContent = "Saved";
@@ -2537,7 +2537,7 @@ async function startVoiceAnalysisRecorder() {
 }
 
 function beginVoiceAnalysisRecording() {
-  if (!voiceAnalysisStream) return;
+  if (!sharedMicStream) return;
   voiceAnalysisDiscard = false;
   voiceAnalysisChunks = [];
   const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
@@ -2548,8 +2548,8 @@ function beginVoiceAnalysisRecording() {
 
   try {
     voiceAnalysisRecorder = mimeType
-      ? new MediaRecorder(voiceAnalysisStream, { mimeType })
-      : new MediaRecorder(voiceAnalysisStream);
+      ? new MediaRecorder(sharedMicStream, { mimeType })
+      : new MediaRecorder(sharedMicStream);
   } catch (_) {
     setVoiceAnalysisView("recorder", "Could not start recorder on this device.");
     return;
@@ -2658,11 +2658,6 @@ function stopVoiceAnalysisMic(keepRecorderOpen) {
     }
   }
 
-  if (voiceAnalysisStream) {
-    voiceAnalysisStream.getTracks().forEach((t) => t.stop());
-    voiceAnalysisStream = null;
-  }
-
   setVoiceAnalysisUi(false);
   if (!keepRecorderOpen) {
     const meta = $("#voice-analysis-meta");
@@ -2700,6 +2695,40 @@ function openReportsPhotoPicker(slot) {
 
 let progressCamStream = null;
 let progressPhotoSlot = null;
+
+let sharedMicStream = null;
+const VOICE_RECORD_AUTO_START_MS = 500;
+let voiceRecordAutoStartTimer = null;
+
+async function ensureMicStream() {
+  if (sharedMicStream) {
+    const live = sharedMicStream.getTracks().some((t) => t.readyState === "live");
+    if (live) return sharedMicStream;
+    sharedMicStream = null;
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error("Microphone not supported in this browser.");
+  }
+  sharedMicStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+  return sharedMicStream;
+}
+
+function clearVoiceRecordAutoStart() {
+  if (voiceRecordAutoStartTimer) {
+    clearTimeout(voiceRecordAutoStartTimer);
+    voiceRecordAutoStartTimer = null;
+  }
+}
+
+function scheduleVoiceRecordAutoStart() {
+  clearVoiceRecordAutoStart();
+  const status = $("#reports-voice-status");
+  if (status) status.textContent = "Starting in 0.5s…";
+  voiceRecordAutoStartTimer = window.setTimeout(() => {
+    voiceRecordAutoStartTimer = null;
+    beginVoiceRecording();
+  }, VOICE_RECORD_AUTO_START_MS);
+}
 
 function stopProgressCamera() {
   if (progressCamStream) {
@@ -2875,7 +2904,6 @@ function cancelProgressCamera() {
   stopProgressCamera();
 }
 
-let voiceRecordStream = null;
 let voiceMediaRecorder = null;
 let voiceRecordChunks = [];
 let voiceRecordSlot = null;
@@ -2915,7 +2943,10 @@ function setProgressMediaError(msg) {
 
 async function startVoiceRecorder(slot) {
   stopFaceCamera();
-  stopProgressMedia();
+  stopProgressCamera();
+  stopVoiceRecorder(false);
+  stopVoiceAnalysisMic(false);
+  clearVoiceRecordAutoStart();
 
   const key = slot || preferredProgressVoiceSlot();
   voiceRecordSlot = key;
@@ -2923,20 +2954,19 @@ async function startVoiceRecorder(slot) {
   const slotLabel = $("#reports-voice-slot-label");
   if (slotLabel) slotLabel.textContent = labelMap[key] || "Week 1";
 
-  if (!navigator.mediaDevices?.getUserMedia) {
-    setProgressMediaError("Microphone not supported in this browser.");
-    return;
-  }
-
   if (typeof MediaRecorder === "undefined") {
     setProgressMediaError("Voice recording not supported in this browser.");
     return;
   }
 
   try {
-    voiceRecordStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-  } catch (_) {
-    setProgressMediaError("Could not access microphone. Allow permission and try again.");
+    await ensureMicStream();
+  } catch (err) {
+    const msg =
+      err?.message === "Microphone not supported in this browser."
+        ? err.message
+        : "Could not access microphone. Allow permission and try again.";
+    setProgressMediaError(msg);
     return;
   }
 
@@ -2948,14 +2978,16 @@ async function startVoiceRecorder(slot) {
   if (panel) panel.hidden = false;
   if (cam) cam.hidden = true;
   setProgressMediaError("");
-  if (meta) meta.textContent = "Ready";
   setVoiceRecorderUi(false);
   const timer = $("#reports-voice-timer");
   if (timer) timer.textContent = "0:00";
+  if (meta) meta.textContent = "Ready";
+  scheduleVoiceRecordAutoStart();
 }
 
 function beginVoiceRecording() {
-  if (!voiceRecordStream || !voiceRecordSlot) return;
+  clearVoiceRecordAutoStart();
+  if (!sharedMicStream || !voiceRecordSlot || voiceRecordingActive) return;
   voiceRecordChunks = [];
   const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
     ? "audio/webm;codecs=opus"
@@ -2965,8 +2997,8 @@ function beginVoiceRecording() {
 
   try {
     voiceMediaRecorder = mimeType
-      ? new MediaRecorder(voiceRecordStream, { mimeType })
-      : new MediaRecorder(voiceRecordStream);
+      ? new MediaRecorder(sharedMicStream, { mimeType })
+      : new MediaRecorder(sharedMicStream);
   } catch (_) {
     setProgressMediaError("Could not start recorder on this device.");
     return;
@@ -3047,6 +3079,7 @@ function saveVoiceRecordingFromChunks() {
 }
 
 function stopVoiceRecorder(keepPanelOpen) {
+  clearVoiceRecordAutoStart();
   voiceRecordingActive = false;
   if (voiceRecordTimer) {
     clearInterval(voiceRecordTimer);
@@ -3066,10 +3099,6 @@ function stopVoiceRecorder(keepPanelOpen) {
     voiceRecordChunks = [];
   }
 
-  if (voiceRecordStream) {
-    voiceRecordStream.getTracks().forEach((t) => t.stop());
-    voiceRecordStream = null;
-  }
   if (!keepPanelOpen) voiceRecordSlot = null;
   setVoiceRecorderUi(false);
 
@@ -3085,6 +3114,7 @@ function stopVoiceRecorder(keepPanelOpen) {
 
 function cancelVoiceRecorder() {
   voiceRecordDiscard = true;
+  clearVoiceRecordAutoStart();
   stopVoiceRecorder(false);
 }
 
