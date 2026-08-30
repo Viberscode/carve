@@ -2742,37 +2742,17 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
   const freeNote = $("#presence-analysis-free-note");
   const faceStatus = $("#presence-status-face");
   const voiceStatus = $("#presence-status-voice");
-  const faceLabel = $("#presence-status-face-label");
-  const voiceLabel = $("#presence-status-voice-label");
+  const faceCheck = $("#presence-status-face-check");
+  const voiceCheck = $("#presence-status-voice-check");
 
   if (faceStatus) {
     faceStatus.classList.toggle("is-done", hasFace);
-    faceStatus.classList.toggle("is-used", hasFace && !faceAllowed && !hasCarvePlus());
   }
   if (voiceStatus) {
     voiceStatus.classList.toggle("is-done", hasVoice);
-    voiceStatus.classList.toggle("is-used", hasVoice && !voiceAllowed && !hasCarvePlus());
   }
-  if (faceLabel) {
-    if (presenceAnalysisOpen.face) {
-      faceLabel.textContent = "Open — tap to close";
-    } else if (hasFace) {
-      faceLabel.textContent =
-        hasCarvePlus() || faceAllowed ? "Baseline saved · tap to open" : "Free scan used · tap to view";
-    } else {
-      faceLabel.textContent = "Tap to open";
-    }
-  }
-  if (voiceLabel) {
-    if (presenceAnalysisOpen.voice) {
-      voiceLabel.textContent = "Open — tap to close";
-    } else if (hasVoice) {
-      voiceLabel.textContent =
-        hasCarvePlus() || voiceAllowed ? "Baseline saved · tap to open" : "Free scan used · tap to view";
-    } else {
-      voiceLabel.textContent = "Tap to open";
-    }
-  }
+  if (faceCheck) faceCheck.hidden = !hasFace;
+  if (voiceCheck) voiceCheck.hidden = !hasVoice;
 
   const doneCount = (hasFace ? 1 : 0) + (hasVoice ? 1 : 0);
   if (meta) {
@@ -2781,11 +2761,9 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
   }
   if (lead) {
     if (doneCount === 2 && !presenceAnalysisOpen.face && !presenceAnalysisOpen.voice) {
-      lead.textContent =
-        "Both baselines saved — tap a box to review face and voice trends.";
+      lead.textContent = "Both baselines saved — tap a box to review your results.";
     } else if (!presenceAnalysisOpen.face && !presenceAnalysisOpen.voice) {
-      lead.textContent =
-        "Tap the blue or red box to open face or voice analysis — one free scan of each on this device.";
+      lead.textContent = "Tap the blue or red box to open face or voice analysis.";
     }
   }
 

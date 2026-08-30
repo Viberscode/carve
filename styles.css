@@ -2682,20 +2682,24 @@ button {
 .presence-analysis-status {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .presence-analysis-status-item {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 10px;
-  padding: 14px 12px;
+  min-height: 112px;
+  padding: 20px 14px;
   border-radius: var(--radius-card);
-  border: 1.5px solid var(--line-gray);
+  border: 2px solid var(--line-gray);
   background: #f8fafc;
   width: 100%;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   font: inherit;
   color: inherit;
@@ -2703,7 +2707,7 @@ button {
 }
 
 .presence-analysis-status-item:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 .presence-analysis-status-item:active {
@@ -2712,66 +2716,74 @@ button {
 
 .presence-box-face {
   background: #eff6ff;
-  border-color: #93c5fd;
+  border-color: #60a5fa;
 }
 
 .presence-box-face strong {
   color: #1d4ed8;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .presence-box-face.is-open {
-  box-shadow: 0 0 0 2px #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
 }
 
 .presence-box-face.is-done {
   background: #dbeafe;
-  border-color: #60a5fa;
+  border-color: #3b82f6;
 }
 
 .presence-box-voice {
   background: #fef2f2;
-  border-color: #fca5a5;
+  border-color: #f87171;
 }
 
 .presence-box-voice strong {
   color: #b91c1c;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .presence-box-voice.is-open {
-  box-shadow: 0 0 0 2px #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35);
 }
 
 .presence-box-voice.is-done {
   background: #fee2e2;
-  border-color: #f87171;
-}
-
-.presence-analysis-status-item.is-used {
-  border-color: #fde68a;
-  background: #fffbeb;
-}
-
-.presence-analysis-status-item.is-used strong {
-  color: #92400e;
+  border-color: #ef4444;
 }
 
 .presence-analysis-status-icon {
-  font-size: 20px;
+  font-size: 32px;
   line-height: 1;
 }
 
-.presence-analysis-status-item strong {
-  display: block;
+.presence-analysis-check {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   font-weight: 800;
-  color: #334155;
-  margin-bottom: 2px;
+  line-height: 1;
 }
 
-.presence-analysis-status-item span:last-child {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
+.presence-box-face .presence-analysis-check {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.presence-box-voice .presence-analysis-check {
+  background: #ef4444;
+  color: #fff;
 }
 
 .presence-analysis-free-note,

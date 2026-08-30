@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=presencePanels1" />
+  <link rel="stylesheet" href="styles.css?v=presenceBoxes1" />
 </head>
 <body>
   <div class="device">
@@ -274,19 +274,15 @@
                 Complete both check-ins to establish your personal baseline — trends compare to your own history, never anyone else’s.
               </p>
               <div class="presence-analysis-status" id="presence-analysis-status">
-                <button type="button" class="presence-analysis-status-item presence-box-face" id="presence-status-face" aria-expanded="false">
+                <button type="button" class="presence-analysis-status-item presence-box-face" id="presence-status-face" aria-expanded="false" aria-label="Face analysis">
                   <span class="presence-analysis-status-icon" aria-hidden="true">🪞</span>
-                  <div>
-                    <strong>Face analysis</strong>
-                    <span id="presence-status-face-label">Tap to open</span>
-                  </div>
+                  <strong>Face analysis</strong>
+                  <span class="presence-analysis-check" id="presence-status-face-check" hidden aria-hidden="true">✓</span>
                 </button>
-                <button type="button" class="presence-analysis-status-item presence-box-voice" id="presence-status-voice" aria-expanded="false">
+                <button type="button" class="presence-analysis-status-item presence-box-voice" id="presence-status-voice" aria-expanded="false" aria-label="Voice analysis">
                   <span class="presence-analysis-status-icon" aria-hidden="true">🎙️</span>
-                  <div>
-                    <strong>Voice analysis</strong>
-                    <span id="presence-status-voice-label">Tap to open</span>
-                  </div>
+                  <strong>Voice analysis</strong>
+                  <span class="presence-analysis-check" id="presence-status-voice-check" hidden aria-hidden="true">✓</span>
                 </button>
               </div>
               <p class="presence-analysis-free-note" id="presence-analysis-free-note">One free face scan and one free voice scan on this device.</p>
@@ -840,6 +836,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=presencePanels1"></script>
+  <script src="script.js?v=presenceBoxes1"></script>
 </body>
 </html>
