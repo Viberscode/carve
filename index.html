@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=layoutFix1" />
+  <link rel="stylesheet" href="styles.css?v=layoutFix2" />
 </head>
 <body>
   <div class="device">
@@ -112,7 +112,7 @@
         <div class="scroll">
           <div id="home-week" class="home-week"></div>
 
-          <button type="button" class="hero-card" id="btn-start-today" aria-label="Start today's practice">
+          <div class="hero-card" id="btn-start-today" role="button" tabindex="0" aria-label="Start today's practice">
             <div class="hero-bg" aria-hidden="true"></div>
             <div class="hero-top">
               <div class="hero-copy">
@@ -138,7 +138,7 @@
               </div>
               <span class="hero-cta" id="hero-start-label">Start session</span>
             </div>
-          </button>
+          </div>
           <div class="hero-plan-link">
             <button type="button" class="plan-box-btn" id="btn-open-plan">
               <span>View 30-day plan</span>
@@ -625,6 +625,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=layoutFix1"></script>
+  <script src="script.js?v=layoutFix2"></script>
 </body>
 </html>

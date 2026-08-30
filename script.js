@@ -2663,12 +2663,20 @@ function bind() {
     navigate("plan");
   });
 
-  $("#btn-start-today")?.addEventListener("click", () => {
+  const startToday = $("#btn-start-today");
+  const openTodaySession = () => {
     const day = state.days.find((d) => d.n === state.currentDay);
     if (day && day.status !== "locked") openDay(day.n);
     else {
       renderDayList();
       navigate("plan");
+    }
+  };
+  startToday?.addEventListener("click", openTodaySession);
+  startToday?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openTodaySession();
     }
   });
 
