@@ -836,19 +836,189 @@ function applySettingsUi() {
   if (reminderLabel) reminderLabel.textContent = formatReminderTime(s.reminderTime);
 }
 
-function openReminderTimePicker() {
-  const input = $("#reminder-time-input");
-  if (!input) return;
-  applySettingsUi();
-  if (typeof input.showPicker === "function") {
-    try {
-      input.showPicker();
-      return;
-    } catch (_) {
-      /* fall through */
-    }
+function parseReminderDraft(value) {
+  const normalized = normalizeReminderTime(value);
+  const [hStr, mStr] = normalized.split(":");
+  let h24 = parseInt(hStr, 10);
+  const minute = parseInt(mStr, 10);
+  const ampm = h24 >= 12 ? "PM" : "AM";
+  const hour12 = h24 % 12 || 12;
+  return { hour12, minute, ampm, mode: "hour" };
+}
+
+function draftToReminderTime(draft) {
+  let h24 = draft.hour12 % 12;
+  if (draft.ampm === "PM") h24 += 12;
+  if (draft.hour12 === 12 && draft.ampm === "AM") h24 = 0;
+  return normalizeReminderTime(`${h24}:${draft.minute}`);
+}
+
+const reminderClockDraft = { hour12: 7, minute: 30, ampm: "PM", mode: "hour" };
+
+function updateReminderClockHands() {
+  const hourHand = $("#clock-hand-hour");
+  const minuteHand = $("#clock-hand-minute");
+  const face = $("#clock-face");
+  if (!hourHand || !minuteHand) return;
+  const hourDeg = (reminderClockDraft.hour12 % 12) * 30 + reminderClockDraft.minute * 0.5;
+  const minuteDeg = reminderClockDraft.minute * 6;
+  hourHand.style.transform = `rotate(${hourDeg}deg)`;
+  minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+  if (face) {
+    face.classList.toggle("mode-hour", reminderClockDraft.mode === "hour");
+    face.classList.toggle("mode-minute", reminderClockDraft.mode === "minute");
   }
-  input.click();
+}
+
+function renderReminderClockNumbers() {
+  const root = $("#clock-numbers");
+  if (!root) return;
+  const isHour = reminderClockDraft.mode === "hour";
+  const values = isHour
+    ? [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  root.innerHTML = values
+    .map((val, i) => {
+      const rot = i * 30;
+      const snappedMinute = (Math.round(reminderClockDraft.minute / 5) * 5) % 60;
+      const active = isHour ? val === reminderClockDraft.hour12 : val === snappedMinute;
+      const label = isHour ? val : String(val).padStart(2, "0");
+      return `<button type="button" class="clock-num${active ? " active" : ""}" data-clock-value="${val}" style="--rot:${rot}deg">${label}</button>`;
+    })
+    .join("");
+  root.querySelectorAll(".clock-num").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setReminderClockValue(Number(btn.dataset.clockValue));
+    });
+  });
+}
+
+function setReminderClockValue(value) {
+  if (reminderClockDraft.mode === "hour") {
+    reminderClockDraft.hour12 = value || 12;
+  } else {
+    reminderClockDraft.minute = value;
+  }
+  renderReminderClockUi();
+  if (reminderClockDraft.mode === "hour") {
+    reminderClockDraft.mode = "minute";
+    renderReminderClockUi();
+  }
+}
+
+function angleFromClockEvent(face, e) {
+  const rect = face.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const point = e.touches?.[0] || e.changedTouches?.[0] || e;
+  const dx = point.clientX - cx;
+  const dy = point.clientY - cy;
+  let deg = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+  if (deg < 0) deg += 360;
+  return deg;
+}
+
+function valueFromClockAngle(deg) {
+  if (reminderClockDraft.mode === "hour") {
+    const hour = Math.round(deg / 30) % 12;
+    return hour || 12;
+  }
+  return Math.round(deg / 6) % 60;
+}
+
+function renderReminderClockUi() {
+  const display = $("#reminder-clock-display");
+  if (display) {
+    display.textContent = formatReminderTime(
+      draftToReminderTime(reminderClockDraft)
+    );
+  }
+  $$(".clock-mode-tab").forEach((tab) => {
+    const active = tab.dataset.clockMode === reminderClockDraft.mode;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  $$(".clock-ampm-btn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.ampm === reminderClockDraft.ampm);
+  });
+  renderReminderClockNumbers();
+  updateReminderClockHands();
+}
+
+function openReminderClockModal() {
+  Object.assign(reminderClockDraft, parseReminderDraft(state.settings.reminderTime));
+  reminderClockDraft.mode = "hour";
+  renderReminderClockUi();
+  const modal = $("#reminder-clock-modal");
+  if (!modal) return;
+  modal.hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeReminderClockModal() {
+  const modal = $("#reminder-clock-modal");
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.style.overflow = "";
+}
+
+function saveReminderClockTime() {
+  state.settings.reminderTime = draftToReminderTime(reminderClockDraft);
+  applySettingsUi();
+  saveState();
+  closeReminderClockModal();
+  showToast(`Reminder time · ${formatReminderTime(state.settings.reminderTime)}`);
+}
+
+function bindReminderClock() {
+  const face = $("#clock-face");
+  if (face) {
+    let touchHandled = false;
+    const pickFromPointer = (e) => {
+      e.preventDefault();
+      const val = valueFromClockAngle(angleFromClockEvent(face, e));
+      setReminderClockValue(val);
+    };
+    face.addEventListener(
+      "touchend",
+      (e) => {
+        touchHandled = true;
+        pickFromPointer(e);
+        window.setTimeout(() => {
+          touchHandled = false;
+        }, 400);
+      },
+      { passive: false }
+    );
+    face.addEventListener("click", (e) => {
+      if (touchHandled) return;
+      pickFromPointer(e);
+    });
+  }
+
+  $$(".clock-mode-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      reminderClockDraft.mode = tab.dataset.clockMode;
+      renderReminderClockUi();
+    });
+  });
+
+  $$(".clock-ampm-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      reminderClockDraft.ampm = btn.dataset.ampm;
+      renderReminderClockUi();
+    });
+  });
+
+  $("#btn-reminder-clock-save")?.addEventListener("click", saveReminderClockTime);
+  $$("[data-close-reminder-clock]").forEach((el) => {
+    el.addEventListener("click", closeReminderClockModal);
+  });
+}
+
+function openReminderTimePicker() {
+  openReminderClockModal();
 }
 
 function openSettingsTab() {
@@ -2735,12 +2905,7 @@ function bind() {
     openReminderTimePicker();
   });
 
-  $("#reminder-time-input")?.addEventListener("change", (e) => {
-    state.settings.reminderTime = normalizeReminderTime(e.target.value);
-    applySettingsUi();
-    saveState();
-    showToast(`Reminder time · ${formatReminderTime(state.settings.reminderTime)}`);
-  });
+  bindReminderClock();
 
   $("#btn-edit-name")?.addEventListener("click", () => {
     const next = window.prompt("Your name", state.profileName || "Priya");

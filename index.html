@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=layoutFix4" />
+  <link rel="stylesheet" href="styles.css?v=clockPicker1" />
 </head>
 <body>
   <div class="device">
@@ -392,7 +392,7 @@
               </span>
               <input type="checkbox" id="set-reminders" checked />
             </label>
-            <input type="time" id="reminder-time-input" hidden />
+            <input type="time" id="reminder-time-input" hidden aria-hidden="true" tabindex="-1" />
           </div>
 
           <p class="me-section-label blue">Account &amp; data</p>
@@ -585,6 +585,46 @@
         </button>
       </nav>
 
+      <div class="modal reminder-clock-modal" id="reminder-clock-modal" hidden>
+        <div class="modal-backdrop" data-close-reminder-clock></div>
+        <div class="sheet reminder-clock-sheet" role="dialog" aria-modal="true" aria-labelledby="reminder-clock-title">
+          <div class="sheet-handle"></div>
+          <header class="reminder-clock-head">
+            <p class="reminder-clock-kicker">Daily reminder</p>
+            <h2 class="reminder-clock-display" id="reminder-clock-title">
+              <span id="reminder-clock-display">7:30 PM</span>
+            </h2>
+            <p class="reminder-clock-sub">Tap the clock to set your hour, then minutes</p>
+          </header>
+          <div class="reminder-clock-body">
+            <div class="clock-stage">
+              <div class="clock-face" id="clock-face" role="application" aria-label="Choose reminder time">
+                <div class="clock-face-glow" aria-hidden="true"></div>
+                <div class="clock-ticks" aria-hidden="true"></div>
+                <div class="clock-numbers" id="clock-numbers"></div>
+                <div class="clock-hand clock-hand-minute" id="clock-hand-minute" aria-hidden="true"></div>
+                <div class="clock-hand clock-hand-hour" id="clock-hand-hour" aria-hidden="true"></div>
+                <div class="clock-hub" aria-hidden="true"></div>
+              </div>
+            </div>
+            <div class="reminder-clock-controls">
+              <div class="clock-mode-tabs" role="tablist" aria-label="Hour or minute">
+                <button type="button" class="clock-mode-tab active" data-clock-mode="hour" role="tab" aria-selected="true">Hour</button>
+                <button type="button" class="clock-mode-tab" data-clock-mode="minute" role="tab" aria-selected="false">Minute</button>
+              </div>
+              <div class="clock-ampm" role="group" aria-label="AM or PM">
+                <button type="button" class="clock-ampm-btn" data-ampm="AM">AM</button>
+                <button type="button" class="clock-ampm-btn active" data-ampm="PM">PM</button>
+              </div>
+            </div>
+          </div>
+          <footer class="reminder-clock-foot">
+            <button type="button" class="pill pill-muted" data-close-reminder-clock>Cancel</button>
+            <button type="button" class="pill pill-gradient" id="btn-reminder-clock-save">Set reminder</button>
+          </footer>
+        </div>
+      </div>
+
       <div class="modal" id="modal" hidden>
         <div class="modal-backdrop" data-close-modal></div>
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -625,6 +665,6 @@
 
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=4"></script>
-  <script src="script.js?v=layoutFix4"></script>
+  <script src="script.js?v=clockPicker1"></script>
 </body>
 </html>

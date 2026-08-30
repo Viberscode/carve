@@ -4786,3 +4786,277 @@ button {
   min-width: 36px;
   text-align: center;
 }
+
+/* ========== REMINDER CLOCK PICKER ========== */
+.reminder-clock-sheet {
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -20%, #1e3fe018, transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
+}
+
+.reminder-clock-head {
+  text-align: center;
+  padding: 4px 24px 8px;
+}
+
+.reminder-clock-kicker {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue);
+}
+
+.reminder-clock-display {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(36px, 10vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0c1222;
+  line-height: 1;
+}
+
+.reminder-clock-sub {
+  margin: 10px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.reminder-clock-body {
+  padding: 8px 20px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.clock-stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+}
+
+.clock-face {
+  --clock-size: min(280px, calc(100vw - 72px));
+  position: relative;
+  width: var(--clock-size);
+  height: var(--clock-size);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, #2a4de855, transparent 42%),
+    radial-gradient(circle at 78% 72%, #ff6b3522, transparent 38%),
+    linear-gradient(145deg, #0b1f8f 0%, #142654 42%, #1a1020 100%);
+  box-shadow:
+    0 0 0 3px #ffffff22 inset,
+    0 0 0 1px #ffffff18,
+    0 24px 48px #0b1f8f44,
+    0 8px 20px #00000033;
+  touch-action: none;
+  cursor: pointer;
+}
+
+.clock-face-glow {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff0a 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.clock-ticks {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from -90deg,
+    #ffffff55 0deg 1deg,
+    transparent 1deg 30deg
+  );
+  mask: radial-gradient(circle, transparent 58%, #000 59%, #000 72%, transparent 73%);
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 59%, #000 72%, transparent 73%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.clock-numbers {
+  position: absolute;
+  inset: 0;
+}
+
+.clock-num {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  margin: -18px 0 0 -18px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffffcc;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  transform: rotate(var(--rot)) translateY(calc(var(--clock-size) * -0.36)) rotate(calc(var(--rot) * -1));
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.clock-num:hover,
+.clock-num:focus-visible {
+  color: #fff;
+  background: #ffffff18;
+  outline: none;
+}
+
+.clock-num.active {
+  color: #fff;
+  background: linear-gradient(145deg, #4a6cf0, #1e3fe0);
+  box-shadow:
+    0 0 0 2px #ffffff55,
+    0 8px 18px #1e3fe066;
+  transform: rotate(var(--rot)) translateY(calc(var(--clock-size) * -0.36)) rotate(calc(var(--rot) * -1)) scale(1.08);
+}
+
+.clock-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  transform-origin: 50% 100%;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 3;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.clock-hand-hour {
+  width: 6px;
+  height: calc(var(--clock-size) * 0.22);
+  margin-left: -3px;
+  background: linear-gradient(180deg, #ffffff, #c9d6ff);
+  box-shadow: 0 2px 8px #00000044;
+}
+
+.clock-hand-minute {
+  width: 4px;
+  height: calc(var(--clock-size) * 0.32);
+  margin-left: -2px;
+  background: linear-gradient(180deg, #7eb0ff, #1e3fe0);
+  box-shadow:
+    0 0 12px #1e3fe088,
+    0 2px 8px #00000033;
+}
+
+.clock-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #1e3fe0;
+  box-shadow: 0 0 0 4px #ffffff22;
+  z-index: 4;
+}
+
+.reminder-clock-controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clock-mode-tabs {
+  display: flex;
+  background: #eef2ff;
+  border-radius: 999px;
+  padding: 4px;
+  border: 1px solid #d7defe;
+}
+
+.clock-mode-tab {
+  flex: 1;
+  padding: 11px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.clock-mode-tab.active {
+  background: linear-gradient(135deg, #1e3fe0, #3a5cf0);
+  color: #fff;
+  box-shadow: 0 6px 16px #1e3fe044;
+}
+
+.clock-ampm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.clock-ampm-btn {
+  padding: 12px;
+  border-radius: 14px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #5b6d90;
+  background: #fff;
+  border: 1.5px solid #d7defe;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.clock-ampm-btn.active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #1e3fe0, #0b1f8f);
+  box-shadow: 0 8px 18px #1e3fe033;
+}
+
+.reminder-clock-foot {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px 16px;
+}
+
+.reminder-clock-foot .pill {
+  flex: 1;
+  min-height: 48px;
+}
+
+.reminder-clock-foot .pill-muted {
+  flex: 0.85;
+}
+
+.clock-face.mode-minute .clock-hand-hour {
+  opacity: 0.35;
+}
+
+.clock-face.mode-hour .clock-hand-minute {
+  opacity: 0.45;
+}
