@@ -873,13 +873,23 @@ function applyMirrorMode() {
   document.body.classList.toggle("mirror-mode-on", Boolean(state.settings.mirror));
 }
 
+function speakCoachCue(text) {
+  if (!state.settings.coachVoice || !text) return;
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.rate = 0.95;
+  utter.volume = 0.9;
+  window.speechSynthesis.speak(utter);
+}
+
 function applySettingsUi() {
   const s = state.settings;
-  const mirror = $("#set-mirror");
+  const coachVoice = $("#set-coach-voice");
   const reminders = $("#set-reminders");
   const reminderInput = $("#reminder-time-input");
   const reminderLabel = $("#reminder-time-label");
-  if (mirror) mirror.checked = s.mirror;
+  if (coachVoice) coachVoice.checked = s.coachVoice;
   if (reminders) reminders.checked = s.reminders;
   s.reminderTime = normalizeReminderTime(s.reminderTime);
   if (reminderInput) reminderInput.value = s.reminderTime;
@@ -5079,6 +5089,7 @@ function beginActive() {
   $("#timer").textContent = formatTime(state.remaining);
   $("#pause-icon").textContent = "⏸";
   updatePauseProgress();
+  speakCoachCue(ex.displayName || ex.name);
   state.timer = setInterval(tickActive, 1000);
 }
 
@@ -5151,6 +5162,7 @@ function finishDay() {
   refreshHome();
   renderDayList();
   saveState();
+  speakCoachCue("Session complete");
   showToast("Day complete — small wins stack.");
   state.stack = ["home"];
   showView("home");
@@ -5319,7 +5331,7 @@ function bind() {
   $("#btn-start-session").addEventListener("click", startSession);
   $("#btn-adjust")?.addEventListener("click", () => {
     openSettingsTab();
-    showToast("Mirror mode and reminders live in Me → Preferences.");
+    showToast("Coach voice and reminders live in Me → Preferences.");
   });
   $("#btn-day-more")?.addEventListener("click", () => {
     showToast("More options coming soon.");
@@ -5332,14 +5344,15 @@ function bind() {
     showToast(state.settings.mirror ? "Mirror mode on" : "Mirror mode off");
   });
 
-  ["set-mirror", "set-reminders"].forEach((id) => {
+  ["set-coach-voice", "set-reminders"].forEach((id) => {
     $("#" + id)?.addEventListener("change", (e) => {
-      const key = id === "set-mirror" ? "mirror" : "reminders";
+      const key = id === "set-coach-voice" ? "coachVoice" : "reminders";
       state.settings[key] = e.target.checked;
       saveState();
-      if (key === "mirror") {
-        applyMirrorMode();
-        showToast(state.settings.mirror ? "Mirror mode on" : "Mirror mode off");
+      if (key === "coachVoice") {
+        if (e.target.checked) speakCoachCue("Coach voice on");
+        else window.speechSynthesis?.cancel();
+        showToast(state.settings.coachVoice ? "Coach voice cues on" : "Coach voice cues off");
       } else if (key === "reminders" && e.target.checked) {
         showToast(`Daily reminder set for ${formatReminderTime(state.settings.reminderTime)}`);
       }
