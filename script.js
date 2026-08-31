@@ -1567,7 +1567,31 @@ function dayHabitProgress(key, track) {
   return Math.round((done / habits.length) * 100);
 }
 
-function getDailyProgressSeries(days = 14, track = state.track || "face") {
+const PERF_TIERS = {
+  low: { color: "#f87171", label: "Low", ring: "#fecaca" },
+  mid: { color: "#60a5fa", label: "Building", ring: "#bfdbfe" },
+  high: { color: "#4ade80", label: "Strong", ring: "#bbf7d0" },
+};
+
+function performanceTier(score) {
+  if (score >= 70) return "high";
+  if (score >= 35) return "mid";
+  return "low";
+}
+
+function dayPerformanceScore(key, track, isToday = false) {
+  let sessionPct = 0;
+  if (hasSessionOnDate(key)) {
+    sessionPct = 100;
+  } else if (isToday) {
+    const day = state.days?.find((d) => d.n === state.currentDay);
+    sessionPct = day?.percent || 0;
+  }
+  const habitPct = dayHabitProgress(key, track);
+  return Math.min(100, Math.round(sessionPct * 0.55 + habitPct * 0.45));
+}
+
+function getPerformanceSeries(days = 7, track = state.track || "face") {
   const now = new Date();
   now.setHours(12, 0, 0, 0);
   const todayKey = dateKey(now);
@@ -1579,66 +1603,104 @@ function getDailyProgressSeries(days = 14, track = state.track || "face") {
     const key = dateKey(d);
     const isToday = key === todayKey;
     const isFuture = d > now;
-    const sessionDone = hasSessionOnDate(key);
-    const habitPct = dayHabitProgress(key, track);
-    const dayNum = d.getDate();
-    const shortLabel = isToday ? "•" : String(dayNum);
-    const title = isFuture
-      ? `${d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · Upcoming`
-      : `${d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · ${sessionDone ? "Session done" : "No session"} · ${habitPct}% habits`;
-    return { key, shortLabel, isToday, isFuture, sessionDone, habitPct, title };
+    const score = isFuture ? null : dayPerformanceScore(key, track, isToday);
+    const shortLabel = d.toLocaleDateString(undefined, { weekday: "narrow" });
+    return { key, shortLabel, isToday, isFuture, score };
   });
 }
 
-function momentumChartSummary(series) {
-  const past = series.filter((d) => !d.isFuture);
-  if (!past.length) return "Your graph fills in as you train and check habits.";
-  const sessions = past.filter((d) => d.sessionDone).length;
-  const habitAvg = Math.round(past.reduce((sum, d) => sum + d.habitPct, 0) / past.length);
-  if (sessions === 0 && habitAvg === 0) {
-    return "Start today — orange is training, green is daily habits.";
-  }
-  return `${sessions} session${sessions === 1 ? "" : "s"} · ${habitAvg}% habits avg`;
-}
+function buildPerformanceGraphSvg(series) {
+  const W = 300;
+  const H = 96;
+  const padX = 14;
+  const padY = 12;
+  const innerW = W - padX * 2;
+  const innerH = H - padY * 2;
+  const n = series.length;
 
-function renderMomentumProgressChart(track) {
-  const series = getDailyProgressSeries(14, track);
-  const summary = momentumChartSummary(series);
-  const ariaLabel = series
-    .filter((d) => !d.isFuture)
-    .map((d) => `${d.title}`)
-    .join("; ");
+  const coords = series.map((d, i) => {
+    const x = padX + (i / Math.max(1, n - 1)) * innerW;
+    if (d.isFuture || d.score == null) return { x, y: null, d };
+    const y = padY + innerH - (d.score / 100) * innerH;
+    return { x, y, d };
+  });
 
-  const cols = series
-    .map((d) => {
-      const sessionH = d.sessionDone ? 50 : 0;
-      const habitH = Math.round(d.habitPct * 0.5);
-      let cls = "momentum-chart-col";
-      if (d.isToday) cls += " today";
-      if (d.isFuture) cls += " future";
-      return `<div class="${cls}" title="${d.title}">
-        <div class="momentum-chart-bar" aria-hidden="true">
-          <span class="momentum-chart-seg session" style="height:${sessionH}%"></span>
-          <span class="momentum-chart-seg habits" style="height:${habitH}%"></span>
-        </div>
-        <span class="momentum-chart-label">${d.shortLabel}</span>
-      </div>`;
+  const valid = coords.filter((c) => c.y != null);
+  const linePath = valid
+    .map((c, i) => `${i === 0 ? "M" : "L"} ${c.x.toFixed(1)} ${c.y.toFixed(1)}`)
+    .join(" ");
+  const areaPath = valid.length
+    ? `${linePath} L ${valid[valid.length - 1].x.toFixed(1)} ${(padY + innerH).toFixed(1)} L ${valid[0].x.toFixed(1)} ${(padY + innerH).toFixed(1)} Z`
+    : "";
+
+  const dots = valid
+    .map((c) => {
+      const tier = performanceTier(c.d.score);
+      const col = PERF_TIERS[tier].color;
+      const r = c.d.isToday ? 5.5 : 4;
+      const stroke = c.d.isToday ? "#1a1428" : "#fff";
+      const sw = c.d.isToday ? 2 : 1.5;
+      return `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="${sw}"/>`;
     })
     .join("");
 
+  const labels = series
+    .map((d, i) => {
+      const x = padX + (i / Math.max(1, n - 1)) * innerW;
+      const cls = d.isToday ? "perf-svg-label today" : "perf-svg-label";
+      return `<text x="${x.toFixed(1)}" y="${H - 2}" text-anchor="middle" class="${cls}">${d.shortLabel}</text>`;
+    })
+    .join("");
+
+  const grid = [0.25, 0.5, 0.75]
+    .map((pct) => {
+      const y = padY + innerH * (1 - pct);
+      return `<line x1="${padX}" y1="${y.toFixed(1)}" x2="${W - padX}" y2="${y.toFixed(1)}" class="perf-grid-line"/>`;
+    })
+    .join("");
+
+  return `<svg viewBox="0 0 ${W} ${H}" class="perf-svg" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <linearGradient id="perfLineGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#f87171"/>
+        <stop offset="45%" stop-color="#60a5fa"/>
+        <stop offset="100%" stop-color="#4ade80"/>
+      </linearGradient>
+      <linearGradient id="perfAreaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#60a5fa28"/>
+        <stop offset="100%" stop-color="#60a5fa00"/>
+      </linearGradient>
+    </defs>
+    ${grid}
+    ${areaPath ? `<path d="${areaPath}" fill="url(#perfAreaGrad)"/>` : ""}
+    ${linePath ? `<path d="${linePath}" fill="none" stroke="url(#perfLineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
+    ${dots}
+    ${labels}
+  </svg>`;
+}
+
+function renderPerformanceGraph(track) {
+  const series = getPerformanceSeries(7, track);
+  const svg = buildPerformanceGraphSvg(series);
+  const ariaLabel = series
+    .filter((d) => !d.isFuture && d.score != null)
+    .map((d) => `${d.shortLabel}: ${d.score}%`)
+    .join(", ");
+
   return `
-    <div class="momentum-chart">
-      <div class="momentum-chart-head">
-        <strong>Daily progress</strong>
-        <div class="momentum-chart-legend" aria-hidden="true">
-          <span><i class="leg-session"></i>Session</span>
-          <span><i class="leg-habits"></i>Habits</span>
-        </div>
+    <div class="perf-graph">
+      <div class="perf-graph-head">
+        <strong>Performance</strong>
+        <span class="perf-graph-sub">Last 7 days</span>
       </div>
-      <div class="momentum-chart-cols" role="img" aria-label="14-day progress chart. ${ariaLabel}">
-        ${cols}
+      <div class="perf-graph-canvas" role="img" aria-label="7-day performance: ${ariaLabel || "no data yet"}">
+        ${svg}
       </div>
-      <p class="momentum-chart-foot">${summary}</p>
+      <div class="perf-graph-legend" aria-hidden="true">
+        <span><i style="background:#f87171"></i>Low</span>
+        <span><i style="background:#60a5fa"></i>Building</span>
+        <span><i style="background:#4ade80"></i>Strong</span>
+      </div>
     </div>`;
 }
 
@@ -1693,11 +1755,11 @@ function renderTrackExtras() {
   const checks = todayHabitMap();
   const doneCount = habits.filter((h) => checks[h.id]).length;
   const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
-  const consistency = computeConsistencyScore(14);
-  const weekDays = getWeekTrainingDays();
-  const weekSessions = weekDays.filter((d) => d.sessionDone).length;
   const earnedCount = BADGE_CATALOG.filter((b) => state.unlockedBadges?.[b.id]).length;
-  const progressChartHtml = renderMomentumProgressChart(track);
+  const todayScore = dayPerformanceScore(dateKey(), track, true);
+  const todayTier = performanceTier(todayScore);
+  const todayTierMeta = PERF_TIERS[todayTier];
+  const performanceGraphHtml = renderPerformanceGraph(track);
 
   renderHomeWeek();
 
@@ -1747,30 +1809,12 @@ function renderTrackExtras() {
               <h2 class="panel-title">Keep the rhythm</h2>
               <p class="momentum-lead">${momentumCopy(track)}</p>
             </div>
-            <div class="momentum-ring" style="--pct:${consistency}" aria-label="${consistency}% consistent">
-              <span class="momentum-ring-value">${consistency}<small>%</small></span>
-              <span class="momentum-ring-label">14-day</span>
+            <div class="momentum-ring perf-ring tier-${todayTier}" style="--pct:${todayScore};--ring-color:${todayTierMeta.color};--ring-track:${todayTierMeta.ring}" aria-label="${todayScore}% performance today">
+              <span class="momentum-ring-value" style="color:${todayTierMeta.color}">${todayScore}<small>%</small></span>
+              <span class="momentum-ring-label">Today</span>
             </div>
           </div>
-          <div class="momentum-week">
-            <div class="momentum-week-head">
-              <strong>This week</strong>
-              <span>${weekSessions} session${weekSessions === 1 ? "" : "s"}</span>
-            </div>
-            <div class="momentum-week-strip" role="list">
-              ${weekDays
-                .map((d) => {
-                  let cls = "momentum-day";
-                  if (d.sessionDone) cls += " done";
-                  if (d.isToday) cls += " today";
-                  if (d.isFuture) cls += " future";
-                  const inner = d.sessionDone ? "✓" : d.label;
-                  return `<div class="${cls}" role="listitem" title="${d.label}"><span>${inner}</span></div>`;
-                })
-                .join("")}
-            </div>
-          </div>
-          ${progressChartHtml}
+          ${performanceGraphHtml}
           <button type="button" class="momentum-cta" data-open-achievements>
             <span>View achievements</span>
             <span aria-hidden="true">›</span>

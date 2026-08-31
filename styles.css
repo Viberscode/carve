@@ -1631,12 +1631,12 @@ button {
   padding: 18px;
   border-radius: 28px;
   background:
-    radial-gradient(ellipse 90% 70% at 100% 0%, #ffedd599, transparent 60%),
-    radial-gradient(ellipse 80% 65% at 0% 100%, #fff1e688, transparent 55%),
-    linear-gradient(165deg, #fffdfb 0%, #fff8f0 45%, #fff1e6 100%);
-  border: 1px solid #fdebd2;
+    radial-gradient(ellipse 85% 70% at 100% 0%, #dbeafe55, transparent 58%),
+    radial-gradient(ellipse 75% 60% at 0% 100%, #dcfce755, transparent 52%),
+    linear-gradient(165deg, #ffffff 0%, #f8fafc 52%, #f1f5f9 100%);
+  border: 1px solid #e2e8f0;
   box-shadow:
-    0 14px 32px #fdba7422,
+    0 14px 32px #64748b18,
     inset 0 1px 0 #ffffffee;
 }
 
@@ -1654,7 +1654,7 @@ button {
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #e8945a;
+  color: #64748b;
 }
 
 .momentum-shell .panel-title {
@@ -1671,12 +1671,14 @@ button {
   margin: 0;
   font-size: 14px;
   line-height: 1.5;
-  color: #8b7355;
+  color: #64748b;
   max-width: 26ch;
 }
 
 .momentum-ring {
   --pct: 0;
+  --ring-color: #60a5fa;
+  --ring-track: #e2e8f0;
   width: 78px;
   height: 78px;
   border-radius: 50%;
@@ -1685,17 +1687,16 @@ button {
   place-items: center;
   align-content: center;
   background:
-    radial-gradient(circle at center, #fffbf7 58%, transparent 59%),
+    radial-gradient(circle at center, #ffffff 58%, transparent 59%),
     conic-gradient(
-      #fde8cf 0%,
-      #fed7aa calc(var(--pct) * 0.5%),
-      #fdba74 calc(var(--pct) * 1%),
-      #fff1e6 0
+      var(--ring-color) 0%,
+      var(--ring-color) calc(var(--pct) * 1%),
+      var(--ring-track) 0
     );
   box-shadow:
     inset 0 0 0 1px #ffffffee,
-    0 8px 20px #fdba7428,
-    0 0 0 5px #fffaf5;
+    0 8px 20px #64748b18,
+    0 0 0 5px #f8fafc;
 }
 
 .momentum-ring-value {
@@ -1716,7 +1717,7 @@ button {
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #e8945a;
+  color: #64748b;
 }
 
 .momentum-week {
@@ -1868,163 +1869,106 @@ button {
   justify-content: space-between;
   gap: 10px;
   padding: 14px 18px;
-  border: 1px solid #fdebd2;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   font-family: var(--font-display);
   font-size: 15px;
   font-weight: 800;
-  color: #c27803;
-  background: linear-gradient(135deg, #fffdfb 0%, #fff4e8 38%, #ffedd5 72%, #fde8cf 100%);
+  color: #1e3a5f;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 55%, #f1f5f9 100%);
   box-shadow:
-    0 8px 20px #fdba7420,
+    0 8px 20px #64748b14,
     inset 0 1px 0 #ffffffcc;
   cursor: pointer;
 }
 
 .momentum-cta:active {
   transform: scale(0.985);
-  background: linear-gradient(135deg, #fff8f0 0%, #ffedd5 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
 }
 
-.momentum-chart {
-  padding: 14px 12px 12px;
+.perf-graph {
+  padding: 14px;
   border-radius: 20px;
-  background: #fffcf9ee;
-  border: 1px solid #fdebd2;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   margin-bottom: 14px;
+  box-shadow: inset 0 1px 0 #ffffff;
 }
 
-.momentum-chart-head {
+.perf-graph-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 10px;
 }
 
-.momentum-chart-head strong {
+.perf-graph-head strong {
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 800;
   color: #1a1428;
 }
 
-.momentum-chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px 12px;
+.perf-graph-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.perf-graph-canvas {
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #f1f5f9;
+}
+
+.perf-svg {
+  display: block;
+  width: 100%;
+  height: 96px;
+}
+
+.perf-grid-line {
+  stroke: #e2e8f0;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.perf-svg-label {
+  fill: #94a3b8;
   font-size: 10px;
   font-weight: 700;
-  color: #8b7355;
+  font-family: "Montserrat", "Outfit", sans-serif;
 }
 
-.momentum-chart-legend span {
+.perf-svg-label.today {
+  fill: #1a1428;
+  font-weight: 800;
+}
+
+.perf-graph-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.perf-graph-legend span {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
-.momentum-chart-legend i {
+.perf-graph-legend i {
   width: 8px;
   height: 8px;
-  border-radius: 3px;
+  border-radius: 50%;
   flex-shrink: 0;
-}
-
-.momentum-chart-legend .leg-session {
-  background: linear-gradient(180deg, #fed7aa, #fb923c);
-  box-shadow: 0 1px 4px #fb923c44;
-}
-
-.momentum-chart-legend .leg-habits {
-  background: linear-gradient(180deg, #86efac, #34d399);
-  box-shadow: 0 1px 4px #34d39944;
-}
-
-.momentum-chart-cols {
-  display: grid;
-  grid-template-columns: repeat(14, 1fr);
-  gap: 3px;
-  align-items: end;
-  height: 96px;
-  padding: 6px 2px 0;
-  border-radius: 14px;
-  background:
-    linear-gradient(to top, #fdebd266 1px, transparent 1px) 0 100% / 100% 25%,
-    linear-gradient(to top, #fdebd244 1px, transparent 1px) 0 100% / 100% 50%,
-    linear-gradient(to top, #fdebd233 1px, transparent 1px) 0 100% / 100% 75%,
-    linear-gradient(180deg, #fffaf5 0%, #fff7ed 100%);
-}
-
-.momentum-chart-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  height: 100%;
-  justify-content: flex-end;
-  min-width: 0;
-}
-
-.momentum-chart-bar {
-  width: 100%;
-  max-width: 16px;
-  height: 72px;
-  border-radius: 7px;
-  background: #fff1e6;
-  display: flex;
-  flex-direction: column-reverse;
-  overflow: hidden;
-  box-shadow: inset 0 1px 2px #fdebd2;
-}
-
-.momentum-chart-seg {
-  width: 100%;
-  min-height: 0;
-  transition: height 0.35s ease;
-}
-
-.momentum-chart-seg.habits {
-  background: linear-gradient(180deg, #bbf7d0 0%, #34d399 100%);
-}
-
-.momentum-chart-seg.session {
-  background: linear-gradient(180deg, #ffedd5 0%, #fb923c 100%);
-  box-shadow: 0 -1px 0 #ffffff55 inset;
-}
-
-.momentum-chart-col.today .momentum-chart-bar {
-  box-shadow:
-    inset 0 1px 2px #fdebd2,
-    0 0 0 2px #fed7aa;
-}
-
-.momentum-chart-col.future {
-  opacity: 0.38;
-}
-
-.momentum-chart-label {
-  font-size: 9px;
-  font-weight: 800;
-  color: #b8896a;
-  line-height: 1;
-}
-
-.momentum-chart-col.today .momentum-chart-label {
-  color: #e8945a;
-  font-size: 11px;
-}
-
-.momentum-chart-foot {
-  margin: 10px 0 0;
-  padding-top: 8px;
-  border-top: 1px solid #fdebd2;
-  font-size: 12px;
-  font-weight: 700;
-  color: #b8896a;
-  text-align: center;
-  line-height: 1.35;
 }
 
 .care-head {
