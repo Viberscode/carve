@@ -5000,6 +5000,22 @@ button {
   border: 1px solid rgba(148, 163, 184, 0.22);
   color: #f8fafc;
   overflow: hidden;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+#my-progress-today-card .panel-head {
+  margin-bottom: 6px;
+}
+
+#my-progress-today-card .card-title {
+  font-size: 16px;
+}
+
+#my-progress-today-card .reports-photos-lead {
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0;
 }
 
 #my-progress-today-card .card-title,
@@ -5017,12 +5033,12 @@ button {
 }
 
 .my-progress-today-preview {
-  margin-top: 14px;
+  margin-top: 8px;
 }
 
 .my-progress-today-preview-grid {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .my-progress-today-preview-grid.is-dual {
@@ -5030,14 +5046,14 @@ button {
 }
 
 .my-progress-today-slot {
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 8px 10px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  min-height: 148px;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .my-progress-today-slot.face.has-data {
@@ -5051,7 +5067,7 @@ button {
 }
 
 .my-progress-today-slot-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -5060,9 +5076,9 @@ button {
 
 .my-progress-today-slot-media {
   position: relative;
-  flex: 1;
-  min-height: 88px;
-  border-radius: 12px;
+  height: 56px;
+  max-height: 56px;
+  border-radius: 10px;
   overflow: hidden;
   background: rgba(15, 23, 42, 0.55);
   display: flex;
@@ -5077,25 +5093,25 @@ button {
 }
 
 .my-progress-today-slot-media.voice {
-  padding: 10px 12px;
+  padding: 6px 10px;
 }
 
 .my-progress-today-scores {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .my-progress-today-score-meta {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(226, 232, 240, 0.78);
 }
 
 .my-progress-today-empty {
   margin: 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: rgba(203, 213, 225, 0.72);
 }
@@ -5103,17 +5119,17 @@ button {
 .my-progress-today-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .my-progress-action-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
+  padding: 9px 11px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.08);
   color: #f8fafc;
@@ -5136,28 +5152,28 @@ button {
 }
 
 .my-progress-action-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 16px;
   background: rgba(255, 255, 255, 0.1);
 }
 
 .my-progress-action-copy {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .my-progress-action-copy strong {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
 }
 
 .my-progress-action-copy em {
-  font-size: 11px;
+  font-size: 10px;
   font-style: normal;
   font-weight: 600;
   color: rgba(226, 232, 240, 0.72);

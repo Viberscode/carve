@@ -2644,7 +2644,7 @@ function openAnalysisForDailyProgress(kind = "auto") {
   }
   state.stack = ["reports"];
   showView("reports");
-  window.setTimeout(() => {
+  window.setTimeout(async () => {
     const modes = dailyProgressModes();
     const todayEntry = loadDailyProgress()[dateKey()] || {};
     const wantFace =
@@ -2656,18 +2656,20 @@ function openAnalysisForDailyProgress(kind = "auto") {
       if (isFullPresenceMode()) {
         presenceAnalysisOpen.face = true;
         syncPresenceAnalysisCards();
-        renderFaceAnalysis();
       }
-      startFaceCamera();
+      scrollAnalysisCardIntoView("#reports-face-analysis-card");
+      await startFaceCamera();
+      window.setTimeout(() => scrollAnalysisCardIntoView("#reports-face-analysis-card"), 180);
       return;
     }
     if (wantVoice) {
       if (isFullPresenceMode()) {
         presenceAnalysisOpen.voice = true;
         syncPresenceAnalysisCards();
-        renderVoiceAnalysis();
       }
-      startVoiceAnalysisRecorder();
+      scrollAnalysisCardIntoView("#reports-voice-analysis-card");
+      await startVoiceAnalysisRecorder();
+      window.setTimeout(() => scrollAnalysisCardIntoView("#reports-voice-analysis-card"), 180);
     }
   }, 120);
 }
@@ -2675,20 +2677,23 @@ function openAnalysisForDailyProgress(kind = "auto") {
 function goToAnalysisFromMyProgress() {
   state.stack = ["reports"];
   showView("reports");
-  window.setTimeout(() => {
+  window.setTimeout(async () => {
     if (isFullPresenceMode()) {
       presenceAnalysisOpen.face = true;
       syncPresenceAnalysisCards();
-      renderFaceAnalysis();
-      scrollAnalysisCardIntoView("#reports-presence-analysis-section");
+      scrollAnalysisCardIntoView("#reports-face-analysis-card");
       showToast("Complete face and voice analysis to unlock daily check-ins");
       return;
     }
     if (isVoiceProgressMode()) {
-      startVoiceAnalysisRecorder();
+      scrollAnalysisCardIntoView("#reports-voice-analysis-card");
+      await startVoiceAnalysisRecorder();
+      window.setTimeout(() => scrollAnalysisCardIntoView("#reports-voice-analysis-card"), 180);
       return;
     }
-    startFaceCamera();
+    scrollAnalysisCardIntoView("#reports-face-analysis-card");
+    await startFaceCamera();
+    window.setTimeout(() => scrollAnalysisCardIntoView("#reports-face-analysis-card"), 180);
   }, 120);
 }
 
