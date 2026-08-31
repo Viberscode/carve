@@ -1558,6 +1558,90 @@ function badgeProgressToward(badge, ctx) {
   return { label: "", pct: 0, remaining: 0 };
 }
 
+function dayHabitProgress(key, track) {
+  const habits = habitCatalog(track);
+  if (!habits.length) return 0;
+  const map = state.habitChecks?.[key];
+  if (!map || typeof map !== "object") return 0;
+  const done = habits.filter((h) => map[h.id]).length;
+  return Math.round((done / habits.length) * 100);
+}
+
+function getDailyProgressSeries(days = 14, track = state.track || "face") {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const todayKey = dateKey(now);
+
+  return Array.from({ length: days }, (_, i) => {
+    const offset = i - (days - 1);
+    const d = new Date(now);
+    d.setDate(now.getDate() + offset);
+    const key = dateKey(d);
+    const isToday = key === todayKey;
+    const isFuture = d > now;
+    const sessionDone = hasSessionOnDate(key);
+    const habitPct = dayHabitProgress(key, track);
+    const dayNum = d.getDate();
+    const shortLabel = isToday ? "•" : String(dayNum);
+    const title = isFuture
+      ? `${d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · Upcoming`
+      : `${d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })} · ${sessionDone ? "Session done" : "No session"} · ${habitPct}% habits`;
+    return { key, shortLabel, isToday, isFuture, sessionDone, habitPct, title };
+  });
+}
+
+function momentumChartSummary(series) {
+  const past = series.filter((d) => !d.isFuture);
+  if (!past.length) return "Your graph fills in as you train and check habits.";
+  const sessions = past.filter((d) => d.sessionDone).length;
+  const habitAvg = Math.round(past.reduce((sum, d) => sum + d.habitPct, 0) / past.length);
+  if (sessions === 0 && habitAvg === 0) {
+    return "Start today — orange is training, green is daily habits.";
+  }
+  return `${sessions} session${sessions === 1 ? "" : "s"} · ${habitAvg}% habits avg`;
+}
+
+function renderMomentumProgressChart(track) {
+  const series = getDailyProgressSeries(14, track);
+  const summary = momentumChartSummary(series);
+  const ariaLabel = series
+    .filter((d) => !d.isFuture)
+    .map((d) => `${d.title}`)
+    .join("; ");
+
+  const cols = series
+    .map((d) => {
+      const sessionH = d.sessionDone ? 50 : 0;
+      const habitH = Math.round(d.habitPct * 0.5);
+      let cls = "momentum-chart-col";
+      if (d.isToday) cls += " today";
+      if (d.isFuture) cls += " future";
+      return `<div class="${cls}" title="${d.title}">
+        <div class="momentum-chart-bar" aria-hidden="true">
+          <span class="momentum-chart-seg session" style="height:${sessionH}%"></span>
+          <span class="momentum-chart-seg habits" style="height:${habitH}%"></span>
+        </div>
+        <span class="momentum-chart-label">${d.shortLabel}</span>
+      </div>`;
+    })
+    .join("");
+
+  return `
+    <div class="momentum-chart">
+      <div class="momentum-chart-head">
+        <strong>Daily progress</strong>
+        <div class="momentum-chart-legend" aria-hidden="true">
+          <span><i class="leg-session"></i>Session</span>
+          <span><i class="leg-habits"></i>Habits</span>
+        </div>
+      </div>
+      <div class="momentum-chart-cols" role="img" aria-label="14-day progress chart. ${ariaLabel}">
+        ${cols}
+      </div>
+      <p class="momentum-chart-foot">${summary}</p>
+    </div>`;
+}
+
 function momentumCopy(track) {
   if (track === "voice") return "Small daily reps compound into a clearer, calmer voice.";
   if (track === "both") return "Face and voice habits stack — consistency beats intensity.";
@@ -1609,46 +1693,13 @@ function renderTrackExtras() {
   const checks = todayHabitMap();
   const doneCount = habits.filter((h) => checks[h.id]).length;
   const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
-  const sessionsDone = Math.max(0, state.currentDay - 1);
-  const photoCount = loadReportProgressCount();
-  const totalMinutes = sessionsDone * 9;
-  const badgeCtx = badgeContext(sessionsDone, photoCount, totalMinutes);
   const consistency = computeConsistencyScore(14);
   const weekDays = getWeekTrainingDays();
   const weekSessions = weekDays.filter((d) => d.sessionDone).length;
-  const nextBadge = nextBadgeToUnlock(badgeCtx);
   const earnedCount = BADGE_CATALOG.filter((b) => state.unlockedBadges?.[b.id]).length;
+  const progressChartHtml = renderMomentumProgressChart(track);
 
   renderHomeWeek();
-
-  let milestoneHtml = "";
-  if (nextBadge) {
-    const display = badgeDisplayMeta(nextBadge);
-    const progress = badgeProgressToward(nextBadge, badgeCtx);
-    milestoneHtml = `
-      <div class="momentum-milestone">
-        <div class="momentum-milestone-badge tier-${nextBadge.tier}" aria-hidden="true">${display.emoji}</div>
-        <div class="momentum-milestone-copy">
-          <p class="momentum-milestone-kicker">Next unlock</p>
-          <strong>${display.title}</strong>
-          <span>${display.sub}</span>
-          <div class="momentum-milestone-track">
-            <div class="momentum-milestone-fill" style="width:${progress.pct}%"></div>
-          </div>
-          <small>${progress.label}</small>
-        </div>
-      </div>`;
-  } else {
-    milestoneHtml = `
-      <div class="momentum-milestone momentum-milestone-complete">
-        <div class="momentum-milestone-badge tier-legend" aria-hidden="true">👑</div>
-        <div class="momentum-milestone-copy">
-          <p class="momentum-milestone-kicker">All earned</p>
-          <strong>Every badge unlocked</strong>
-          <span>You’ve built a real CARVE rhythm — keep showing up.</span>
-        </div>
-      </div>`;
-  }
 
   root.innerHTML = `
     <div class="extras-block">
@@ -1719,7 +1770,7 @@ function renderTrackExtras() {
                 .join("")}
             </div>
           </div>
-          ${milestoneHtml}
+          ${progressChartHtml}
           <button type="button" class="momentum-cta" data-open-achievements>
             <span>View achievements</span>
             <span aria-hidden="true">›</span>

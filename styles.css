@@ -1886,6 +1886,147 @@ button {
   background: linear-gradient(135deg, #fff8f0 0%, #ffedd5 100%);
 }
 
+.momentum-chart {
+  padding: 14px 12px 12px;
+  border-radius: 20px;
+  background: #fffcf9ee;
+  border: 1px solid #fdebd2;
+  margin-bottom: 14px;
+}
+
+.momentum-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.momentum-chart-head strong {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: #1a1428;
+}
+
+.momentum-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8b7355;
+}
+
+.momentum-chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.momentum-chart-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.momentum-chart-legend .leg-session {
+  background: linear-gradient(180deg, #fed7aa, #fb923c);
+  box-shadow: 0 1px 4px #fb923c44;
+}
+
+.momentum-chart-legend .leg-habits {
+  background: linear-gradient(180deg, #86efac, #34d399);
+  box-shadow: 0 1px 4px #34d39944;
+}
+
+.momentum-chart-cols {
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  gap: 3px;
+  align-items: end;
+  height: 96px;
+  padding: 6px 2px 0;
+  border-radius: 14px;
+  background:
+    linear-gradient(to top, #fdebd266 1px, transparent 1px) 0 100% / 100% 25%,
+    linear-gradient(to top, #fdebd244 1px, transparent 1px) 0 100% / 100% 50%,
+    linear-gradient(to top, #fdebd233 1px, transparent 1px) 0 100% / 100% 75%,
+    linear-gradient(180deg, #fffaf5 0%, #fff7ed 100%);
+}
+
+.momentum-chart-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  height: 100%;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.momentum-chart-bar {
+  width: 100%;
+  max-width: 16px;
+  height: 72px;
+  border-radius: 7px;
+  background: #fff1e6;
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px #fdebd2;
+}
+
+.momentum-chart-seg {
+  width: 100%;
+  min-height: 0;
+  transition: height 0.35s ease;
+}
+
+.momentum-chart-seg.habits {
+  background: linear-gradient(180deg, #bbf7d0 0%, #34d399 100%);
+}
+
+.momentum-chart-seg.session {
+  background: linear-gradient(180deg, #ffedd5 0%, #fb923c 100%);
+  box-shadow: 0 -1px 0 #ffffff55 inset;
+}
+
+.momentum-chart-col.today .momentum-chart-bar {
+  box-shadow:
+    inset 0 1px 2px #fdebd2,
+    0 0 0 2px #fed7aa;
+}
+
+.momentum-chart-col.future {
+  opacity: 0.38;
+}
+
+.momentum-chart-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: #b8896a;
+  line-height: 1;
+}
+
+.momentum-chart-col.today .momentum-chart-label {
+  color: #e8945a;
+  font-size: 11px;
+}
+
+.momentum-chart-foot {
+  margin: 10px 0 0;
+  padding-top: 8px;
+  border-top: 1px solid #fdebd2;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b8896a;
+  text-align: center;
+  line-height: 1.35;
+}
+
 .care-head {
   margin-bottom: 16px;
 }
