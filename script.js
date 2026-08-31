@@ -2450,7 +2450,7 @@ function exportProgressPdf() {
   doc.setFontSize(9);
   setColor(71, 85, 105);
   const summaryNote = modes.photo && modes.voice
-    ? "Face photos and voice scores from your private daily log."
+    ? "Face photos, face scores, and voice scores from your private daily log."
     : modes.voice
       ? "Voice scores from your private daily log."
       : "Face photos and scores from your private daily log.";
@@ -2464,9 +2464,22 @@ function exportProgressPdf() {
   doc.text("Day-by-day journey", margin, y);
   y += 8;
 
+  const isDualMode = modes.photo && modes.voice;
+
+  function drawScoreBlock(title, titleRgb, lines, x, blockY) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    setColor(titleRgb[0], titleRgb[1], titleRgb[2]);
+    doc.text(title, x, blockY);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    setColor(51, 65, 85);
+    lines.forEach((line, i) => doc.text(line, x, blockY + 5 + i * 5.5));
+  }
+
   days.forEach((day) => {
     const hasData = day.hasFace || day.hasVoice;
-    const cardH = modes.photo && modes.voice ? 58 : modes.photo ? 54 : 42;
+    const cardH = isDualMode ? 72 : modes.photo ? 54 : 42;
     newPageIfNeeded(cardH + 6);
 
     const complete = day.complete;
@@ -2496,6 +2509,81 @@ function exportProgressPdf() {
     const contentX = margin + 22;
     const contentY = y + 22;
 
+    if (!hasData && !isDualMode) {
+      setColor(148, 163, 184);
+      doc.setFontSize(9);
+      const emptyMsg = day.isFuture ? "Coming up — not yet due" : "No check-in recorded";
+      doc.text(emptyMsg, contentX, contentY + 6);
+      y += cardH + 6;
+      return;
+    }
+
+    if (isDualMode) {
+      const photoSize = 28;
+      const photoX = margin + 20;
+      const photoY = y + 22;
+
+      if (day.hasFace) {
+        try {
+          doc.addImage(day.entry.face.photo, pdfImageFormat(day.entry.face.photo), photoX, photoY, photoSize, photoSize);
+          stroke(191, 219, 254);
+          doc.setLineWidth(0.4);
+          doc.roundedRect(photoX, photoY, photoSize, photoSize, 2, 2, "S");
+        } catch (_) {
+          fill(241, 245, 249);
+          doc.roundedRect(photoX, photoY, photoSize, photoSize, 2, 2, "F");
+        }
+      } else {
+        fill(241, 245, 249);
+        stroke(203, 213, 225);
+        doc.roundedRect(photoX, photoY, photoSize, photoSize, 2, 2, "FD");
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7);
+        setColor(148, 163, 184);
+        doc.text("No photo", photoX + photoSize / 2, photoY + photoSize / 2 + 1, { align: "center" });
+      }
+
+      const faceX = margin + 54;
+      const face = day.entry.face;
+      drawScoreBlock(
+        "Face Form scores",
+        [29, 78, 216],
+        day.hasFace
+          ? [
+              `Overall   ${face.jawlineScore}`,
+              `Balance   ${face.symmetry}%`,
+              `Outline   ${Number(face.jawRatio).toFixed(2)}`,
+            ]
+          : ["Overall   —", "Balance   —", "Outline   —"],
+        faceX,
+        contentY
+      );
+
+      const voice = day.entry.voice;
+      drawScoreBlock(
+        "Voice Grain scores",
+        [190, 18, 60],
+        day.hasVoice
+          ? [
+              `Overall     ${voice.voiceScore}`,
+              `Resonance ${voice.resonanceScore}%`,
+              `Clarity     ${voice.clarityScore}%`,
+            ]
+          : ["Overall     —", "Resonance —", "Clarity     —"],
+        faceX + 52,
+        contentY
+      );
+
+      if (!hasData) {
+        setColor(148, 163, 184);
+        doc.setFontSize(8);
+        doc.text(day.isFuture ? "Coming up" : "Awaiting check-ins", faceX, contentY + 34);
+      }
+
+      y += cardH + 6;
+      return;
+    }
+
     if (!hasData) {
       setColor(148, 163, 184);
       doc.setFontSize(9);
@@ -2520,35 +2608,28 @@ function exportProgressPdf() {
         textX = contentX;
       }
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      setColor(29, 78, 216);
-      doc.text("Face scores", textX, contentY);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      setColor(51, 65, 85);
-      doc.text(`Overall  ${face.jawlineScore}`, textX, contentY + 6);
-      doc.text(`Balance  ${face.symmetry}%`, textX + 42, contentY + 6);
-      doc.text(`Outline  ${Number(face.jawRatio).toFixed(2)}`, textX, contentY + 12);
+      drawScoreBlock(
+        "Face scores",
+        [29, 78, 216],
+        [`Overall  ${face.jawlineScore}`, `Balance  ${face.symmetry}%`, `Outline  ${Number(face.jawRatio).toFixed(2)}`],
+        textX,
+        contentY
+      );
     }
 
     if (modes.voice && day.hasVoice) {
       const voice = day.entry.voice;
-      const voiceX = modes.photo && day.hasFace ? textX + 50 : contentX;
-      const voiceY = contentY;
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(9);
-      setColor(190, 18, 60);
-      doc.text("Voice scores", voiceX, voiceY);
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      setColor(51, 65, 85);
-      doc.text(`Overall     ${voice.voiceScore}`, voiceX, voiceY + 6);
-      doc.text(`Resonance ${voice.resonanceScore}%`, voiceX, voiceY + 12);
-      doc.text(`Clarity     ${voice.clarityScore}%`, voiceX + 44, voiceY + 12);
+      drawScoreBlock(
+        "Voice scores",
+        [190, 18, 60],
+        [
+          `Overall     ${voice.voiceScore}`,
+          `Resonance ${voice.resonanceScore}%`,
+          `Clarity     ${voice.clarityScore}%`,
+        ],
+        contentX,
+        contentY
+      );
     }
 
     y += cardH + 6;
