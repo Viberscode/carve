@@ -733,6 +733,7 @@ const state = {
   currentDay: 1,
   streak: 0,
   sessionDates: {},
+  exerciseSecondsByDate: {},
   unlockedBadges: {},
   habitChecks: {},
   profileName: "Priya",
@@ -784,6 +785,7 @@ function saveState() {
         currentDay: state.currentDay,
         streak: state.streak,
         sessionDates: state.sessionDates,
+        exerciseSecondsByDate: state.exerciseSecondsByDate,
         unlockedBadges: state.unlockedBadges,
         habitChecks: state.habitChecks,
         profileName: state.profileName,
@@ -812,6 +814,10 @@ function loadState() {
     state.streak = data.streak || 0;
     state.sessionDates =
       data.sessionDates && typeof data.sessionDates === "object" ? data.sessionDates : {};
+    state.exerciseSecondsByDate =
+      data.exerciseSecondsByDate && typeof data.exerciseSecondsByDate === "object"
+        ? data.exerciseSecondsByDate
+        : {};
     state.unlockedBadges =
       data.unlockedBadges && typeof data.unlockedBadges === "object" ? data.unlockedBadges : {};
     state.habitChecks = data.habitChecks && typeof data.habitChecks === "object" ? data.habitChecks : {};
@@ -1172,6 +1178,7 @@ function selectTrack(track) {
       state.currentDay = 1;
       state.streak = 0;
       state.sessionDates = {};
+      state.exerciseSecondsByDate = {};
       state.unlockedBadges = {};
       state.habitChecks = {};
       state.startedAt = dateKey();
@@ -1558,6 +1565,55 @@ function badgeProgressToward(badge, ctx) {
   return { label: "", pct: 0, remaining: 0 };
 }
 
+function formatExerciseDuration(seconds) {
+  const secs = Math.max(0, Math.round(seconds || 0));
+  if (!secs) return "0 min";
+  const mins = Math.floor(secs / 60);
+  const rest = secs % 60;
+  if (!mins) return `${rest}s`;
+  if (!rest) return `${mins} min`;
+  return `${mins}m ${rest}s`;
+}
+
+function addExerciseSeconds(seconds, key = dateKey()) {
+  const secs = Math.max(0, Math.round(seconds || 0));
+  if (!secs) return;
+  if (!state.exerciseSecondsByDate || typeof state.exerciseSecondsByDate !== "object") {
+    state.exerciseSecondsByDate = {};
+  }
+  state.exerciseSecondsByDate[key] = (state.exerciseSecondsByDate[key] || 0) + secs;
+}
+
+function recordCompletedExerciseTime() {
+  addExerciseSeconds(state.total || 0);
+}
+
+function estimateDayExerciseSeconds(day) {
+  if (!day) return 0;
+  let items = [];
+  if (day.roadmap?.length) items = day.roadmap.map(roadmapToSessionItem);
+  else if (day.ids?.length) items = day.ids.map((id) => exercises[id]).filter(Boolean);
+  const done = dayDoneCount(day);
+  let total = 0;
+  for (let i = 0; i < done; i += 1) {
+    const ex = items[i];
+    if (!ex) continue;
+    total += ex.duration || (ex.reps || 10) * 3;
+  }
+  return total;
+}
+
+function getDayExerciseSeconds(key, isToday = false) {
+  const stored = state.exerciseSecondsByDate?.[key] || 0;
+  if (stored > 0) return stored;
+  if (hasSessionOnDate(key)) return 9 * 60;
+  if (isToday) {
+    const day = state.days?.find((d) => d.n === (state.openDayN || state.currentDay));
+    return estimateDayExerciseSeconds(day);
+  }
+  return 0;
+}
+
 function dayHabitProgress(key, track) {
   const habits = habitCatalog(track);
   if (!habits.length) return 0;
@@ -1592,6 +1648,7 @@ function dayPerformanceScore(key, track, isToday = false) {
 }
 
 const DEMO_PERF_SCORES = [18, 42, 35, 68, 55, 88, 52];
+const DEMO_EXERCISE_SECONDS = [2, 5, 4, 9, 7, 12, 6].map((m) => m * 60);
 
 function hasPerformanceData(series) {
   return series.some((d) => !d.isFuture && (d.score ?? 0) > 0);
@@ -1602,6 +1659,7 @@ function getDemoPerformanceSeries(days = 7, track = state.track || "face") {
   return base.map((d, i) => ({
     ...d,
     score: d.isFuture ? null : DEMO_PERF_SCORES[i] ?? 40,
+    exerciseSeconds: d.isFuture ? 0 : DEMO_EXERCISE_SECONDS[i] ?? 0,
   }));
 }
 
@@ -1627,8 +1685,9 @@ function getPerformanceSeries(days = 7, track = state.track || "face") {
     const isToday = key === todayKey;
     const isFuture = d > now;
     const score = isFuture ? null : dayPerformanceScore(key, track, isToday);
+    const exerciseSeconds = isFuture ? 0 : getDayExerciseSeconds(key, isToday);
     const shortLabel = d.toLocaleDateString(undefined, { weekday: "narrow" });
-    return { key, shortLabel, isToday, isFuture, score };
+    return { key, shortLabel, isToday, isFuture, score, exerciseSeconds };
   });
 }
 
@@ -1663,7 +1722,12 @@ function buildPerformanceGraphSvg(series) {
       const r = c.d.isToday ? 5.5 : 4;
       const stroke = c.d.isToday ? "#1a1428" : "#fff";
       const sw = c.d.isToday ? 2 : 1.5;
-      return `<circle cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="${sw}"/>`;
+      const secs = c.d.exerciseSeconds || 0;
+      const timeLabel = formatExerciseDuration(secs);
+      return `<g class="perf-dot-group" data-perf-secs="${secs}" data-perf-label="${c.d.shortLabel}" role="button" tabindex="0" aria-label="${c.d.shortLabel}: ${timeLabel} exercised">
+        <circle class="perf-dot-hit" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="14" fill="transparent"/>
+        <circle class="perf-dot" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="${sw}"/>
+      </g>`;
     })
     .join("");
 
@@ -1682,7 +1746,7 @@ function buildPerformanceGraphSvg(series) {
     })
     .join("");
 
-  return `<svg viewBox="0 0 ${W} ${H}" class="perf-svg" preserveAspectRatio="none" aria-hidden="true">
+  return `<svg viewBox="0 0 ${W} ${H}" class="perf-svg" preserveAspectRatio="none">
     <defs>
       <linearGradient id="perfLineGrad" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0%" stop-color="#f87171"/>
@@ -1705,10 +1769,6 @@ function buildPerformanceGraphSvg(series) {
 function renderPerformanceGraph(track, display) {
   const { series, isDemo } = display || resolvePerformanceDisplay(track);
   const svg = buildPerformanceGraphSvg(series);
-  const ariaLabel = series
-    .filter((d) => !d.isFuture && d.score != null)
-    .map((d) => `${d.shortLabel}: ${d.score}%`)
-    .join(", ");
 
   return `
     <div class="perf-graph${isDemo ? " is-demo" : ""}">
@@ -1716,16 +1776,47 @@ function renderPerformanceGraph(track, display) {
         <strong>Performance</strong>
         <span class="perf-graph-sub">${isDemo ? "Sample preview" : "Last 7 days"}</span>
       </div>
-      <div class="perf-graph-canvas" role="img" aria-label="${isDemo ? "Sample performance preview. " : ""}7-day performance: ${ariaLabel || "no data yet"}">
+      <div class="perf-graph-canvas">
         ${svg}
+        <div class="perf-graph-tip" hidden role="status"></div>
       </div>
       <div class="perf-graph-legend" aria-hidden="true">
         <span><i style="background:#f87171"></i>Low</span>
         <span><i style="background:#60a5fa"></i>Building</span>
         <span><i style="background:#4ade80"></i>Strong</span>
       </div>
-      ${isDemo ? `<p class="perf-graph-demo-note">Demo graph — complete a session or check habits to see your live score.</p>` : ""}
     </div>`;
+}
+
+function hidePerfGraphTips(root = $("#track-extras")) {
+  if (!root) return;
+  root.querySelectorAll(".perf-graph-tip").forEach((tip) => {
+    tip.hidden = true;
+  });
+  root.querySelectorAll(".perf-dot-group.is-active").forEach((group) => {
+    group.classList.remove("is-active");
+  });
+}
+
+function showPerfGraphTip(group) {
+  const canvas = group.closest(".perf-graph-canvas");
+  if (!canvas) return;
+  const tip = canvas.querySelector(".perf-graph-tip");
+  if (!tip) return;
+  const secs = Number(group.dataset.perfSecs || 0);
+  const label = group.dataset.perfLabel || "";
+  canvas.querySelectorAll(".perf-dot-group.is-active").forEach((node) => {
+    node.classList.remove("is-active");
+  });
+  group.classList.add("is-active");
+  tip.hidden = false;
+  tip.innerHTML = `<strong>${label}</strong><span>${formatExerciseDuration(secs)}</span>`;
+  const dot = group.querySelector(".perf-dot");
+  if (!dot) return;
+  const canvasRect = canvas.getBoundingClientRect();
+  const dotRect = dot.getBoundingClientRect();
+  tip.style.left = `${dotRect.left - canvasRect.left + dotRect.width / 2}px`;
+  tip.style.top = `${dotRect.top - canvasRect.top}px`;
 }
 
 function momentumCopy(track) {
@@ -1856,6 +1947,13 @@ function bindTrackExtras() {
   if (!root || root.dataset.bound === "1") return;
   root.dataset.bound = "1";
   root.addEventListener("click", (e) => {
+    const perfDot = e.target.closest(".perf-dot-group");
+    if (perfDot) {
+      showPerfGraphTip(perfDot);
+      return;
+    }
+    if (!e.target.closest(".perf-graph-tip")) hidePerfGraphTips(root);
+
     const habitBtn = e.target.closest("[data-habit-id]");
     if (habitBtn) {
       const id = habitBtn.dataset.habitId;
@@ -5338,6 +5436,8 @@ function updatePauseProgress() {
 }
 
 function nextExercise() {
+  recordCompletedExerciseTime();
+  saveState();
   const len = state.sessionItems.length || state.sessionIds.length;
   const day = state.days.find((d) => d.n === state.openDayN);
   if (day && day.status !== "done") {
@@ -5620,6 +5720,7 @@ function bind() {
       state.currentDay = 1;
       state.streak = 0;
       state.sessionDates = {};
+      state.exerciseSecondsByDate = {};
       state.unlockedBadges = {};
       state.habitChecks = {};
       state.startedAt = dateKey();

@@ -1918,10 +1918,54 @@ button {
 }
 
 .perf-graph-canvas {
+  position: relative;
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
   background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
   border: 1px solid #f1f5f9;
+}
+
+.perf-graph-tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 10px));
+  min-width: 72px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #1a1428;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 8px 20px #1a142833;
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+.perf-graph-tip strong {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  margin-bottom: 2px;
+}
+
+.perf-graph-tip span {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.perf-dot-group {
+  cursor: pointer;
+}
+
+.perf-dot-group.is-active .perf-dot {
+  stroke: #1a1428;
+  stroke-width: 2.5;
+  filter: drop-shadow(0 2px 4px #1a142822);
 }
 
 .perf-svg {
