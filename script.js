@@ -1952,9 +1952,15 @@ function renderMe() {
       : "Unlock unlimited face & voice scans";
   }
   if (plusPrice) {
-    plusPrice.innerHTML = hasCarvePlus()
-      ? "Renews <em>Sep 24</em> · <em>$24.99</em>/mo"
-      : "<em>$24.99</em>/mo";
+    if (hasCarvePlus()) {
+      plusPrice.className = "me-plus-price-block is-subscribed";
+      plusPrice.innerHTML =
+        '<span class="me-plus-renewal">Renews <strong>Sep 24</strong></span>' +
+        '<span class="me-plus-price-amount"><strong>$24.99</strong><span>/mo</span></span>';
+    } else {
+      plusPrice.className = "me-plus-price-line";
+      plusPrice.innerHTML = "<em>$24.99</em>/mo";
+    }
   }
   if (plusCard) plusCard.classList.toggle("is-subscribed", hasCarvePlus());
 
