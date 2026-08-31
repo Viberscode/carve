@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=plusCard1" />
+  <link rel="stylesheet" href="styles.css?v=dailyProgress1" />
 </head>
 <body>
   <div class="device">
@@ -199,7 +199,31 @@
             </div>
           </div>
 
-          <div class="card reports-card reports-photos-hero" id="reports-photos-card">
+          <div class="card reports-card" id="reports-daily-progress-card">
+            <div class="panel-head">
+              <div>
+                <p class="reports-photos-kicker" id="daily-progress-kicker">Premium</p>
+                <h2 class="card-title" id="daily-progress-title">Daily progress</h2>
+              </div>
+              <span class="panel-meta" id="daily-progress-meta">CARVE Plus</span>
+            </div>
+            <p class="muted reports-photos-lead" id="daily-progress-lead">
+              Build a private daily log — locked until you upgrade.
+            </p>
+            <button type="button" class="daily-progress-box" id="btn-daily-progress">
+              <span class="daily-progress-lock-wrap" id="daily-progress-lock-wrap" aria-hidden="true">
+                <span class="daily-progress-lock">🔒</span>
+              </span>
+              <span class="daily-progress-box-icon" id="daily-progress-box-icon" aria-hidden="true">🎙️</span>
+              <span class="daily-progress-box-main">
+                <strong id="daily-progress-box-title">Daily voice log</strong>
+                <span id="daily-progress-box-sub">Record every day · your private progress profile</span>
+              </span>
+              <span class="daily-progress-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <div class="card reports-card reports-photos-hero" id="reports-photos-card" hidden>
             <div class="panel-head">
               <div>
                 <p class="reports-photos-kicker">Visual progress</p>
@@ -442,25 +466,73 @@
             <p class="badge-next-hint" id="reports-badges-next">Complete 3 days in a row to earn 3-Day Spark.</p>
             <div class="badge-grid" id="reports-badges"></div>
           </div>
+        </div>
+      </section>
 
-          <div class="card reports-card" id="reports-weekly-card">
-            <div class="panel-head">
-              <h2 class="card-title">Weekly rhythm</h2>
-              <span class="panel-meta" id="reports-weekly-meta">0 / 7 trained</span>
+      <!-- ========== MY PROGRESS ========== -->
+      <section id="view-my-progress" class="view view-stack" hidden>
+        <div class="stack-hero compact my-progress-hero">
+          <button type="button" class="icon-btn light" data-back aria-label="Back">‹</button>
+          <p class="hero-diff light" id="my-progress-kicker">My progress</p>
+          <h1 class="stack-title" id="my-progress-title">Daily log</h1>
+          <p class="my-progress-hero-lead" id="my-progress-hero-lead">Your private timeline on this device.</p>
+        </div>
+        <div class="stack-sheet my-progress-sheet">
+          <div class="my-progress-scroll">
+            <div class="my-progress-gate card reports-card" id="my-progress-analysis-gate" hidden>
+              <h2 class="card-title">Complete your analysis first</h2>
+              <p class="muted reports-photos-lead" id="my-progress-gate-lead">
+                Run your one-time analysis scan before starting daily check-ins.
+              </p>
+              <button type="button" class="reports-photo-cta" id="btn-my-progress-go-analysis">
+                Go to analysis
+              </button>
             </div>
-            <div class="reports-week-strip" id="reports-week-strip" aria-label="This week"></div>
-            <div class="reports-score-row">
-              <div class="reports-score-pill">
-                <span class="reports-score-label">Consistency</span>
-                <strong id="reports-consistency">0%</strong>
-                <span class="reports-score-hint">last 14 days</span>
+
+            <div id="my-progress-main" hidden>
+              <div class="my-progress-today card reports-card" id="my-progress-today-card">
+                <div class="panel-head">
+                  <h2 class="card-title">Today</h2>
+                  <span class="panel-meta" id="my-progress-today-meta">—</span>
+                </div>
+                <p class="muted reports-photos-lead" id="my-progress-today-lead">Capture today’s check-in.</p>
+                <div class="my-progress-today-actions" id="my-progress-today-actions"></div>
               </div>
-              <div class="reports-score-pill">
-                <span class="reports-score-label">Best streak</span>
-                <strong id="reports-best-streak">0</strong>
-                <span class="reports-score-hint">days in a row</span>
+
+              <p class="me-section-label reports-section-label">Your timeline</p>
+              <div class="my-progress-grid" id="my-progress-grid" aria-label="Daily progress timeline"></div>
+            </div>
+
+            <div id="my-progress-camera" hidden>
+              <p class="reports-photos-slot-label" id="my-progress-camera-label">Today</p>
+              <div class="face-analysis-video-wrap">
+                <video id="my-progress-video" playsinline autoplay muted></video>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-my-progress-photo-cancel">Cancel</button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-my-progress-photo-capture">Capture photo</button>
               </div>
             </div>
+
+            <div id="my-progress-voice-panel" hidden>
+              <p class="reports-photos-slot-label" id="my-progress-voice-label">Today</p>
+              <div class="reports-voice-stage">
+                <div class="reports-voice-ring" id="my-progress-voice-ring" aria-hidden="true">
+                  <span class="reports-voice-mic">🎙️</span>
+                </div>
+                <div class="reports-voice-meter" id="my-progress-voice-meter" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="reports-voice-timer" id="my-progress-voice-timer">0:00</p>
+                <p class="reports-voice-status" id="my-progress-voice-status">Find a quiet spot · speak naturally</p>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-my-progress-voice-cancel">Cancel</button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-my-progress-voice-record">Start recording</button>
+              </div>
+            </div>
+            <p id="my-progress-error" class="face-analysis-error" hidden></p>
+            <canvas id="my-progress-canvas" hidden></canvas>
           </div>
         </div>
       </section>
@@ -861,6 +933,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=plusCard1"></script>
+  <script src="script.js?v=dailyProgress1"></script>
 </body>
 </html>
