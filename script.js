@@ -2494,8 +2494,16 @@ function renderDailyProgressCard() {
   if (boxTitle) boxTitle.textContent = copy.boxTitle;
   if (boxSub) boxSub.textContent = copy.boxSub;
   if (icon) icon.textContent = copy.icon;
-  if (kicker) kicker.textContent = unlocked ? "Unlocked" : "Premium";
-  if (meta) meta.textContent = unlocked ? "My Progress" : "CARVE Plus";
+  if (kicker) {
+    kicker.textContent = unlocked ? "Unlocked" : "Premium";
+    kicker.classList.toggle("is-unlocked", unlocked);
+  }
+  if (meta) {
+    meta.textContent = unlocked ? "My Progress" : "CARVE Plus";
+    meta.classList.toggle("is-unlocked", unlocked);
+  }
+  const card = $("#reports-daily-progress-card");
+  if (card) card.classList.toggle("is-unlocked", unlocked);
   if (box) box.classList.toggle("is-unlocked", unlocked);
   if (lockWrap) lockWrap.hidden = unlocked;
 
