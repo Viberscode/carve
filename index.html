@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=dailyProgress1" />
+  <link rel="stylesheet" href="styles.css?v=dailyProgress2" />
 </head>
 <body>
   <div class="device">
@@ -495,7 +495,8 @@
                   <h2 class="card-title">Today</h2>
                   <span class="panel-meta" id="my-progress-today-meta">—</span>
                 </div>
-                <p class="muted reports-photos-lead" id="my-progress-today-lead">Capture today’s check-in.</p>
+                <p class="muted reports-photos-lead" id="my-progress-today-lead">Your analysis scans save here automatically.</p>
+                <div class="my-progress-today-preview" id="my-progress-today-preview"></div>
                 <div class="my-progress-today-actions" id="my-progress-today-actions"></div>
               </div>
 
@@ -503,36 +504,7 @@
               <div class="my-progress-grid" id="my-progress-grid" aria-label="Daily progress timeline"></div>
             </div>
 
-            <div id="my-progress-camera" hidden>
-              <p class="reports-photos-slot-label" id="my-progress-camera-label">Today</p>
-              <div class="face-analysis-video-wrap">
-                <video id="my-progress-video" playsinline autoplay muted></video>
-              </div>
-              <div class="face-analysis-camera-actions">
-                <button type="button" class="face-analysis-reanalyze" id="btn-my-progress-photo-cancel">Cancel</button>
-                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-my-progress-photo-capture">Capture photo</button>
-              </div>
-            </div>
-
-            <div id="my-progress-voice-panel" hidden>
-              <p class="reports-photos-slot-label" id="my-progress-voice-label">Today</p>
-              <div class="reports-voice-stage">
-                <div class="reports-voice-ring" id="my-progress-voice-ring" aria-hidden="true">
-                  <span class="reports-voice-mic">🎙️</span>
-                </div>
-                <div class="reports-voice-meter" id="my-progress-voice-meter" aria-hidden="true">
-                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                </div>
-                <p class="reports-voice-timer" id="my-progress-voice-timer">0:00</p>
-                <p class="reports-voice-status" id="my-progress-voice-status">Find a quiet spot · speak naturally</p>
-              </div>
-              <div class="face-analysis-camera-actions">
-                <button type="button" class="face-analysis-reanalyze" id="btn-my-progress-voice-cancel">Cancel</button>
-                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-my-progress-voice-record">Start recording</button>
-              </div>
-            </div>
             <p id="my-progress-error" class="face-analysis-error" hidden></p>
-            <canvas id="my-progress-canvas" hidden></canvas>
           </div>
         </div>
       </section>
@@ -933,6 +905,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=dailyProgress1"></script>
+  <script src="script.js?v=dailyProgress2"></script>
 </body>
 </html>

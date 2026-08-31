@@ -4984,42 +4984,246 @@ button {
   padding: 16px 16px calc(24px + var(--safe-b));
 }
 
+#my-progress-today-card {
+  background: linear-gradient(145deg, #0f172a 0%, #1e293b 52%, #0f172a 100%);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: #f8fafc;
+  overflow: hidden;
+}
+
+#my-progress-today-card .card-title,
+#my-progress-today-card .reports-photos-lead {
+  color: rgba(248, 250, 252, 0.92);
+}
+
+#my-progress-today-card .panel-meta {
+  color: rgba(226, 232, 240, 0.78);
+  font-weight: 700;
+}
+
+#my-progress-today-card .panel-meta.is-complete {
+  color: #86efac;
+}
+
+.my-progress-today-preview {
+  margin-top: 14px;
+}
+
+.my-progress-today-preview-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.my-progress-today-preview-grid.is-dual {
+  grid-template-columns: 1fr 1fr;
+}
+
+.my-progress-today-slot {
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.my-progress-today-slot.face.has-data {
+  border-color: rgba(96, 165, 250, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.12);
+}
+
+.my-progress-today-slot.voice.has-data {
+  border-color: rgba(248, 113, 113, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.12);
+}
+
+.my-progress-today-slot-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.my-progress-today-slot-media {
+  position: relative;
+  flex: 1;
+  min-height: 88px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.my-progress-today-slot-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.my-progress-today-slot-media.voice {
+  padding: 10px 12px;
+}
+
+.my-progress-today-scores {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.my-progress-today-score-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.78);
+}
+
+.my-progress-today-empty {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(203, 213, 225, 0.72);
+}
+
 .my-progress-today-actions {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin-top: 14px;
 }
 
-.my-progress-today-actions .reports-photo-cta {
-  margin-top: 0;
+.my-progress-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.my-progress-action-btn:active {
+  transform: scale(0.99);
+}
+
+.my-progress-action-btn.face {
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+.my-progress-action-btn.voice {
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.my-progress-action-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.my-progress-action-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.my-progress-action-copy strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.my-progress-action-copy em {
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  color: rgba(226, 232, 240, 0.72);
 }
 
 .my-progress-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 
-.my-progress-day {
+.my-progress-day-card {
   position: relative;
-  min-height: 118px;
-  border-radius: 16px;
-  border: 1.5px dashed #c9d3e4;
-  background: #f8fafc;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 12px 10px;
+  border: none;
+  border-radius: 18px;
+  padding: 0;
   overflow: hidden;
-  text-align: center;
+  text-align: left;
   cursor: pointer;
   font: inherit;
   color: inherit;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.my-progress-day img {
+.my-progress-day-card:active {
+  transform: scale(0.985);
+}
+
+.my-progress-day-card.is-today {
+  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.16);
+}
+
+.my-progress-day-media {
+  min-height: 108px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+}
+
+.my-progress-day-single,
+.my-progress-day-split {
+  position: relative;
+  width: 100%;
+  height: 108px;
+}
+
+.my-progress-day-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.my-progress-day-half,
+.my-progress-day-single {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.my-progress-day-half.face,
+.my-progress-day-single.face {
+  background: linear-gradient(160deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.my-progress-day-half.voice,
+.my-progress-day-single.voice {
+  background: linear-gradient(160deg, #fff1f2 0%, #ffe4e6 100%);
+}
+
+.my-progress-day-half.is-empty,
+.my-progress-day-single.is-empty {
+  opacity: 0.92;
+}
+
+.my-progress-day-half img,
+.my-progress-day-single img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -5027,39 +5231,143 @@ button {
   object-fit: cover;
 }
 
-.my-progress-day strong,
-.my-progress-day span {
-  position: relative;
-  z-index: 1;
+.my-progress-slot-icon {
+  font-size: 24px;
+  line-height: 1;
+  opacity: 0.55;
 }
 
-.my-progress-day.is-complete {
-  border-style: solid;
-  border-color: #bbf7d0;
+.my-progress-mini-wave {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 34px;
 }
 
-.my-progress-day strong {
+.my-progress-mini-wave i {
+  display: block;
+  width: 3px;
+  min-height: 14%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fb7185 0%, #e11d48 100%);
+}
+
+.my-progress-score-pill {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+}
+
+.my-progress-score-pill.blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.my-progress-score-pill.red {
+  background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%);
+}
+
+.my-progress-sub-scores {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+}
+
+.my-progress-sub-scores i {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 3px 6px;
+  border-radius: 999px;
+}
+
+.my-progress-day-footer {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.my-progress-day-footer strong {
   font-size: 12px;
   font-weight: 800;
-  color: #334155;
+  color: #0f172a;
 }
 
-.my-progress-day span {
+.my-progress-day-hint {
   font-size: 11px;
   font-weight: 600;
   color: #64748b;
 }
 
-.my-progress-day.is-complete strong,
-.my-progress-day.is-complete span {
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+.my-progress-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
-.my-progress-empty-mark,
-.my-progress-voice-mark {
-  font-size: 22px;
-  line-height: 1;
+.my-progress-chip {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 999px;
+  line-height: 1.2;
+}
+
+.my-progress-chip.blue {
+  color: #1d4ed8;
+  background: #dbeafe;
+}
+
+.my-progress-chip.blue-soft {
+  color: #1e40af;
+  background: #eff6ff;
+}
+
+.my-progress-chip.red {
+  color: #be123c;
+  background: #ffe4e6;
+}
+
+.my-progress-chip.red-soft {
+  color: #9f1239;
+  background: #fff1f2;
+}
+
+.my-progress-day-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #22c55e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 900;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 10px rgba(34, 197, 94, 0.35);
+}
+
+.my-progress-day-card.is-empty .my-progress-day-media {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .my-progress-gate {
