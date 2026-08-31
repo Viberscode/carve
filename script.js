@@ -2346,9 +2346,15 @@ function collectProgressExportData() {
   return { modes, days, logged, total: days.length, program: progressExportProgramName() };
 }
 
+function getJsPDFConstructor() {
+  if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+  if (typeof window.jsPDF === "function") return window.jsPDF;
+  return null;
+}
+
 function exportProgressPdf() {
-  const jspdf = window.jspdf;
-  if (!jspdf?.jsPDF) {
+  const JsPDF = getJsPDFConstructor();
+  if (!JsPDF) {
     showToast("PDF export unavailable — refresh and try again");
     return;
   }
@@ -2365,7 +2371,7 @@ function exportProgressPdf() {
     return;
   }
 
-  const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
+  const doc = new JsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const margin = 14;
   const contentW = pageW - margin * 2;
