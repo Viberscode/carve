@@ -587,9 +587,9 @@
           <p class="me-section-label blue">Preferences</p>
           <div class="me-card me-prefs">
             <label class="me-pref">
-              <span class="me-pref-icon" aria-hidden="true">🎵</span>
-              <span class="me-pref-text">Background music</span>
-              <input type="checkbox" id="set-music" />
+              <span class="me-pref-icon" aria-hidden="true">🪞</span>
+              <span class="me-pref-text">Mirror mode</span>
+              <input type="checkbox" id="set-mirror" checked />
             </label>
             <label class="me-pref">
               <span class="me-pref-icon" aria-hidden="true">🔔</span>
@@ -899,6 +899,98 @@
         </div>
       </div>
 
+      <div class="modal support-modal" id="help-faq-modal" hidden>
+        <div class="modal-backdrop" data-close-help-faq></div>
+        <div class="sheet support-sheet" role="dialog" aria-modal="true" aria-labelledby="help-faq-title">
+          <div class="sheet-handle"></div>
+          <header class="support-head">
+            <span class="support-icon" aria-hidden="true">❓</span>
+            <div>
+              <p class="support-kicker">Support</p>
+              <h2 id="help-faq-title">Help &amp; FAQ</h2>
+            </div>
+          </header>
+          <div class="sheet-body support-body">
+            <div class="support-faq-list">
+              <details class="support-faq-item" open>
+                <summary>Do my photos and recordings leave this device?</summary>
+                <p>No. Face analysis, voice recordings, and progress photos are processed and stored only on this device.</p>
+              </details>
+              <details class="support-faq-item">
+                <summary>What are Face Form, Voice Grain, and Full Presence?</summary>
+                <p>
+                  <strong>Face Form</strong> focuses on jawline, symmetry, and facial posture drills.
+                  <strong>Voice Grain</strong> trains resonance, clarity, and vocal habits.
+                  <strong>Full Presence</strong> combines both in one program.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>How do face and voice scans work?</summary>
+                <p>
+                  Free accounts include one face scan and one voice scan. CARVE Plus unlocks unlimited re-scans and daily progress logging.
+                  Scans run on-device — no upload required.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>What is My Progress?</summary>
+                <p>
+                  With CARVE Plus, each scan syncs to your daily timeline on My Progress so you can track Face Form and Voice Grain scores over time.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>Can CARVE change my bone structure?</summary>
+                <p>
+                  No. CARVE trains soft tissue tone, posture, and vocal habits. It does not claim to alter bone structure.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>How do I export or delete my data?</summary>
+                <p>
+                  Go to <strong>Me → Account &amp; data</strong>. Export downloads a PDF of your daily progress. Delete clears all analysis from this device.
+                </p>
+              </details>
+            </div>
+          </div>
+          <footer class="support-foot">
+            <button type="button" class="pill pill-gradient" data-close-help-faq>Got it</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="modal support-modal" id="feedback-modal" hidden>
+        <div class="modal-backdrop" data-close-feedback></div>
+        <div class="sheet support-sheet" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+          <div class="sheet-handle"></div>
+          <header class="support-head">
+            <span class="support-icon support-icon-feedback" aria-hidden="true">💬</span>
+            <div>
+              <p class="support-kicker">Support</p>
+              <h2 id="feedback-title">Send feedback</h2>
+            </div>
+          </header>
+          <form class="sheet-body support-body" id="feedback-form">
+            <p class="support-lead">Tell us what’s working, what isn’t, or what you’d like to see next.</p>
+            <label class="support-field">
+              <span class="support-label">Topic</span>
+              <select class="support-select" id="feedback-topic">
+                <option value="bug">Something isn’t working</option>
+                <option value="idea">Feature idea</option>
+                <option value="general">General feedback</option>
+              </select>
+            </label>
+            <label class="support-field">
+              <span class="support-label">Your message</span>
+              <textarea class="support-textarea" id="feedback-message" rows="5" maxlength="2000" placeholder="Share your thoughts…" required></textarea>
+            </label>
+            <p class="support-note muted">Saved on this device only — nothing is sent to a server.</p>
+            <footer class="support-foot support-foot-form">
+              <button type="button" class="pill pill-muted" data-close-feedback>Cancel</button>
+              <button type="submit" class="pill pill-gradient" id="btn-feedback-submit">Send feedback</button>
+            </footer>
+          </form>
+        </div>
+      </div>
+
       <div class="modal" id="modal" hidden>
         <div class="modal-backdrop" data-close-modal></div>
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -941,6 +1033,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=deleteData1"></script>
+  <script src="script.js?v=prefs1"></script>
 </body>
 </html>

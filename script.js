@@ -869,17 +869,22 @@ function formatReminderTime(value) {
   return `${h}:${mStr} ${ampm}`;
 }
 
+function applyMirrorMode() {
+  document.body.classList.toggle("mirror-mode-on", Boolean(state.settings.mirror));
+}
+
 function applySettingsUi() {
   const s = state.settings;
-  const music = $("#set-music");
+  const mirror = $("#set-mirror");
   const reminders = $("#set-reminders");
   const reminderInput = $("#reminder-time-input");
   const reminderLabel = $("#reminder-time-label");
-  if (music) music.checked = s.music;
+  if (mirror) mirror.checked = s.mirror;
   if (reminders) reminders.checked = s.reminders;
   s.reminderTime = normalizeReminderTime(s.reminderTime);
   if (reminderInput) reminderInput.value = s.reminderTime;
   if (reminderLabel) reminderLabel.textContent = formatReminderTime(s.reminderTime);
+  applyMirrorMode();
 }
 
 function parseReminderDraft(value) {
@@ -2067,6 +2072,62 @@ function confirmDeleteUserData() {
   clearAllUserAnalysisData();
   closeDeleteDataModal();
   showToast("Your analysis data has been cleared from this device");
+}
+
+const FEEDBACK_STORAGE_KEY = "carve-feedback-v1";
+
+function openHelpFaqModal() {
+  const modal = $("#help-faq-modal");
+  if (modal) modal.hidden = false;
+}
+
+function closeHelpFaqModal() {
+  const modal = $("#help-faq-modal");
+  if (modal) modal.hidden = true;
+}
+
+function openFeedbackModal() {
+  const modal = $("#feedback-modal");
+  if (!modal) return;
+  const form = $("#feedback-form");
+  if (form) form.reset();
+  modal.hidden = false;
+  window.requestAnimationFrame(() => {
+    $("#feedback-message")?.focus();
+  });
+}
+
+function closeFeedbackModal() {
+  const modal = $("#feedback-modal");
+  if (modal) modal.hidden = true;
+}
+
+function submitFeedback(event) {
+  event.preventDefault();
+  const topic = $("#feedback-topic")?.value || "general";
+  const message = ($("#feedback-message")?.value || "").trim();
+  if (!message) {
+    showToast("Please write a message before sending");
+    return;
+  }
+  try {
+    const raw = localStorage.getItem(FEEDBACK_STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(list)) throw new Error("invalid");
+    list.push({
+      topic,
+      message,
+      at: new Date().toISOString(),
+      track: state.track || null,
+    });
+    while (list.length > 50) list.shift();
+    localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(list));
+  } catch (_) {
+    showToast("Could not save feedback on this device");
+    return;
+  }
+  closeFeedbackModal();
+  showToast("Thanks — your feedback was saved on this device");
 }
 
 function subscribeCarvePlus() {
@@ -5248,7 +5309,7 @@ function bind() {
   $("#btn-start-session").addEventListener("click", startSession);
   $("#btn-adjust")?.addEventListener("click", () => {
     openSettingsTab();
-    showToast("Music, coach, and timer live in Me → Preferences.");
+    showToast("Mirror mode and reminders live in Me → Preferences.");
   });
   $("#btn-day-more")?.addEventListener("click", () => {
     showToast("More options coming soon.");
@@ -5261,12 +5322,15 @@ function bind() {
     showToast(state.settings.mirror ? "Mirror mode on" : "Mirror mode off");
   });
 
-  ["set-music", "set-reminders"].forEach((id) => {
+  ["set-mirror", "set-reminders"].forEach((id) => {
     $("#" + id)?.addEventListener("change", (e) => {
-      const key = id === "set-music" ? "music" : "reminders";
+      const key = id === "set-mirror" ? "mirror" : "reminders";
       state.settings[key] = e.target.checked;
       saveState();
-      if (key === "reminders" && e.target.checked) {
+      if (key === "mirror") {
+        applyMirrorMode();
+        showToast(state.settings.mirror ? "Mirror mode on" : "Mirror mode off");
+      } else if (key === "reminders" && e.target.checked) {
         showToast(`Daily reminder set for ${formatReminderTime(state.settings.reminderTime)}`);
       }
     });
@@ -5321,13 +5385,22 @@ function bind() {
 
   const meToasts = {
     "btn-sign-out": "Signed out of this device session",
-    "btn-help": "Help & FAQ — coming soon",
-    "btn-feedback": "Feedback — coming soon",
     "btn-evidence": "Evidence policy — soft tissue & habits only",
   };
   Object.keys(meToasts).forEach((id) => {
     $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
   });
+
+  $("#btn-help")?.addEventListener("click", openHelpFaqModal);
+  $$("[data-close-help-faq]").forEach((el) => {
+    el.addEventListener("click", closeHelpFaqModal);
+  });
+
+  $("#btn-feedback")?.addEventListener("click", openFeedbackModal);
+  $$("[data-close-feedback]").forEach((el) => {
+    el.addEventListener("click", closeFeedbackModal);
+  });
+  $("#feedback-form")?.addEventListener("submit", submitFeedback);
 
   $("#btn-delete-data")?.addEventListener("click", () => {
     openDeleteDataModal();
