@@ -868,6 +868,37 @@
         </div>
       </div>
 
+      <div class="modal delete-data-modal" id="delete-data-modal" hidden>
+        <div class="modal-backdrop" data-close-delete-data></div>
+        <div class="sheet delete-data-sheet" role="dialog" aria-modal="true" aria-labelledby="delete-data-title">
+          <div class="sheet-handle"></div>
+          <header class="delete-data-head">
+            <span class="delete-data-icon" aria-hidden="true">🗑</span>
+            <div>
+              <p class="delete-data-kicker">Account &amp; data</p>
+              <h2 id="delete-data-title">Delete my data</h2>
+            </div>
+          </header>
+          <div class="sheet-body delete-data-body">
+            <p id="delete-data-message-premium" class="delete-data-message" hidden>
+              Are you sure you want to clear your data? This removes all Face Form, Voice Grain, and Full Presence analysis from this device.
+            </p>
+            <p id="delete-data-message-free" class="delete-data-message" hidden>
+              This clears your Face Form, Voice Grain, and Full Presence analysis on this device. You will not be able to scan again unless you upgrade to CARVE Plus.
+            </p>
+          </div>
+          <footer class="delete-data-foot" id="delete-data-foot-premium" hidden>
+            <button type="button" class="pill pill-muted" data-close-delete-data>No</button>
+            <button type="button" class="pill pill-danger" id="btn-delete-data-confirm">Yes, clear data</button>
+          </footer>
+          <footer class="delete-data-foot delete-data-foot-free" id="delete-data-foot-free" hidden>
+            <button type="button" class="pill pill-muted" data-close-delete-data>Cancel</button>
+            <button type="button" class="pill pill-danger" id="btn-delete-data-clear">Clear data</button>
+            <button type="button" class="pill pill-gradient" id="btn-delete-data-plus">Get CARVE Plus</button>
+          </footer>
+        </div>
+      </div>
+
       <div class="modal" id="modal" hidden>
         <div class="modal-backdrop" data-close-modal></div>
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -910,6 +941,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=exportPdf4"></script>
+  <script src="script.js?v=deleteData1"></script>
 </body>
 </html>

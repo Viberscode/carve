@@ -751,6 +751,8 @@ const state = {
   stack: ["landing"],
   settings: { ...defaultSettings },
   carvePlus: false,
+  freeFaceScanUsed: false,
+  freeVoiceScanUsed: false,
   toastTimer: null,
 };
 
@@ -789,6 +791,8 @@ function saveState() {
         startedAt: state.startedAt,
         settings: state.settings,
         carvePlus: state.carvePlus,
+        freeFaceScanUsed: state.freeFaceScanUsed,
+        freeVoiceScanUsed: state.freeVoiceScanUsed,
       })
     );
   } catch (_) {
@@ -816,6 +820,16 @@ function loadState() {
     state.startedAt = data.startedAt || null;
     state.settings = { ...defaultSettings, ...(data.settings || {}) };
     state.carvePlus = Boolean(data.carvePlus);
+    state.freeFaceScanUsed = Boolean(data.freeFaceScanUsed);
+    state.freeVoiceScanUsed = Boolean(data.freeVoiceScanUsed);
+    if (!state.carvePlus) {
+      if (!state.freeFaceScanUsed && window.CarveFaceAnalysis?.loadFaceReport()) {
+        state.freeFaceScanUsed = true;
+      }
+      if (!state.freeVoiceScanUsed && window.CarveVoiceAnalysis?.loadVoiceReport()) {
+        state.freeVoiceScanUsed = true;
+      }
+    }
     ensureStartedAt();
     return true;
   } catch (_) {
@@ -1997,6 +2011,64 @@ function closeCarvePlusPlan() {
   if (modal) modal.hidden = true;
 }
 
+function openDeleteDataModal() {
+  const modal = $("#delete-data-modal");
+  if (!modal) return;
+  const isPlus = hasCarvePlus();
+  const msgPremium = $("#delete-data-message-premium");
+  const msgFree = $("#delete-data-message-free");
+  const footPremium = $("#delete-data-foot-premium");
+  const footFree = $("#delete-data-foot-free");
+  if (msgPremium) msgPremium.hidden = !isPlus;
+  if (msgFree) msgFree.hidden = isPlus;
+  if (footPremium) footPremium.hidden = !isPlus;
+  if (footFree) footFree.hidden = isPlus;
+  modal.hidden = false;
+}
+
+function closeDeleteDataModal() {
+  const modal = $("#delete-data-modal");
+  if (modal) modal.hidden = true;
+}
+
+function markFreeScanUsed(kind) {
+  if (hasCarvePlus()) return;
+  if (kind === "face") state.freeFaceScanUsed = true;
+  else if (kind === "voice") state.freeVoiceScanUsed = true;
+  saveState();
+}
+
+function clearAllUserAnalysisData() {
+  if (!hasCarvePlus()) {
+    if (window.CarveFaceAnalysis?.loadFaceReport()) state.freeFaceScanUsed = true;
+    if (window.CarveVoiceAnalysis?.loadVoiceReport()) state.freeVoiceScanUsed = true;
+    saveState();
+  }
+
+  window.CarveFaceAnalysis?.clearFaceReport();
+  window.CarveVoiceAnalysis?.clearVoiceReport();
+  localStorage.removeItem("faceReportHistory");
+  localStorage.removeItem("voiceReportHistory");
+  localStorage.removeItem(DAILY_PROGRESS_KEY);
+  localStorage.removeItem(PHOTO_STORAGE_KEY);
+  localStorage.removeItem(VOICE_STORAGE_KEY);
+
+  resetPresenceAnalysisPanels();
+  renderFaceAnalysis();
+  renderVoiceAnalysis();
+  renderDailyProgressCard();
+  renderReportPhotos();
+  renderReports();
+  refreshMyProgressIfVisible();
+  syncAnalysisPaywallUi();
+}
+
+function confirmDeleteUserData() {
+  clearAllUserAnalysisData();
+  closeDeleteDataModal();
+  showToast("Your analysis data has been cleared from this device");
+}
+
 function subscribeCarvePlus() {
   if (hasCarvePlus()) {
     closeCarvePlusPlan();
@@ -2465,6 +2537,7 @@ function exportProgressPdf() {
   y += 8;
 
   const isDualMode = modes.photo && modes.voice;
+  const dayInnerRight = margin + contentW - 5;
 
   const PDF_METRIC_TINTS = {
     blue: { fill: [239, 246, 255], stroke: [147, 197, 253], value: [29, 78, 216] },
@@ -2492,9 +2565,10 @@ function exportProgressPdf() {
     return cardH;
   }
 
-  function drawPdfMetricRow(startX, rowY, rowW, metrics) {
+  function drawPdfMetricRow(startX, rowY, metrics) {
     const gap = 3;
     const count = metrics.length;
+    const rowW = Math.max(24, dayInnerRight - startX);
     const cardW = (rowW - gap * (count - 1)) / count;
     metrics.forEach((metric, i) => {
       drawPdfMetricCard(startX + i * (cardW + gap), rowY, cardW, metric.label, metric.value, metric.tint);
@@ -2571,7 +2645,6 @@ function exportProgressPdf() {
       const photoX = margin + 20;
       const photoY = y + 24;
       const metricsX = margin + 54;
-      const metricsW = contentW - 40;
 
       if (day.hasFace) {
         try {
@@ -2594,10 +2667,10 @@ function exportProgressPdf() {
       }
 
       drawPdfSectionLabel("Face Form", metricsX, contentY, [29, 78, 216]);
-      drawPdfMetricRow(metricsX, contentY + 3, metricsW, faceMetricsForEntry(day.entry.face, day.hasFace));
+      drawPdfMetricRow(metricsX, contentY + 3, faceMetricsForEntry(day.entry.face, day.hasFace));
 
       drawPdfSectionLabel("Voice Grain", metricsX, contentY + 30, [190, 18, 60]);
-      drawPdfMetricRow(metricsX, contentY + 33, metricsW, voiceMetricsForEntry(day.entry.voice, day.hasVoice));
+      drawPdfMetricRow(metricsX, contentY + 33, voiceMetricsForEntry(day.entry.voice, day.hasVoice));
 
       if (!hasData) {
         setColor(148, 163, 184);
@@ -2622,7 +2695,6 @@ function exportProgressPdf() {
       const face = day.entry.face;
       const photoSize = 30;
       const metricsX = margin + 56;
-      const metricsW = contentW - 42;
       try {
         doc.addImage(face.photo, pdfImageFormat(face.photo), margin + 20, y + 22, photoSize, photoSize);
         stroke(191, 219, 254);
@@ -2633,13 +2705,13 @@ function exportProgressPdf() {
       }
 
       drawPdfSectionLabel("Face Form", metricsX, contentY, [29, 78, 216]);
-      drawPdfMetricRow(metricsX, contentY + 3, metricsW, faceMetricsForEntry(face, true));
+      drawPdfMetricRow(metricsX, contentY + 3, faceMetricsForEntry(face, true));
     }
 
     if (modes.voice && day.hasVoice) {
       const voice = day.entry.voice;
       drawPdfSectionLabel("Voice Grain", contentX, contentY, [190, 18, 60]);
-      drawPdfMetricRow(contentX, contentY + 3, contentW - 8, voiceMetricsForEntry(voice, true));
+      drawPdfMetricRow(contentX, contentY + 3, voiceMetricsForEntry(voice, true));
     }
 
     y += cardH + 6;
@@ -3596,12 +3668,12 @@ function hasCarvePlus() {
 
 function canRunFaceAnalysisScan() {
   if (hasCarvePlus()) return true;
-  return !window.CarveFaceAnalysis?.loadFaceReport();
+  return !state.freeFaceScanUsed;
 }
 
 function canRunVoiceAnalysisScan() {
   if (hasCarvePlus()) return true;
-  return !window.CarveVoiceAnalysis?.loadVoiceReport();
+  return !state.freeVoiceScanUsed;
 }
 
 function redirectToCarvePlusHighlight() {
@@ -3660,14 +3732,14 @@ function syncAnalysisPaywallUi() {
   if (faceNote) {
     faceNote.textContent = hasCarvePlus()
       ? "Unlimited scans with CARVE Plus."
-      : hasFace
+      : hasFace || state.freeFaceScanUsed
         ? "Free scan used — upgrade for more face scans."
         : "Includes 1 free on-device scan.";
   }
   if (voiceNote) {
     voiceNote.textContent = hasCarvePlus()
       ? "Unlimited scans with CARVE Plus."
-      : hasVoice
+      : hasVoice || state.freeVoiceScanUsed
         ? "Free scan used — upgrade for more voice scans."
         : "Includes 1 free on-device scan.";
   }
@@ -3712,9 +3784,15 @@ function updatePresenceAnalysisHub(hasFace, hasVoice, faceAllowed, voiceAllowed)
   }
 
   if (freeNote) {
-    freeNote.textContent = hasCarvePlus()
-      ? "Unlimited face and voice scans with CARVE Plus."
-      : "One free face scan and one free voice scan on this device.";
+    if (hasCarvePlus()) {
+      freeNote.textContent = "Unlimited face and voice scans with CARVE Plus.";
+    } else if (state.freeFaceScanUsed && state.freeVoiceScanUsed) {
+      freeNote.textContent = "Free scans used — upgrade for more face and voice scans.";
+    } else if (state.freeFaceScanUsed || state.freeVoiceScanUsed) {
+      freeNote.textContent = "Free scan used for one type — upgrade for unlimited scans.";
+    } else {
+      freeNote.textContent = "One free face scan and one free voice scan on this device.";
+    }
   }
 
   syncPresenceAnalysisCards();
@@ -3814,6 +3892,7 @@ async function captureAndAnalyzeFace() {
     const report = await api.analyzeFaceFromImage(canvas, previous);
     report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
+    markFreeScanUsed("face");
     syncDailyProgressFromFaceReport(report);
     refreshMyProgressIfVisible();
     renderFaceAnalysis({ scrollToScores: true });
@@ -4146,6 +4225,7 @@ async function processVoiceAnalysisRecording() {
     const previous = api.loadVoiceReport();
     const report = await api.analyzeVoiceFromBlob(blob, previous);
     api.saveVoiceReport(report);
+    markFreeScanUsed("voice");
     syncDailyProgressFromVoiceReport(report);
     refreshMyProgressIfVisible();
     renderVoiceAnalysis({ scrollToScores: true });
@@ -5240,7 +5320,6 @@ function bind() {
   });
 
   const meToasts = {
-    "btn-delete-data": "Delete data requires confirmation — coming soon",
     "btn-sign-out": "Signed out of this device session",
     "btn-help": "Help & FAQ — coming soon",
     "btn-feedback": "Feedback — coming soon",
@@ -5248,6 +5327,20 @@ function bind() {
   };
   Object.keys(meToasts).forEach((id) => {
     $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
+  });
+
+  $("#btn-delete-data")?.addEventListener("click", () => {
+    openDeleteDataModal();
+  });
+
+  $$("[data-close-delete-data]").forEach((el) => {
+    el.addEventListener("click", closeDeleteDataModal);
+  });
+  $("#btn-delete-data-confirm")?.addEventListener("click", confirmDeleteUserData);
+  $("#btn-delete-data-clear")?.addEventListener("click", confirmDeleteUserData);
+  $("#btn-delete-data-plus")?.addEventListener("click", () => {
+    closeDeleteDataModal();
+    openCarvePlusPlan();
   });
 
   $("#btn-export-data")?.addEventListener("click", () => {

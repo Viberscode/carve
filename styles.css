@@ -4879,6 +4879,84 @@ button {
   cursor: pointer;
 }
 
+.pill-danger {
+  background: #fff5f5;
+  color: #ea580c;
+  border: 1px solid #fdba74;
+  width: 100%;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 800;
+}
+
+/* Delete data confirmation */
+.delete-data-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 20px 0;
+}
+
+.delete-data-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.delete-data-kicker {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sub-gray);
+}
+
+.delete-data-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.delete-data-body {
+  padding-top: 4px;
+}
+
+.delete-data-message {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--black);
+}
+
+.delete-data-foot {
+  display: flex;
+  gap: 10px;
+  padding: 12px 20px calc(16px + var(--safe-b));
+}
+
+.delete-data-foot .pill {
+  flex: 1;
+  min-height: 48px;
+}
+
+.delete-data-foot-free {
+  flex-direction: column;
+}
+
+.delete-data-foot-free .pill-gradient {
+  width: 100%;
+  min-height: 52px;
+  font-size: 15px;
+}
+
 /* Daily progress (Reports) */
 .daily-progress-card {
   position: relative;
