@@ -2299,6 +2299,267 @@ function syncDailyProgressFromVoiceReport(report, dayKeyOverride) {
   saveDailyProgress(map);
 }
 
+function progressExportProgramName() {
+  if (isVoiceProgressMode()) return "Voice Grain";
+  if (isFullPresenceMode()) return "Full Presence";
+  return "Face Form";
+}
+
+function formatExportDateLong(key) {
+  const today = dateKey();
+  if (key === today) return "Today";
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (key === dateKey(tomorrow)) return "Tomorrow";
+  const d = new Date(key + "T12:00:00");
+  return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+}
+
+function pdfImageFormat(dataUrl) {
+  return dataUrl?.startsWith("data:image/png") ? "PNG" : "JPEG";
+}
+
+function collectProgressExportData() {
+  if (hasCarvePlus()) ensureTodaySyncedFromAnalysis();
+  const modes = dailyProgressModes();
+  const dayKeys = upcomingProgressDayKeys(14);
+  const store = loadDailyProgress();
+  const days = dayKeys.map((key, i) => {
+    const entry = store[key] || {};
+    return {
+      key,
+      index: i + 1,
+      label: formatExportDateLong(key),
+      shortDate: new Date(key + "T12:00:00").toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      }),
+      entry,
+      complete: dailyEntryComplete(entry, modes),
+      hasFace: dailyEntryHasFace(entry),
+      hasVoice: dailyEntryHasVoice(entry),
+      isToday: key === dateKey(),
+      isFuture: progressDayOffset(key) > 0,
+    };
+  });
+  const logged = days.filter((d) => d.hasFace || d.hasVoice).length;
+  return { modes, days, logged, total: days.length, program: progressExportProgramName() };
+}
+
+function exportProgressPdf() {
+  const jspdf = window.jspdf;
+  if (!jspdf?.jsPDF) {
+    showToast("PDF export unavailable — refresh and try again");
+    return;
+  }
+  if (!hasCarvePlus()) {
+    showToast("Export daily progress with CARVE Plus");
+    openCarvePlusPlan();
+    return;
+  }
+
+  const data = collectProgressExportData();
+  const { modes, days, logged, total, program } = data;
+  if (!logged) {
+    showToast("No daily progress yet — complete a scan first");
+    return;
+  }
+
+  const doc = new jspdf.jsPDF({ unit: "mm", format: "a4" });
+  const pageW = 210;
+  const margin = 14;
+  const contentW = pageW - margin * 2;
+  const pageBottom = 282;
+  let y = 0;
+
+  const setColor = (r, g, b) => doc.setTextColor(r, g, b);
+  const fill = (r, g, b) => doc.setFillColor(r, g, b);
+  const stroke = (r, g, b) => doc.setDrawColor(r, g, b);
+
+  function newPageIfNeeded(height) {
+    if (y + height > pageBottom) {
+      doc.addPage();
+      drawContinuationHeader();
+      y = 28;
+    }
+  }
+
+  function drawContinuationHeader() {
+    fill(37, 99, 235);
+    doc.rect(0, 0, pageW, 18, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    setColor(255, 255, 255);
+    doc.text("CARVE · Daily Progress", margin, 11);
+    setColor(15, 23, 42);
+  }
+
+  // Cover header
+  fill(15, 23, 42);
+  doc.rect(0, 0, pageW, 52, "F");
+  fill(37, 99, 235);
+  doc.rect(0, 50, pageW, 2.5, "F");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  setColor(255, 255, 255);
+  doc.text("CARVE", margin, 22);
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "normal");
+  setColor(191, 219, 254);
+  doc.text("Daily Progress Report", margin, 30);
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  setColor(248, 250, 252);
+  doc.text(program, margin, 40);
+
+  const rangeLabel = `${days[0].shortDate} — ${days[days.length - 1].shortDate}`;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  setColor(148, 163, 184);
+  doc.text(rangeLabel, margin, 46);
+
+  const generated = new Date().toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  doc.text(`Generated ${generated}`, pageW - margin, 46, { align: "right" });
+
+  y = 62;
+
+  // Summary card
+  fill(239, 246, 255);
+  stroke(191, 219, 254);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(margin, y, contentW, 22, 3, 3, "FD");
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(10);
+  setColor(29, 78, 216);
+  doc.text(`${logged} of ${total} days logged`, margin + 6, y + 9);
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  setColor(71, 85, 105);
+  const summaryNote = modes.photo && modes.voice
+    ? "Face photos and voice scores from your private daily log."
+    : modes.voice
+      ? "Voice scores from your private daily log."
+      : "Face photos and scores from your private daily log.";
+  doc.text(summaryNote, margin + 6, y + 16);
+
+  y += 30;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(12);
+  setColor(15, 23, 42);
+  doc.text("Day-by-day journey", margin, y);
+  y += 8;
+
+  days.forEach((day) => {
+    const hasData = day.hasFace || day.hasVoice;
+    const cardH = modes.photo && modes.voice ? 58 : modes.photo ? 54 : 42;
+    newPageIfNeeded(cardH + 6);
+
+    const complete = day.complete;
+    fill(complete ? 240 : hasData ? 255 : 248, complete ? 253 : hasData ? 251 : 250, complete ? 244 : hasData ? 235 : 252);
+    stroke(complete ? 134 : hasData ? 147 : 226, complete ? 239 : hasData ? 197 : 232, complete ? 172 : hasData ? 253 : 240);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(margin, y, contentW, cardH, 4, 4, "FD");
+
+    fill(complete ? 34 : hasData ? 37 : 148, complete ? 197 : hasData ? 99 : 163, complete ? 94 : hasData ? 235 : 184);
+    doc.circle(margin + 10, y + 12, 7, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    setColor(255, 255, 255);
+    const badgeText = complete ? "OK" : String(day.index);
+    doc.text(badgeText, margin + 10, y + 14.2, { align: "center" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    setColor(15, 23, 42);
+    doc.text(`Day ${day.index} · ${day.label}`, margin + 22, y + 11);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    setColor(100, 116, 139);
+    doc.text(day.shortDate, margin + 22, y + 16.5);
+
+    const contentX = margin + 22;
+    const contentY = y + 22;
+
+    if (!hasData) {
+      setColor(148, 163, 184);
+      doc.setFontSize(9);
+      const emptyMsg = day.isFuture ? "Coming up — not yet due" : "No check-in recorded";
+      doc.text(emptyMsg, contentX, contentY + 6);
+      y += cardH + 6;
+      return;
+    }
+
+    let textX = contentX;
+
+    if (modes.photo && day.hasFace) {
+      const face = day.entry.face;
+      const photoSize = 30;
+      try {
+        doc.addImage(face.photo, pdfImageFormat(face.photo), margin + 20, y + 20, photoSize, photoSize);
+        stroke(191, 219, 254);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(margin + 20, y + 20, photoSize, photoSize, 2, 2, "S");
+        textX = margin + 56;
+      } catch (_) {
+        textX = contentX;
+      }
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      setColor(29, 78, 216);
+      doc.text("Face scores", textX, contentY);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setColor(51, 65, 85);
+      doc.text(`Overall  ${face.jawlineScore}`, textX, contentY + 6);
+      doc.text(`Balance  ${face.symmetry}%`, textX + 42, contentY + 6);
+      doc.text(`Outline  ${Number(face.jawRatio).toFixed(2)}`, textX, contentY + 12);
+    }
+
+    if (modes.voice && day.hasVoice) {
+      const voice = day.entry.voice;
+      const voiceX = modes.photo && day.hasFace ? textX + 50 : contentX;
+      const voiceY = contentY;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      setColor(190, 18, 60);
+      doc.text("Voice scores", voiceX, voiceY);
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      setColor(51, 65, 85);
+      doc.text(`Overall     ${voice.voiceScore}`, voiceX, voiceY + 6);
+      doc.text(`Resonance ${voice.resonanceScore}%`, voiceX, voiceY + 12);
+      doc.text(`Clarity     ${voice.clarityScore}%`, voiceX + 44, voiceY + 12);
+    }
+
+    y += cardH + 6;
+  });
+
+  // Footer on last page
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  setColor(148, 163, 184);
+  doc.text("Private · on-device only · CARVE does not upload your photos or recordings.", margin, pageBottom - 4);
+
+  const slug = program.toLowerCase().replace(/\s+/g, "-");
+  const fileName = `carve-progress-${slug}-${dateKey()}.pdf`;
+  doc.save(fileName);
+  showToast("Your progress PDF was downloaded");
+}
+
 function ensureTodaySyncedFromAnalysis() {
   if (!hasCarvePlus()) return;
   const faceReport = window.CarveFaceAnalysis?.loadFaceReport();
@@ -4882,7 +5143,6 @@ function bind() {
   });
 
   const meToasts = {
-    "btn-export-data": "Export stays on-device — coming soon",
     "btn-delete-data": "Delete data requires confirmation — coming soon",
     "btn-sign-out": "Signed out of this device session",
     "btn-help": "Help & FAQ — coming soon",
@@ -4891,6 +5151,10 @@ function bind() {
   };
   Object.keys(meToasts).forEach((id) => {
     $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
+  });
+
+  $("#btn-export-data")?.addEventListener("click", () => {
+    exportProgressPdf();
   });
 
   $("#btn-carve-plus")?.addEventListener("click", () => {
