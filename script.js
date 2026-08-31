@@ -262,7 +262,7 @@ const TRACKS = {
     planTitle: "Face & Voice in 30 Days",
     subtitle: "Complete Practice",
     tags: "Look · Sound · Breath",
-    art: "✦",
+    art: "✨",
     disclaimer:
       "Full Presence mixes face tone and vocal habits — soft tissue, posture, resonance, and breath. Never bone structure or larynx size.",
     browse: [
@@ -1353,7 +1353,7 @@ function computeBestStreak() {
 const BADGE_CATALOG = [
   {
     id: "day1",
-    emoji: "✦",
+    emoji: "🎯",
     title: "First Rep",
     sub: "Finish Day 1",
     tier: "bronze",
