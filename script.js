@@ -1943,20 +1943,56 @@ function renderMe() {
 
   const plusChip = $("#me-plus-chip");
   const plusDetail = $("#me-plus-detail");
+  const plusPrice = $("#me-plus-price-line");
   const plusCard = $("#btn-carve-plus");
   if (plusChip) plusChip.textContent = hasCarvePlus() ? "Active" : "Upgrade";
   if (plusDetail) {
-    plusDetail.innerHTML = hasCarvePlus()
-      ? "Renews <em>Sep 24</em> · <em>$12.99</em>/mo"
-      : 'Unlock unlimited face & voice scans · <em>$12.99</em>/mo';
+    plusDetail.textContent = hasCarvePlus()
+      ? "Unlimited face & voice scans on this device"
+      : "Unlock unlimited face & voice scans";
+  }
+  if (plusPrice) {
+    plusPrice.innerHTML = hasCarvePlus()
+      ? "Renews <em>Sep 24</em> · <em>$24.99</em>/mo"
+      : "<em>$24.99</em>/mo";
   }
   if (plusCard) plusCard.classList.toggle("is-subscribed", hasCarvePlus());
 
-  $$("[data-me-track]").forEach((btn) => {
-    btn.classList.toggle("on", btn.dataset.meTrack === (state.track || "face"));
-  });
-
   applySettingsUi();
+}
+
+function openCarvePlusPlan() {
+  const modal = $("#carve-plus-modal");
+  if (!modal) return;
+  const subscribeBtn = $("#btn-carve-plus-subscribe");
+  if (subscribeBtn) {
+    if (hasCarvePlus()) {
+      subscribeBtn.textContent = "CARVE Plus active";
+      subscribeBtn.disabled = true;
+    } else {
+      subscribeBtn.textContent = "Subscribe — $24.99/mo";
+      subscribeBtn.disabled = false;
+    }
+  }
+  modal.hidden = false;
+}
+
+function closeCarvePlusPlan() {
+  const modal = $("#carve-plus-modal");
+  if (modal) modal.hidden = true;
+}
+
+function subscribeCarvePlus() {
+  if (hasCarvePlus()) {
+    closeCarvePlusPlan();
+    return;
+  }
+  state.carvePlus = true;
+  saveState();
+  renderMe();
+  syncAnalysisPaywallUi();
+  closeCarvePlusPlan();
+  showToast("CARVE Plus is active on this device");
 }
 
 function renderReports() {
@@ -2663,18 +2699,15 @@ function redirectToCarvePlusHighlight() {
   showView("me");
   window.requestAnimationFrame(() => {
     window.setTimeout(() => {
-      const plus = $("#btn-carve-plus");
       const scroll = $(".me-scroll");
+      const plus = $("#btn-carve-plus");
       if (plus && scroll) {
         const scrollRect = scroll.getBoundingClientRect();
         const plusRect = plus.getBoundingClientRect();
         const top = scroll.scrollTop + (plusRect.top - scrollRect.top) - 20;
         scroll.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
       }
-      if (plus) {
-        plus.classList.add("is-highlighted");
-        window.setTimeout(() => plus.classList.remove("is-highlighted"), 3600);
-      }
+      openCarvePlusPlan();
     }, 80);
   });
 }
@@ -4304,15 +4337,13 @@ function bind() {
   });
 
   $("#btn-carve-plus")?.addEventListener("click", () => {
-    if (hasCarvePlus()) {
-      showToast("CARVE Plus is active on this device");
-      return;
-    }
-    showToast("Subscribe to CARVE Plus for unlimited scans");
-    const plus = $("#btn-carve-plus");
-    plus?.classList.add("is-highlighted");
-    window.setTimeout(() => plus?.classList.remove("is-highlighted"), 2400);
+    openCarvePlusPlan();
   });
+
+  $$("[data-close-carve-plus]").forEach((el) => {
+    el.addEventListener("click", closeCarvePlusPlan);
+  });
+  $("#btn-carve-plus-subscribe")?.addEventListener("click", subscribeCarvePlus);
 
   const reportsRoot = $("#view-reports");
   if (reportsRoot && reportsRoot.dataset.bound !== "1") {

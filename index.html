@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=presenceBoxes1" />
+  <link rel="stylesheet" href="styles.css?v=plusPlan1" />
 </head>
 <body>
   <div class="device">
@@ -529,18 +529,12 @@
                 <span class="me-plus-chip" id="me-plus-chip">Upgrade</span>
               </span>
               <span class="me-plus-detail" id="me-plus-detail">
-                Unlock unlimited face &amp; voice scans · <em>$12.99</em>/mo
+                Unlock unlimited face &amp; voice scans
               </span>
+              <span class="me-plus-price-line" id="me-plus-price-line"><em>$24.99</em>/mo</span>
             </span>
             <span class="me-plus-chevron" aria-hidden="true">›</span>
           </button>
-
-          <p class="me-section-label blue">My program</p>
-          <div class="me-card me-program" role="group" aria-label="Training program">
-            <button type="button" class="me-track-btn on" data-me-track="face">Face Form</button>
-            <button type="button" class="me-track-btn" data-me-track="voice">Voice Grain</button>
-            <button type="button" class="me-track-btn" data-me-track="both">Full Presence</button>
-          </div>
 
           <p class="me-section-label blue">Preferences</p>
           <div class="me-card me-prefs">
@@ -755,6 +749,37 @@
         </button>
       </nav>
 
+      <div class="modal carve-plus-modal" id="carve-plus-modal" hidden>
+        <div class="modal-backdrop" data-close-carve-plus></div>
+        <div class="sheet carve-plus-sheet" role="dialog" aria-modal="true" aria-labelledby="carve-plus-title">
+          <div class="sheet-handle"></div>
+          <header class="carve-plus-sheet-head">
+            <span class="carve-plus-sheet-gem" aria-hidden="true">✦</span>
+            <div>
+              <p class="carve-plus-sheet-kicker">Membership</p>
+              <h2 id="carve-plus-title">CARVE Plus</h2>
+            </div>
+          </header>
+          <div class="sheet-body carve-plus-sheet-body">
+            <div class="carve-plus-price-block">
+              <strong class="carve-plus-price">$24.99</strong>
+              <span class="carve-plus-price-unit">/ month</span>
+            </div>
+            <ul class="carve-plus-features">
+              <li>Unlimited face analysis scans</li>
+              <li>Unlimited voice analysis scans</li>
+              <li>Full Presence combined check-ins</li>
+              <li>Weekly progress photos &amp; recordings</li>
+            </ul>
+            <p class="carve-plus-note muted">Cancel anytime · stays on this device</p>
+          </div>
+          <footer class="carve-plus-sheet-foot">
+            <button type="button" class="pill pill-gradient" id="btn-carve-plus-subscribe">Subscribe — $24.99/mo</button>
+            <button type="button" class="carve-plus-dismiss" data-close-carve-plus>Not now</button>
+          </footer>
+        </div>
+      </div>
+
       <div class="modal reminder-clock-modal" id="reminder-clock-modal" hidden>
         <div class="modal-backdrop" data-close-reminder-clock></div>
         <div class="sheet reminder-clock-sheet" role="dialog" aria-modal="true" aria-labelledby="reminder-clock-title">
@@ -836,6 +861,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=presenceBoxes1"></script>
+  <script src="script.js?v=plusPlan1"></script>
 </body>
 </html>

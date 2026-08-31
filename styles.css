@@ -4560,21 +4560,29 @@ button {
 }
 
 .me-plus-card {
-  margin-top: 14px;
+  margin-top: 16px;
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   text-align: left;
-  padding: 16px;
-  border-radius: 16px;
-  border: 1px solid var(--line-gray);
-  background: var(--white);
+  padding: 22px 20px;
+  min-height: 108px;
+  border-radius: 20px;
+  border: 1.5px solid #c7d7fe;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%);
   color: var(--ink);
-  transition: border-color 0.15s ease;
+  box-shadow: 0 10px 28px #1e3fe012;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.me-plus-card:hover {
+  border-color: var(--blue);
+  box-shadow: 0 14px 32px #1e3fe018;
 }
 
 .me-plus-card:active {
+  transform: scale(0.99);
   border-color: var(--blue);
 }
 
@@ -4607,9 +4615,9 @@ button {
 }
 
 .me-plus-gem {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -4636,14 +4644,14 @@ button {
 
 .me-plus-head strong {
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 .me-plus-chip {
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 800;
@@ -4655,10 +4663,24 @@ button {
 }
 
 .me-plus-detail {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--sub-gray);
   line-height: 1.35;
+}
+
+.me-plus-price-line {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sub-gray);
+}
+
+.me-plus-price-line em {
+  font-style: normal;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--blue);
+  letter-spacing: -0.02em;
 }
 
 .me-plus-detail em {
@@ -4669,16 +4691,144 @@ button {
 
 .me-plus-chevron {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   color: var(--blue);
   background: var(--white);
   border: 1px solid var(--line-gray);
+}
+
+/* CARVE Plus plan sheet */
+.carve-plus-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 20px 0;
+}
+
+.carve-plus-sheet-gem {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(145deg, #1e3fe0 0%, #4a6cf0 100%);
+  box-shadow: 0 8px 20px #1e3fe033;
+}
+
+.carve-plus-sheet-kicker {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sub-gray);
+}
+
+.carve-plus-sheet-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.carve-plus-sheet-body {
+  padding-top: 8px;
+}
+
+.carve-plus-price-block {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.carve-plus-price {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--blue);
+  line-height: 1;
+}
+
+.carve-plus-price-unit {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sub-gray);
+}
+
+.carve-plus-features {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.carve-plus-features li {
+  position: relative;
+  padding-left: 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.carve-plus-features li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--blue);
+  background: #eef2ff;
+}
+
+.carve-plus-note {
+  margin: 0;
+  font-size: 13px;
+}
+
+.carve-plus-sheet-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px calc(16px + var(--safe-b));
+}
+
+.carve-plus-sheet-foot .pill-gradient {
+  width: 100%;
+  min-height: 52px;
+  font-size: 15px;
+}
+
+.carve-plus-dismiss {
+  width: 100%;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--sub-gray);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .me-program {
