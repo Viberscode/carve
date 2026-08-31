@@ -2667,7 +2667,7 @@ function exportProgressPdf() {
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
-  setColor(29, 78, 216);
+  setColor(234, 88, 12);
   doc.text(`${logged} of ${total} days logged`, margin + 6, y + 9);
 
   doc.setFont("helvetica", "normal");
@@ -2692,7 +2692,7 @@ function exportProgressPdf() {
   const dayInnerRight = margin + contentW - 5;
 
   const PDF_METRIC_TINTS = {
-    blue: { fill: [239, 246, 255], stroke: [147, 197, 253], value: [29, 78, 216] },
+    blue: { fill: [255, 247, 237], stroke: [253, 186, 116], value: [234, 88, 12] },
     red: { fill: [255, 241, 242], stroke: [254, 205, 211], value: [220, 38, 38] },
     green: { fill: [236, 253, 245], stroke: [134, 239, 172], value: [5, 150, 105] },
   };
@@ -2818,7 +2818,7 @@ function exportProgressPdf() {
         doc.text("No photo", photoX + photoSize / 2, photoY + photoSize / 2 + 1, { align: "center" });
       }
 
-      drawPdfSectionLabel("Face Form", metricsX, contentY, [29, 78, 216]);
+      drawPdfSectionLabel("Face Form", metricsX, contentY, [234, 88, 12]);
       drawPdfMetricRow(metricsX, contentY + 3, faceMetricsForEntry(day.entry.face, day.hasFace));
 
       drawPdfSectionLabel("Voice Grain", metricsX, contentY + 30, [190, 18, 60]);
@@ -2856,7 +2856,7 @@ function exportProgressPdf() {
         /* photo optional */
       }
 
-      drawPdfSectionLabel("Face Form", metricsX, contentY, [29, 78, 216]);
+      drawPdfSectionLabel("Face Form", metricsX, contentY, [234, 88, 12]);
       drawPdfMetricRow(metricsX, contentY + 3, faceMetricsForEntry(face, true));
     }
 
