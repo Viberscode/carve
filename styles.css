@@ -1971,6 +1971,30 @@ button {
   flex-shrink: 0;
 }
 
+.perf-graph.is-demo .perf-graph-canvas {
+  border-color: #c7d2fe;
+  background: linear-gradient(180deg, #f5f7ff 0%, #ffffff 100%);
+}
+
+.perf-graph-demo-note {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  color: #6366f1;
+  background: #eef2ff;
+}
+
+.momentum-ring.is-demo {
+  box-shadow:
+    inset 0 0 0 1px #ffffffee,
+    0 8px 20px #6366f118,
+    0 0 0 5px #eef2ff;
+}
+
 .care-head {
   margin-bottom: 16px;
 }

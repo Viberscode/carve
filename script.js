@@ -1591,6 +1591,29 @@ function dayPerformanceScore(key, track, isToday = false) {
   return Math.min(100, Math.round(sessionPct * 0.55 + habitPct * 0.45));
 }
 
+const DEMO_PERF_SCORES = [18, 42, 35, 68, 55, 88, 52];
+
+function hasPerformanceData(series) {
+  return series.some((d) => !d.isFuture && (d.score ?? 0) > 0);
+}
+
+function getDemoPerformanceSeries(days = 7, track = state.track || "face") {
+  const base = getPerformanceSeries(days, track);
+  return base.map((d, i) => ({
+    ...d,
+    score: d.isFuture ? null : DEMO_PERF_SCORES[i] ?? 40,
+  }));
+}
+
+function resolvePerformanceDisplay(track = state.track || "face") {
+  const real = getPerformanceSeries(7, track);
+  const isDemo = !hasPerformanceData(real);
+  const series = isDemo ? getDemoPerformanceSeries(7, track) : real;
+  const today = series.find((d) => d.isToday);
+  const todayScore = today?.score ?? 0;
+  return { series, isDemo, todayScore, todayTier: performanceTier(todayScore) };
+}
+
 function getPerformanceSeries(days = 7, track = state.track || "face") {
   const now = new Date();
   now.setHours(12, 0, 0, 0);
@@ -1679,8 +1702,8 @@ function buildPerformanceGraphSvg(series) {
   </svg>`;
 }
 
-function renderPerformanceGraph(track) {
-  const series = getPerformanceSeries(7, track);
+function renderPerformanceGraph(track, display) {
+  const { series, isDemo } = display || resolvePerformanceDisplay(track);
   const svg = buildPerformanceGraphSvg(series);
   const ariaLabel = series
     .filter((d) => !d.isFuture && d.score != null)
@@ -1688,12 +1711,12 @@ function renderPerformanceGraph(track) {
     .join(", ");
 
   return `
-    <div class="perf-graph">
+    <div class="perf-graph${isDemo ? " is-demo" : ""}">
       <div class="perf-graph-head">
         <strong>Performance</strong>
-        <span class="perf-graph-sub">Last 7 days</span>
+        <span class="perf-graph-sub">${isDemo ? "Sample preview" : "Last 7 days"}</span>
       </div>
-      <div class="perf-graph-canvas" role="img" aria-label="7-day performance: ${ariaLabel || "no data yet"}">
+      <div class="perf-graph-canvas" role="img" aria-label="${isDemo ? "Sample performance preview. " : ""}7-day performance: ${ariaLabel || "no data yet"}">
         ${svg}
       </div>
       <div class="perf-graph-legend" aria-hidden="true">
@@ -1701,6 +1724,7 @@ function renderPerformanceGraph(track) {
         <span><i style="background:#60a5fa"></i>Building</span>
         <span><i style="background:#4ade80"></i>Strong</span>
       </div>
+      ${isDemo ? `<p class="perf-graph-demo-note">Demo graph — complete a session or check habits to see your live score.</p>` : ""}
     </div>`;
 }
 
@@ -1756,10 +1780,11 @@ function renderTrackExtras() {
   const doneCount = habits.filter((h) => checks[h.id]).length;
   const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
   const earnedCount = BADGE_CATALOG.filter((b) => state.unlockedBadges?.[b.id]).length;
-  const todayScore = dayPerformanceScore(dateKey(), track, true);
-  const todayTier = performanceTier(todayScore);
+  const perfDisplay = resolvePerformanceDisplay(track);
+  const todayScore = perfDisplay.todayScore;
+  const todayTier = perfDisplay.todayTier;
   const todayTierMeta = PERF_TIERS[todayTier];
-  const performanceGraphHtml = renderPerformanceGraph(track);
+  const performanceGraphHtml = renderPerformanceGraph(track, perfDisplay);
 
   renderHomeWeek();
 
@@ -1809,9 +1834,9 @@ function renderTrackExtras() {
               <h2 class="panel-title">Keep the rhythm</h2>
               <p class="momentum-lead">${momentumCopy(track)}</p>
             </div>
-            <div class="momentum-ring perf-ring tier-${todayTier}" style="--pct:${todayScore};--ring-color:${todayTierMeta.color};--ring-track:${todayTierMeta.ring}" aria-label="${todayScore}% performance today">
+            <div class="momentum-ring perf-ring tier-${todayTier}${perfDisplay.isDemo ? " is-demo" : ""}" style="--pct:${todayScore};--ring-color:${todayTierMeta.color};--ring-track:${todayTierMeta.ring}" aria-label="${perfDisplay.isDemo ? "Sample: " : ""}${todayScore}% performance today">
               <span class="momentum-ring-value" style="color:${todayTierMeta.color}">${todayScore}<small>%</small></span>
-              <span class="momentum-ring-label">Today</span>
+              <span class="momentum-ring-label">${perfDisplay.isDemo ? "Sample" : "Today"}</span>
             </div>
           </div>
           ${performanceGraphHtml}
@@ -5016,30 +5041,67 @@ function openReportsProgressPicker(slot, kind) {
   startProgressCamera(slot || preferredProgressPhotoSlot());
 }
 
+const PLAN_PREVIEW_STORAGE_KEY = "carve-plan-preview-until-v1";
+const PLAN_PREVIEW_MAX_DAY = 8;
+const PLAN_PREVIEW_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
+
+function planPreviewOpen() {
+  try {
+    let until = localStorage.getItem(PLAN_PREVIEW_STORAGE_KEY);
+    if (!until) {
+      until = String(Date.now() + PLAN_PREVIEW_DURATION_MS);
+      localStorage.setItem(PLAN_PREVIEW_STORAGE_KEY, until);
+    }
+    return Date.now() < Number(until);
+  } catch (_) {
+    return true;
+  }
+}
+
+function isDayAccessible(day) {
+  if (!day) return false;
+  if (day.status !== "locked") return true;
+  return planPreviewOpen() && day.n <= PLAN_PREVIEW_MAX_DAY;
+}
+
+function dayListStatus(day) {
+  if (day.status === "done") return "done";
+  if (isDayAccessible(day)) return "active";
+  return "locked";
+}
+
 function renderDayList() {
   const list = $("#day-list");
   list.innerHTML = "";
+  const kicker = $("#view-plan .day-kicker");
+  if (kicker) {
+    kicker.textContent = planPreviewOpen()
+      ? `Preview open — Days 1–${PLAN_PREVIEW_MAX_DAY} available for now.`
+      : "One day at a time — progress unlocks the next.";
+  }
   state.days.forEach((d) => {
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "day-card";
-    if (d.status === "locked") btn.classList.add("locked");
-    if (d.status === "active" && d.n === state.currentDay) btn.classList.add("active");
+    const status = dayListStatus(d);
+    if (status === "locked") btn.classList.add("locked");
+    if (status === "active" && d.n === state.currentDay) btn.classList.add("active");
 
     const count = (d.roadmap || d.ids || []).length;
     let sub = `${count} Exercises`;
     if (d.status === "done") sub = "Finished";
-    if (d.status === "locked") sub = "Locked";
-    if (d.status === "active" && d.percent) sub = `${d.percent}% Completed`;
+    else if (status === "locked") sub = "Locked";
+    else if (d.status === "locked" && planPreviewOpen()) sub = "Open preview";
+    else if (d.percent) sub = `${d.percent}% Completed`;
     const right =
       d.status === "done"
         ? `<span class="check">✓</span>`
-        : d.status === "locked"
+        : status === "locked"
           ? `<span class="lock" aria-hidden="true">🔒</span>`
           : `<span class="cta">${d.percent ? "CONTINUE" : "START"}</span>`;
 
     btn.innerHTML = `<span><strong>Day ${d.n}</strong><small>${sub}</small></span>${right}`;
-    if (d.status !== "locked") {
+    if (isDayAccessible(d)) {
       btn.addEventListener("click", () => {
         openDay(d.n);
       });
@@ -5118,7 +5180,7 @@ function openDay(n) {
 
 function renderDayView(n, { push } = { push: true }) {
   const day = state.days.find((d) => d.n === n);
-  if (!day || day.status === "locked") return;
+  if (!day || !isDayAccessible(day)) return;
   state.openDayN = n;
 
   let items = [];
@@ -5466,7 +5528,7 @@ function bind() {
   const startToday = $("#btn-start-today");
   const openTodaySession = () => {
     const day = state.days.find((d) => d.n === state.currentDay);
-    if (day && day.status !== "locked") openDay(day.n);
+    if (day && isDayAccessible(day)) openDay(day.n);
     else {
       renderDayList();
       navigate("plan");
