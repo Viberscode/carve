@@ -2466,20 +2466,68 @@ function exportProgressPdf() {
 
   const isDualMode = modes.photo && modes.voice;
 
-  function drawScoreBlock(title, titleRgb, lines, x, blockY) {
+  const PDF_METRIC_TINTS = {
+    blue: { fill: [239, 246, 255], stroke: [147, 197, 253], value: [29, 78, 216] },
+    red: { fill: [255, 241, 242], stroke: [254, 205, 211], value: [220, 38, 38] },
+    green: { fill: [236, 253, 245], stroke: [134, 239, 172], value: [5, 150, 105] },
+  };
+
+  function drawPdfMetricCard(x, cardY, cardW, label, value, tintKey) {
+    const tint = PDF_METRIC_TINTS[tintKey] || PDF_METRIC_TINTS.blue;
+    const cardH = 22;
+    fill(tint.fill[0], tint.fill[1], tint.fill[2]);
+    stroke(tint.stroke[0], tint.stroke[1], tint.stroke[2]);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(x, cardY, cardW, cardH, 3, 3, "FD");
+
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    setColor(titleRgb[0], titleRgb[1], titleRgb[2]);
-    doc.text(title, x, blockY);
-    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.5);
+    setColor(122, 134, 153);
+    doc.text(label.toUpperCase(), x + cardW / 2, cardY + 7, { align: "center" });
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    setColor(tint.value[0], tint.value[1], tint.value[2]);
+    doc.text(String(value), x + cardW / 2, cardY + 17, { align: "center" });
+    return cardH;
+  }
+
+  function drawPdfMetricRow(startX, rowY, rowW, metrics) {
+    const gap = 3;
+    const count = metrics.length;
+    const cardW = (rowW - gap * (count - 1)) / count;
+    metrics.forEach((metric, i) => {
+      drawPdfMetricCard(startX + i * (cardW + gap), rowY, cardW, metric.label, metric.value, metric.tint);
+    });
+    return 22;
+  }
+
+  function drawPdfSectionLabel(text, x, labelY, rgb) {
+    doc.setFont("helvetica", "bold");
     doc.setFontSize(8.5);
-    setColor(51, 65, 85);
-    lines.forEach((line, i) => doc.text(line, x, blockY + 5 + i * 5.5));
+    setColor(rgb[0], rgb[1], rgb[2]);
+    doc.text(text, x, labelY);
+  }
+
+  function faceMetricsForEntry(face, hasFace) {
+    return [
+      { label: "Overall", value: hasFace ? face.jawlineScore : "—", tint: "blue" },
+      { label: "Balance", value: hasFace ? `${face.symmetry}%` : "—", tint: "green" },
+      { label: "Outline", value: hasFace ? Number(face.jawRatio).toFixed(2) : "—", tint: "red" },
+    ];
+  }
+
+  function voiceMetricsForEntry(voice, hasVoice) {
+    return [
+      { label: "Overall", value: hasVoice ? voice.voiceScore : "—", tint: "blue" },
+      { label: "Resonance", value: hasVoice ? `${voice.resonanceScore}%` : "—", tint: "red" },
+      { label: "Clarity", value: hasVoice ? `${voice.clarityScore}%` : "—", tint: "green" },
+    ];
   }
 
   days.forEach((day) => {
     const hasData = day.hasFace || day.hasVoice;
-    const cardH = isDualMode ? 72 : modes.photo ? 54 : 42;
+    const cardH = isDualMode ? 88 : modes.photo ? 58 : 40;
     newPageIfNeeded(cardH + 6);
 
     const complete = day.complete;
@@ -2519,9 +2567,11 @@ function exportProgressPdf() {
     }
 
     if (isDualMode) {
-      const photoSize = 28;
+      const photoSize = 30;
       const photoX = margin + 20;
-      const photoY = y + 22;
+      const photoY = y + 24;
+      const metricsX = margin + 54;
+      const metricsW = contentW - 40;
 
       if (day.hasFace) {
         try {
@@ -2543,41 +2593,16 @@ function exportProgressPdf() {
         doc.text("No photo", photoX + photoSize / 2, photoY + photoSize / 2 + 1, { align: "center" });
       }
 
-      const faceX = margin + 54;
-      const face = day.entry.face;
-      drawScoreBlock(
-        "Face Form scores",
-        [29, 78, 216],
-        day.hasFace
-          ? [
-              `Overall   ${face.jawlineScore}`,
-              `Balance   ${face.symmetry}%`,
-              `Outline   ${Number(face.jawRatio).toFixed(2)}`,
-            ]
-          : ["Overall   —", "Balance   —", "Outline   —"],
-        faceX,
-        contentY
-      );
+      drawPdfSectionLabel("Face Form", metricsX, contentY, [29, 78, 216]);
+      drawPdfMetricRow(metricsX, contentY + 3, metricsW, faceMetricsForEntry(day.entry.face, day.hasFace));
 
-      const voice = day.entry.voice;
-      drawScoreBlock(
-        "Voice Grain scores",
-        [190, 18, 60],
-        day.hasVoice
-          ? [
-              `Overall     ${voice.voiceScore}`,
-              `Resonance ${voice.resonanceScore}%`,
-              `Clarity     ${voice.clarityScore}%`,
-            ]
-          : ["Overall     —", "Resonance —", "Clarity     —"],
-        faceX + 52,
-        contentY
-      );
+      drawPdfSectionLabel("Voice Grain", metricsX, contentY + 30, [190, 18, 60]);
+      drawPdfMetricRow(metricsX, contentY + 33, metricsW, voiceMetricsForEntry(day.entry.voice, day.hasVoice));
 
       if (!hasData) {
         setColor(148, 163, 184);
         doc.setFontSize(8);
-        doc.text(day.isFuture ? "Coming up" : "Awaiting check-ins", faceX, contentY + 34);
+        doc.text(day.isFuture ? "Coming up" : "Awaiting check-ins", metricsX, contentY + 62);
       }
 
       y += cardH + 6;
@@ -2593,43 +2618,28 @@ function exportProgressPdf() {
       return;
     }
 
-    let textX = contentX;
-
     if (modes.photo && day.hasFace) {
       const face = day.entry.face;
       const photoSize = 30;
+      const metricsX = margin + 56;
+      const metricsW = contentW - 42;
       try {
-        doc.addImage(face.photo, pdfImageFormat(face.photo), margin + 20, y + 20, photoSize, photoSize);
+        doc.addImage(face.photo, pdfImageFormat(face.photo), margin + 20, y + 22, photoSize, photoSize);
         stroke(191, 219, 254);
         doc.setLineWidth(0.4);
-        doc.roundedRect(margin + 20, y + 20, photoSize, photoSize, 2, 2, "S");
-        textX = margin + 56;
+        doc.roundedRect(margin + 20, y + 22, photoSize, photoSize, 2, 2, "S");
       } catch (_) {
-        textX = contentX;
+        /* photo optional */
       }
 
-      drawScoreBlock(
-        "Face scores",
-        [29, 78, 216],
-        [`Overall  ${face.jawlineScore}`, `Balance  ${face.symmetry}%`, `Outline  ${Number(face.jawRatio).toFixed(2)}`],
-        textX,
-        contentY
-      );
+      drawPdfSectionLabel("Face Form", metricsX, contentY, [29, 78, 216]);
+      drawPdfMetricRow(metricsX, contentY + 3, metricsW, faceMetricsForEntry(face, true));
     }
 
     if (modes.voice && day.hasVoice) {
       const voice = day.entry.voice;
-      drawScoreBlock(
-        "Voice scores",
-        [190, 18, 60],
-        [
-          `Overall     ${voice.voiceScore}`,
-          `Resonance ${voice.resonanceScore}%`,
-          `Clarity     ${voice.clarityScore}%`,
-        ],
-        contentX,
-        contentY
-      );
+      drawPdfSectionLabel("Voice Grain", contentX, contentY, [190, 18, 60]);
+      drawPdfMetricRow(contentX, contentY + 3, contentW - 8, voiceMetricsForEntry(voice, true));
     }
 
     y += cardH + 6;
