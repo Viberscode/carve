@@ -1938,6 +1938,12 @@ button {
   pointer-events: none;
   z-index: 2;
   white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.perf-graph-tip:not([hidden]) {
+  opacity: 1;
 }
 
 .perf-graph-tip strong {
@@ -1959,9 +1965,10 @@ button {
 }
 
 .perf-dot-group {
-  cursor: pointer;
+  cursor: default;
 }
 
+.perf-dot-group:hover .perf-dot,
 .perf-dot-group.is-active .perf-dot {
   stroke: #1a1428;
   stroke-width: 2.5;

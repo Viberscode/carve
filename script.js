@@ -1724,7 +1724,7 @@ function buildPerformanceGraphSvg(series) {
       const sw = c.d.isToday ? 2 : 1.5;
       const secs = c.d.exerciseSeconds || 0;
       const timeLabel = formatExerciseDuration(secs);
-      return `<g class="perf-dot-group" data-perf-secs="${secs}" data-perf-label="${c.d.shortLabel}" role="button" tabindex="0" aria-label="${c.d.shortLabel}: ${timeLabel} exercised">
+      return `<g class="perf-dot-group" data-perf-secs="${secs}" data-perf-label="${c.d.shortLabel}" aria-label="${c.d.shortLabel}: ${timeLabel} exercised">
         <circle class="perf-dot-hit" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="14" fill="transparent"/>
         <circle class="perf-dot" cx="${c.x.toFixed(1)}" cy="${c.y.toFixed(1)}" r="${r}" fill="${col}" stroke="${stroke}" stroke-width="${sw}"/>
       </g>`;
@@ -1946,14 +1946,24 @@ function bindTrackExtras() {
   const root = $("#track-extras");
   if (!root || root.dataset.bound === "1") return;
   root.dataset.bound = "1";
-  root.addEventListener("click", (e) => {
+  root.addEventListener("pointerover", (e) => {
+    const perfDot = e.target.closest(".perf-dot-group");
+    if (perfDot) showPerfGraphTip(perfDot);
+  });
+  root.addEventListener("pointerout", (e) => {
     const perfDot = e.target.closest(".perf-dot-group");
     if (perfDot) {
-      showPerfGraphTip(perfDot);
+      if (e.relatedTarget && perfDot.contains(e.relatedTarget)) return;
+      if (e.relatedTarget?.closest?.(".perf-dot-group")) return;
+      hidePerfGraphTips(root);
       return;
     }
-    if (!e.target.closest(".perf-graph-tip")) hidePerfGraphTips(root);
-
+    const canvas = e.target.closest(".perf-graph-canvas");
+    if (canvas && (!e.relatedTarget || !canvas.contains(e.relatedTarget))) {
+      hidePerfGraphTips(root);
+    }
+  });
+  root.addEventListener("click", (e) => {
     const habitBtn = e.target.closest("[data-habit-id]");
     if (habitBtn) {
       const id = habitBtn.dataset.habitId;
