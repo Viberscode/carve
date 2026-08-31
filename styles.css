@@ -4981,7 +4981,18 @@ button {
 }
 
 .my-progress-sheet .my-progress-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 16px 16px calc(24px + var(--safe-b));
+}
+
+.stack-sheet.my-progress-sheet {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
 }
 
 #my-progress-today-card {

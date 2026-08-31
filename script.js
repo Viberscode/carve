@@ -2281,7 +2281,6 @@ function syncDailyProgressFromFaceReport(report, dayKeyOverride) {
     at: report.analyzedAt || new Date().toISOString(),
   };
   saveDailyProgress(map);
-  if (!$("#view-my-progress")?.hidden) renderMyProgress();
 }
 
 function syncDailyProgressFromVoiceReport(report, dayKeyOverride) {
@@ -2298,7 +2297,6 @@ function syncDailyProgressFromVoiceReport(report, dayKeyOverride) {
     at: report.analyzedAt || new Date().toISOString(),
   };
   saveDailyProgress(map);
-  if (!$("#view-my-progress")?.hidden) renderMyProgress();
 }
 
 function ensureTodaySyncedFromAnalysis() {
@@ -2526,106 +2524,117 @@ function renderMyProgressTodayPreview(entry, modes) {
 }
 
 function renderMyProgress() {
-  const copy = dailyProgressCopy();
-  const modes = dailyProgressModes();
-  ensureTodaySyncedFromAnalysis();
-  const store = loadDailyProgress();
-  const today = dateKey();
-  const todayEntry = store[today] || {};
+  if (renderMyProgress._busy) return;
+  renderMyProgress._busy = true;
+  try {
+    const copy = dailyProgressCopy();
+    const modes = dailyProgressModes();
 
-  $("#my-progress-title") && ($("#my-progress-title").textContent = copy.hero);
-  $("#my-progress-hero-lead") && ($("#my-progress-hero-lead").textContent = copy.heroLead);
-  $("#my-progress-today-lead") && ($("#my-progress-today-lead").textContent = copy.todayLead);
+    $("#my-progress-title") && ($("#my-progress-title").textContent = copy.hero);
+    $("#my-progress-hero-lead") && ($("#my-progress-hero-lead").textContent = copy.heroLead);
+    $("#my-progress-today-lead") && ($("#my-progress-today-lead").textContent = copy.todayLead);
 
-  const gate = $("#my-progress-analysis-gate");
-  const main = $("#my-progress-main");
-  const gateLead = $("#my-progress-gate-lead");
-  const needsAnalysis = needsAnalysisForDailyProgress();
+    const gate = $("#my-progress-analysis-gate");
+    const main = $("#my-progress-main");
+    const gateLead = $("#my-progress-gate-lead");
+    const needsAnalysis = needsAnalysisForDailyProgress();
 
-  if (needsAnalysis) {
-    if (gate) gate.hidden = false;
-    if (main) main.hidden = true;
-    if (gateLead) {
-      gateLead.textContent = modes.photo && modes.voice
-        ? "Complete your face and voice analysis scans in Reports before starting daily check-ins."
-        : modes.voice
-          ? "Complete your voice analysis scan in Reports before starting daily recordings."
-          : "Complete your face analysis scan in Reports before starting daily photos.";
+    if (needsAnalysis) {
+      if (gate) gate.hidden = false;
+      if (main) main.hidden = true;
+      if (gateLead) {
+        gateLead.textContent = modes.photo && modes.voice
+          ? "Complete your face and voice analysis scans in Reports before starting daily check-ins."
+          : modes.voice
+            ? "Complete your voice analysis scan in Reports before starting daily recordings."
+            : "Complete your face analysis scan in Reports before starting daily photos.";
+      }
+      setMyProgressError("");
+      return;
+    }
+
+    if (gate) gate.hidden = true;
+    if (main) main.hidden = false;
+
+    ensureTodaySyncedFromAnalysis();
+    const store = loadDailyProgress();
+    const today = dateKey();
+    const todayEntry = store[today] || {};
+
+    const todayComplete = dailyEntryComplete(todayEntry, modes);
+    const todayMeta = $("#my-progress-today-meta");
+    if (todayMeta) {
+      if (todayComplete) {
+        todayMeta.textContent = "Complete";
+        todayMeta.classList.add("is-complete");
+      } else {
+        const missing = [];
+        if (modes.photo && !dailyEntryHasFace(todayEntry)) missing.push("Face");
+        if (modes.voice && !dailyEntryHasVoice(todayEntry)) missing.push("Voice");
+        todayMeta.textContent = missing.length ? `Needs ${missing.join(" + ")}` : "In progress";
+        todayMeta.classList.remove("is-complete");
+      }
+    }
+
+    const preview = $("#my-progress-today-preview");
+    if (preview) preview.innerHTML = renderMyProgressTodayPreview(todayEntry, modes);
+
+    const actions = $("#my-progress-today-actions");
+    if (actions) {
+      const btns = [];
+      if (modes.photo) {
+        const hasFace = dailyEntryHasFace(todayEntry);
+        btns.push(
+          `<button type="button" class="my-progress-action-btn face" data-my-progress-analyze="face">
+            <span class="my-progress-action-icon" aria-hidden="true">🪞</span>
+            <span class="my-progress-action-copy">
+              <strong>${hasFace ? "Re-scan face" : "Run face analysis"}</strong>
+              <em>Opens Reports · saves to today</em>
+            </span>
+          </button>`
+        );
+      }
+      if (modes.voice) {
+        const hasVoice = dailyEntryHasVoice(todayEntry);
+        btns.push(
+          `<button type="button" class="my-progress-action-btn voice" data-my-progress-analyze="voice">
+            <span class="my-progress-action-icon" aria-hidden="true">🎙️</span>
+            <span class="my-progress-action-copy">
+              <strong>${hasVoice ? "Re-record voice" : "Run voice analysis"}</strong>
+              <em>Opens Reports · saves to today</em>
+            </span>
+          </button>`
+        );
+      }
+      actions.innerHTML = btns.join("");
+    }
+
+    const grid = $("#my-progress-grid");
+    if (grid) {
+      grid.innerHTML = recentProgressDayKeys(14)
+        .map((key) => {
+          const entry = store[key] || {};
+          const complete = dailyEntryComplete(entry, modes);
+          const isToday = key === today;
+          return `<button type="button" class="my-progress-day-card ${complete ? "is-complete" : "is-empty"}${isToday ? " is-today" : ""}" data-progress-day="${key}">
+            <div class="my-progress-day-media">${renderMyProgressDayMedia(entry, modes)}</div>
+            <div class="my-progress-day-footer">
+              <strong>${formatProgressDayLabel(key)}</strong>
+              ${complete ? renderMyProgressScoreRow(entry, modes) : '<span class="my-progress-day-hint">Tap to analyze</span>'}
+            </div>
+            ${complete ? '<span class="my-progress-day-badge" aria-hidden="true">✓</span>' : ""}
+          </button>`;
+        })
+        .join("");
     }
     setMyProgressError("");
-    return;
+  } finally {
+    renderMyProgress._busy = false;
   }
+}
 
-  if (gate) gate.hidden = true;
-  if (main) main.hidden = false;
-
-  const todayComplete = dailyEntryComplete(todayEntry, modes);
-  const todayMeta = $("#my-progress-today-meta");
-  if (todayMeta) {
-    if (todayComplete) {
-      todayMeta.textContent = "Complete";
-      todayMeta.classList.add("is-complete");
-    } else {
-      const missing = [];
-      if (modes.photo && !dailyEntryHasFace(todayEntry)) missing.push("Face");
-      if (modes.voice && !dailyEntryHasVoice(todayEntry)) missing.push("Voice");
-      todayMeta.textContent = missing.length ? `Needs ${missing.join(" + ")}` : "In progress";
-      todayMeta.classList.remove("is-complete");
-    }
-  }
-
-  const preview = $("#my-progress-today-preview");
-  if (preview) preview.innerHTML = renderMyProgressTodayPreview(todayEntry, modes);
-
-  const actions = $("#my-progress-today-actions");
-  if (actions) {
-    const btns = [];
-    if (modes.photo) {
-      const hasFace = dailyEntryHasFace(todayEntry);
-      btns.push(
-        `<button type="button" class="my-progress-action-btn face" data-my-progress-analyze="face">
-          <span class="my-progress-action-icon" aria-hidden="true">🪞</span>
-          <span class="my-progress-action-copy">
-            <strong>${hasFace ? "Re-scan face" : "Run face analysis"}</strong>
-            <em>Opens Reports · saves to today</em>
-          </span>
-        </button>`
-      );
-    }
-    if (modes.voice) {
-      const hasVoice = dailyEntryHasVoice(todayEntry);
-      btns.push(
-        `<button type="button" class="my-progress-action-btn voice" data-my-progress-analyze="voice">
-          <span class="my-progress-action-icon" aria-hidden="true">🎙️</span>
-          <span class="my-progress-action-copy">
-            <strong>${hasVoice ? "Re-record voice" : "Run voice analysis"}</strong>
-            <em>Opens Reports · saves to today</em>
-          </span>
-        </button>`
-      );
-    }
-    actions.innerHTML = btns.join("");
-  }
-
-  const grid = $("#my-progress-grid");
-  if (grid) {
-    grid.innerHTML = recentProgressDayKeys(14)
-      .map((key) => {
-        const entry = store[key] || {};
-        const complete = dailyEntryComplete(entry, modes);
-        const isToday = key === today;
-        return `<button type="button" class="my-progress-day-card ${complete ? "is-complete" : "is-empty"}${isToday ? " is-today" : ""}" data-progress-day="${key}">
-          <div class="my-progress-day-media">${renderMyProgressDayMedia(entry, modes)}</div>
-          <div class="my-progress-day-footer">
-            <strong>${formatProgressDayLabel(key)}</strong>
-            ${complete ? renderMyProgressScoreRow(entry, modes) : '<span class="my-progress-day-hint">Tap to analyze</span>'}
-          </div>
-          ${complete ? '<span class="my-progress-day-badge" aria-hidden="true">✓</span>' : ""}
-        </button>`;
-      })
-      .join("");
-  }
-  setMyProgressError("");
+function refreshMyProgressIfVisible() {
+  if (!$("#view-my-progress")?.hidden) renderMyProgress();
 }
 
 function openAnalysisForDailyProgress(kind = "auto") {
@@ -3372,6 +3381,7 @@ async function captureAndAnalyzeFace() {
     report.photoDataUrl = photoDataUrl;
     api.saveFaceReport(report);
     syncDailyProgressFromFaceReport(report);
+    refreshMyProgressIfVisible();
     renderFaceAnalysis({ scrollToScores: true });
     syncAnalysisPaywallUi();
   } catch (err) {
@@ -3703,6 +3713,7 @@ async function processVoiceAnalysisRecording() {
     const report = await api.analyzeVoiceFromBlob(blob, previous);
     api.saveVoiceReport(report);
     syncDailyProgressFromVoiceReport(report);
+    refreshMyProgressIfVisible();
     renderVoiceAnalysis({ scrollToScores: true });
     syncAnalysisPaywallUi();
   } catch (err) {
