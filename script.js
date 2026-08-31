@@ -2435,6 +2435,18 @@ function needsAnalysisForDailyProgress() {
   return !hasFace;
 }
 
+function dailyProgressBoxIconMarkup(kind = "face") {
+  const svgOpen =
+    '<svg class="daily-progress-box-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">';
+  if (kind === "voice") {
+    return `${svgOpen}<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M6 11a6 6 0 0012 0M12 17v3M9 20h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+  }
+  if (kind === "both") {
+    return `${svgOpen}<path d="M8 4h8v9a4 4 0 01-8 0V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 7h4M10 10h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M5 18c1.2-2 2.8-3 7-3s5.8 1 7 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M17 6l2-1.5M19 9.5l2 .5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+  }
+  return `${svgOpen}<path d="M4 8V6a2 2 0 012-2h2M16 4h2a2 2 0 012 2v2M20 16v2a2 2 0 01-2 2h-2M8 20H6a2 2 0 01-2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="11" r="3.25" stroke="currentColor" stroke-width="1.8"/><path d="M8.5 15.75c.85-1.35 2-2 3.5-2s2.65.65 3.5 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+}
+
 function dailyProgressCopy() {
   if (isVoiceProgressMode()) {
     return {
@@ -2442,7 +2454,7 @@ function dailyProgressCopy() {
       lead: "Record your voice every day and build a private timeline.",
       boxTitle: "Daily voice recordings",
       boxSub: "One clip per day · on-device only",
-      icon: "🎙️",
+      iconKind: "voice",
       hero: "Daily voice log",
       heroLead: "Every voice analysis scan saves to this private timeline automatically.",
       todayLead: "Run voice analysis — today's scores appear here when you're done.",
@@ -2454,7 +2466,7 @@ function dailyProgressCopy() {
       lead: "Capture face and voice every day — your full private timeline.",
       boxTitle: "Daily face + voice",
       boxSub: "Photo & recording each day · on-device only",
-      icon: "✦",
+      iconKind: "both",
       hero: "Daily presence log",
       heroLead: "Face and voice analysis scans save here automatically — on-device only.",
       todayLead: "Run face or voice analysis in Reports to fill today's slots.",
@@ -2465,7 +2477,7 @@ function dailyProgressCopy() {
     lead: "Capture your face every day and track visual progress privately.",
     boxTitle: "Daily progress photos",
     boxSub: "One photo per day · on-device only",
-    icon: "🪞",
+    iconKind: "face",
     hero: "Daily photo log",
     heroLead: "Every face analysis scan saves to this private timeline automatically.",
     todayLead: "Run face analysis — today's photo and scores appear here when you're done.",
@@ -2493,7 +2505,7 @@ function renderDailyProgressCard() {
   }
   if (boxTitle) boxTitle.textContent = copy.boxTitle;
   if (boxSub) boxSub.textContent = copy.boxSub;
-  if (icon) icon.textContent = copy.icon;
+  if (icon) icon.innerHTML = dailyProgressBoxIconMarkup(copy.iconKind);
   if (kicker) {
     kicker.textContent = unlocked ? "Unlocked" : "Premium";
     kicker.classList.toggle("is-unlocked", unlocked);

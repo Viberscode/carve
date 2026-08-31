@@ -5021,7 +5021,7 @@ button {
   border-radius: 16px;
   display: grid;
   place-items: center;
-  font-size: 24px;
+  color: #1d4ed8;
   background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow:
@@ -5030,7 +5030,14 @@ button {
   flex-shrink: 0;
 }
 
+.daily-progress-box-svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
 .daily-progress-box.is-unlocked .daily-progress-box-icon {
+  color: #fff;
   background: linear-gradient(145deg, #3b82f6 0%, #1d4ed8 100%);
   box-shadow:
     0 10px 22px rgba(29, 78, 216, 0.35),
