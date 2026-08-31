@@ -1227,28 +1227,6 @@ function habitCatalog(track) {
   ];
 }
 
-function careNotes(track) {
-  if (track === "voice") {
-    return [
-      { icon: "💧", title: "Warm water first", body: "A few slow sips keep your throat easy after breath and hum work.", tint: "aqua" },
-      { icon: "🎶", title: "Stay in easy range", body: "If it feels pressed or hoarse — stop. Presence grows gently.", tint: "lilac" },
-      { icon: "🫁", title: "Reset your breath", body: "Nasal inhale. Soft long exhale. Drop the shoulders.", tint: "sky" },
-    ];
-  }
-  if (track === "both") {
-    return [
-      { icon: "💧", title: "Hydrate both ways", body: "Water softens tissue recovery and keeps speaking effortless.", tint: "aqua" },
-      { icon: "🪞", title: "Soft face, open throat", body: "Unclench the jaw. Keep the neck long and easy.", tint: "lilac" },
-      { icon: "✦", title: "Never force it", body: "No bone claims. No larynx strain. Sharp pain = ease off.", tint: "mint" },
-    ];
-  }
-  return [
-    { icon: "💧", title: "Sip water now", body: "Hydration unlocks softer tissue after massage and holds.", tint: "aqua" },
-    { icon: "😌", title: "Release the jaw", body: "Tongue to palate. Soft cheeks. Better recovery starts here.", tint: "lilac" },
-    { icon: "🌙", title: "Respect the signal", body: "Relieving pressure is good. Sharp pain means stop.", tint: "mint" },
-  ];
-}
-
 function todayHabitMap() {
   const key = dateKey();
   if (!state.habitChecks[key] || typeof state.habitChecks[key] !== "object") {
@@ -1532,6 +1510,52 @@ function habitsLead(track) {
   return "Tap to check off today’s cues.";
 }
 
+function focusSpotlightCopy(track) {
+  if (track === "voice") {
+    return {
+      kicker: "Session · voice grain",
+      lead: "Presence builds in layers — breath first, then tone.",
+    };
+  }
+  if (track === "both") {
+    return {
+      kicker: "Session · full presence",
+      lead: "Face and voice in one calm rhythm — small reps, daily.",
+    };
+  }
+  return {
+    kicker: "Session · face form",
+    lead: "Soft tissue responds to consistency — sculpt with daily reps.",
+  };
+}
+
+function todaySessionPreview(limit = 3) {
+  const day = state.days.find((d) => d.n === state.currentDay);
+  if (!day) return { items: [], more: 0, total: 0, minutes: 0, done: 0, status: "locked", percent: 0 };
+  let items = [];
+  if (day.roadmap?.length) {
+    items = day.roadmap.map(roadmapToSessionItem);
+  } else {
+    items = day.ids.map((id) => exercises[id]).filter(Boolean);
+  }
+  const secs = items.reduce((sum, ex) => sum + (ex.duration || (ex.reps || 0) * 3 || 30), 0);
+  return {
+    items: items.slice(0, limit),
+    more: Math.max(0, items.length - limit),
+    total: items.length,
+    minutes: Math.max(1, Math.round(secs / 60)),
+    done: dayDoneCount(day),
+    status: day.status,
+    percent: day.percent || 0,
+  };
+}
+
+function formatPreviewDosage(ex) {
+  if (!ex) return "";
+  if (ex.duration != null) return formatTime(ex.duration);
+  return ex.eachSide ? `× ${ex.reps} each` : `× ${ex.reps}`;
+}
+
 function renderHomeWeek() {
   const root = $("#home-week");
   if (!root) return;
@@ -1573,11 +1597,23 @@ function renderTrackExtras() {
   const root = $("#track-extras");
   if (!root) return;
   const track = state.track || "face";
+  const meta = trackMeta();
   const habits = habitCatalog(track);
-  const notes = careNotes(track);
   const checks = todayHabitMap();
   const doneCount = habits.filter((h) => checks[h.id]).length;
   const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
+  const spotlight = focusSpotlightCopy(track);
+  const preview = todaySessionPreview(3);
+  const tags = meta.tags.split("·").map((t) => t.trim()).filter(Boolean);
+  const streak = Math.max(0, state.streak || 0);
+  const dayLabel = state.currentDay || 1;
+  const inProgress = preview.status !== "done" && preview.done > 0;
+  const ctaLabel =
+    preview.status === "done"
+      ? "Practice again"
+      : inProgress
+        ? "Continue Day " + dayLabel
+        : "Open Day " + dayLabel;
 
   renderHomeWeek();
 
@@ -1619,36 +1655,64 @@ function renderTrackExtras() {
         </div>
       </section>
 
-      <section class="home-panel care-panel" aria-label="After you train">
-        <div class="care-shell">
-          <div class="care-head">
-            <p class="care-kicker">Recovery · lock it in</p>
-            <h2 class="panel-title">After you train</h2>
+      <section class="home-panel spotlight-panel" aria-label="Today's session">
+        <div class="spotlight-shell">
+          <div class="spotlight-glow" aria-hidden="true"></div>
+          <div class="spotlight-head">
+            <div class="spotlight-head-copy">
+              <p class="spotlight-kicker">${spotlight.kicker} · day ${dayLabel}</p>
+              <h2 class="panel-title">Today's blueprint</h2>
+              <p class="spotlight-lead">${spotlight.lead}</p>
+            </div>
+            <div class="spotlight-art" aria-hidden="true">${meta.art}</div>
           </div>
-          <div class="care-list">
-            ${notes
+          <div class="spotlight-tags">
+            ${tags.map((tag) => `<span class="spotlight-tag">${tag}</span>`).join("")}
+          </div>
+          <div class="spotlight-stats">
+            <div class="spotlight-stat">
+              <strong>${preview.total || "—"}</strong>
+              <span>Exercises</span>
+            </div>
+            <div class="spotlight-stat">
+              <strong>${preview.minutes || "—"}</strong>
+              <span>Minutes</span>
+            </div>
+            <div class="spotlight-stat">
+              <strong>${streak}</strong>
+              <span>Streak</span>
+            </div>
+          </div>
+          ${
+            inProgress
+              ? `<div class="spotlight-progress">
+              <div class="spotlight-progress-track">
+                <div class="spotlight-progress-fill" style="width:${preview.percent}%"></div>
+              </div>
+              <p class="spotlight-progress-label">${preview.done} of ${preview.total} complete</p>
+            </div>`
+              : ""
+          }
+          <div class="spotlight-preview">
+            ${preview.items
               .map(
-                (n) => `<article class="care-card tint-${n.tint}">
-                <span class="care-icon" aria-hidden="true">${n.icon}</span>
-                <div class="care-text">
-                  <strong>${n.title}</strong>
-                  <p>${n.body}</p>
-                </div>
-              </article>`
+                (ex, i) => `<div class="spotlight-preview-row${i < preview.done ? " is-done" : ""}">
+                <span class="spotlight-preview-index">${i + 1}</span>
+                <span class="spotlight-preview-name">${ex.displayName || ex.name}</span>
+                <span class="spotlight-preview-dose">${formatPreviewDosage(ex)}</span>
+              </div>`
               )
               .join("")}
+            ${
+              preview.more
+                ? `<p class="spotlight-preview-more">+ ${preview.more} more in today's plan</p>`
+                : ""
+            }
           </div>
-          <div class="photo-check">
-            <div class="photo-check-copy">
-              <strong>${track === "voice" ? "Record this week" : "Capture this week"}</strong>
-              <p>${
-                track === "voice"
-                  ? "Same phrase. Quiet room. Recordings stay on your device."
-                  : "Same angle. Same light. Progress stays on your device."
-              }</p>
-            </div>
-            <button type="button" class="photo-check-btn" data-photo-check>Add ›</button>
-          </div>
+          <button type="button" class="spotlight-cta" data-open-today-plan>
+            <span>${ctaLabel}</span>
+            <span aria-hidden="true">›</span>
+          </button>
         </div>
       </section>
     </div>`;
@@ -1670,18 +1734,14 @@ function bindTrackExtras() {
       renderTrackExtras();
       return;
     }
-    if (e.target.closest("[data-photo-check]")) {
-      state.stack = ["reports"];
-      renderReports();
-      showView("reports");
-      $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "reports"));
-      showToast(
-        isFullPresenceMode()
-          ? "Add weekly photos and voice recordings in Reports"
-          : isVoiceProgressMode()
-            ? "Add weekly voice recordings in Reports"
-            : "Add weekly progress photos in Reports"
-      );
+    if (e.target.closest("[data-open-today-plan]")) {
+      const day = state.days.find((d) => d.n === state.currentDay);
+      if (day && day.status !== "locked") {
+        openDay(state.currentDay);
+      } else {
+        renderDayList();
+        navigate("plan");
+      }
     }
   });
 }
