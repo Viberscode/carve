@@ -2325,9 +2325,10 @@ function renderProgressScorePill(value, tone, label) {
   return `<span class="my-progress-score-pill ${tone}" title="${label}"><em>${Math.round(Number(value))}${suffix}</em></span>`;
 }
 
-function renderMyProgressTimelineDay(key, entry, modes, today) {
+function renderMyProgressTimelineDay(key, entry, modes, today, dayIndex, totalDays) {
   const complete = dailyEntryComplete(entry, modes);
   const isToday = key === today;
+  const isFuture = progressDayOffset(key) > 0;
   const hasFace = dailyEntryHasFace(entry);
   const hasVoice = dailyEntryHasVoice(entry);
   const label = formatProgressDayLabel(key);
@@ -2345,7 +2346,7 @@ function renderMyProgressTimelineDay(key, entry, modes, today) {
     } else if (hasVoice) {
       thumbHtml = `<div class="my-progress-day-thumb has-voice">${renderMiniWaveform(entry.voice.waveform)}</div>`;
     } else {
-      thumbHtml = '<div class="my-progress-day-thumb is-empty"><span aria-hidden="true">+</span></div>';
+      thumbHtml = `<div class="my-progress-day-thumb is-empty${isFuture ? " is-future" : ""}"><span aria-hidden="true">${isFuture ? "·" : "+"}</span></div>`;
     }
     if (complete) {
       meta = `Face ${entry.face.jawlineScore} · Voice ${entry.voice.voiceScore}`;
@@ -2356,6 +2357,9 @@ function renderMyProgressTimelineDay(key, entry, modes, today) {
       if (!hasVoice) missing.push("voice");
       meta = `Needs ${missing.join(" & ")} scan`;
       trailing = '<span class="my-progress-day-cta-pill">Scan now</span>';
+    } else if (isFuture) {
+      meta = `Day ${dayIndex} of ${totalDays} · Coming up`;
+      trailing = '<span class="my-progress-day-soon">Soon</span>';
     } else {
       meta = "No entry yet";
       trailing = '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
@@ -2363,32 +2367,46 @@ function renderMyProgressTimelineDay(key, entry, modes, today) {
   } else if (modes.photo) {
     thumbHtml = hasFace
       ? `<div class="my-progress-day-thumb has-photo"><img src="${entry.face.photo}" alt="" /></div>`
-      : '<div class="my-progress-day-thumb is-empty"><span aria-hidden="true">+</span></div>';
+      : `<div class="my-progress-day-thumb is-empty${isFuture ? " is-future" : ""}"><span aria-hidden="true">${isFuture ? "·" : "+"}</span></div>`;
     if (hasFace) {
-      meta = `Balance ${entry.face.symmetry}%`;
+      meta = `Balance ${entry.face.symmetry}% · Score ${entry.face.jawlineScore}`;
       trailing = `<span class="my-progress-day-score blue">${entry.face.jawlineScore}</span>`;
+    } else if (isToday) {
+      meta = "Your turn — add today's scan";
+      trailing = '<span class="my-progress-day-cta-pill">Add scan</span>';
+    } else if (isFuture) {
+      meta = `Day ${dayIndex} of ${totalDays} · Coming up`;
+      trailing = '<span class="my-progress-day-soon">Soon</span>';
     } else {
-      meta = isToday ? "Ready for your scan" : "No scan yet";
-      trailing = isToday
-        ? '<span class="my-progress-day-cta-pill">Add scan</span>'
-        : '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
+      meta = "Missed — catch up when you can";
+      trailing = '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
     }
   } else {
     thumbHtml = hasVoice
       ? `<div class="my-progress-day-thumb has-voice">${renderMiniWaveform(entry.voice.waveform)}</div>`
-      : '<div class="my-progress-day-thumb is-empty voice"><span aria-hidden="true">+</span></div>';
+      : `<div class="my-progress-day-thumb is-empty voice${isFuture ? " is-future" : ""}"><span aria-hidden="true">${isFuture ? "·" : "+"}</span></div>`;
     if (hasVoice) {
       meta = `Res ${entry.voice.resonanceScore}% · Clr ${entry.voice.clarityScore}%`;
       trailing = `<span class="my-progress-day-score red">${entry.voice.voiceScore}</span>`;
+    } else if (isToday) {
+      meta = "Your turn — record today";
+      trailing = '<span class="my-progress-day-cta-pill">Record</span>';
+    } else if (isFuture) {
+      meta = `Day ${dayIndex} of ${totalDays} · Coming up`;
+      trailing = '<span class="my-progress-day-soon">Soon</span>';
     } else {
-      meta = isToday ? "Ready to record" : "No recording yet";
-      trailing = isToday
-        ? '<span class="my-progress-day-cta-pill">Record</span>'
-        : '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
+      meta = "Missed — catch up when you can";
+      trailing = '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
     }
   }
 
-  return `<button type="button" class="my-progress-day-row ${complete ? "is-complete" : "is-empty"}${isToday ? " is-today" : ""}" data-progress-day="${key}">
+  const stepLabel = complete ? "✓" : String(dayIndex);
+
+  return `<button type="button" class="my-progress-day-row ${complete ? "is-complete" : "is-empty"}${isToday ? " is-today" : ""}${isFuture ? " is-future" : ""}" data-progress-day="${key}"${isFuture ? " disabled" : ""}>
+    <span class="my-progress-day-step" aria-hidden="true">
+      <span class="my-progress-day-num">${stepLabel}</span>
+      <span class="my-progress-day-rail"></span>
+    </span>
     ${thumbHtml}
     <span class="my-progress-day-info">
       <strong>${label}</strong>
@@ -2496,16 +2514,26 @@ function openDailyProgressEntry() {
 function formatProgressDayLabel(key) {
   const today = dateKey();
   if (key === today) return "Today";
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  if (key === dateKey(tomorrow)) return "Tomorrow";
   const d = new Date(key + "T12:00:00");
   return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
-function recentProgressDayKeys(count = 14) {
+function progressDayOffset(key) {
+  const today = dateKey();
+  const target = new Date(key + "T12:00:00");
+  const base = new Date(today + "T12:00:00");
+  return Math.round((target - base) / 86400000);
+}
+
+function upcomingProgressDayKeys(futureCount = 14) {
   const keys = [];
   const base = new Date();
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i <= futureCount; i++) {
     const d = new Date(base);
-    d.setDate(base.getDate() - i);
+    d.setDate(base.getDate() + i);
     keys.push(dateKey(d));
   }
   return keys;
@@ -2637,16 +2665,18 @@ function renderMyProgress() {
       actions.innerHTML = btns.join("");
     }
 
-    const dayKeys = recentProgressDayKeys(14);
+    const dayKeys = upcomingProgressDayKeys(14);
     const loggedCount = dayKeys.filter((k) => dailyEntryComplete(store[k] || {}, modes)).length;
     const timelineMeta = $("#my-progress-timeline-meta");
     if (timelineMeta) {
-      timelineMeta.textContent = `${loggedCount} of ${dayKeys.length} logged`;
+      timelineMeta.textContent = `${loggedCount} of ${dayKeys.length} days`;
     }
 
     const grid = $("#my-progress-grid");
     if (grid) {
-      grid.innerHTML = dayKeys.map((key) => renderMyProgressTimelineDay(key, store[key] || {}, modes, today)).join("");
+      grid.innerHTML = dayKeys
+        .map((key, i) => renderMyProgressTimelineDay(key, store[key] || {}, modes, today, i + 1, dayKeys.length))
+        .join("");
     }
     setMyProgressError("");
   } finally {
@@ -4957,7 +4987,12 @@ function bind() {
       }
       const dayBtn = e.target.closest("[data-progress-day]");
       if (dayBtn) {
+        if (dayBtn.disabled) return;
         const key = dayBtn.dataset.progressDay;
+        if (progressDayOffset(key) > 0) {
+          showToast("This day unlocks when it arrives.");
+          return;
+        }
         if (key !== dateKey()) {
           const entry = loadDailyProgress()[key] || {};
           if (dailyEntryComplete(entry, dailyProgressModes())) {
