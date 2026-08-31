@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=dailyProgress4" />
+  <link rel="stylesheet" href="styles.css?v=dailyProgress5" />
 </head>
 <body>
   <div class="device">
@@ -500,8 +500,11 @@
                 <div class="my-progress-today-actions" id="my-progress-today-actions"></div>
               </div>
 
-              <p class="me-section-label reports-section-label">Your timeline</p>
-              <div class="my-progress-grid" id="my-progress-grid" aria-label="Daily progress timeline"></div>
+              <div class="my-progress-timeline-head">
+                <p class="me-section-label reports-section-label">Your timeline</p>
+                <span class="my-progress-timeline-meta" id="my-progress-timeline-meta">—</span>
+              </div>
+              <div class="my-progress-timeline" id="my-progress-grid" aria-label="Daily progress timeline"></div>
             </div>
 
             <p id="my-progress-error" class="face-analysis-error" hidden></p>
@@ -905,6 +908,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=dailyProgress4"></script>
+  <script src="script.js?v=dailyProgress5"></script>
 </body>
 </html>

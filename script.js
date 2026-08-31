@@ -2325,49 +2325,77 @@ function renderProgressScorePill(value, tone, label) {
   return `<span class="my-progress-score-pill ${tone}" title="${label}"><em>${Math.round(Number(value))}${suffix}</em></span>`;
 }
 
-function renderMyProgressDayMedia(entry, modes) {
+function renderMyProgressTimelineDay(key, entry, modes, today) {
+  const complete = dailyEntryComplete(entry, modes);
+  const isToday = key === today;
   const hasFace = dailyEntryHasFace(entry);
   const hasVoice = dailyEntryHasVoice(entry);
+  const label = formatProgressDayLabel(key);
+
+  let thumbHtml = "";
+  let meta = "";
+  let trailing = "";
 
   if (modes.photo && modes.voice) {
-    return `<div class="my-progress-day-split">
-      <div class="my-progress-day-half face ${hasFace ? "has-data" : "is-empty"}">
-        ${hasFace ? `<img src="${entry.face.photo}" alt="" />` : '<span class="my-progress-slot-icon">🪞</span>'}
-        ${hasFace ? renderProgressScorePill(entry.face.jawlineScore, "blue", "face") : ""}
-      </div>
-      <div class="my-progress-day-half voice ${hasVoice ? "has-data" : "is-empty"}">
-        ${hasVoice ? renderMiniWaveform(entry.voice.waveform) : '<span class="my-progress-slot-icon">🎙️</span>'}
-        ${hasVoice ? renderProgressScorePill(entry.voice.voiceScore, "red", "voice") : ""}
-      </div>
-    </div>`;
+    if (hasFace) {
+      thumbHtml = `<div class="my-progress-day-thumb has-photo">
+        <img src="${entry.face.photo}" alt="" />
+        ${hasVoice ? '<span class="my-progress-thumb-badge voice" aria-hidden="true">🎙️</span>' : ""}
+      </div>`;
+    } else if (hasVoice) {
+      thumbHtml = `<div class="my-progress-day-thumb has-voice">${renderMiniWaveform(entry.voice.waveform)}</div>`;
+    } else {
+      thumbHtml = '<div class="my-progress-day-thumb is-empty"><span aria-hidden="true">+</span></div>';
+    }
+    if (complete) {
+      meta = `Face ${entry.face.jawlineScore} · Voice ${entry.voice.voiceScore}`;
+      trailing = `<span class="my-progress-day-score dual">${entry.face.jawlineScore}</span>`;
+    } else if (isToday) {
+      const missing = [];
+      if (!hasFace) missing.push("face");
+      if (!hasVoice) missing.push("voice");
+      meta = `Needs ${missing.join(" & ")} scan`;
+      trailing = '<span class="my-progress-day-cta-pill">Scan now</span>';
+    } else {
+      meta = "No entry yet";
+      trailing = '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
+    }
+  } else if (modes.photo) {
+    thumbHtml = hasFace
+      ? `<div class="my-progress-day-thumb has-photo"><img src="${entry.face.photo}" alt="" /></div>`
+      : '<div class="my-progress-day-thumb is-empty"><span aria-hidden="true">+</span></div>';
+    if (hasFace) {
+      meta = `Balance ${entry.face.symmetry}%`;
+      trailing = `<span class="my-progress-day-score blue">${entry.face.jawlineScore}</span>`;
+    } else {
+      meta = isToday ? "Ready for your scan" : "No scan yet";
+      trailing = isToday
+        ? '<span class="my-progress-day-cta-pill">Add scan</span>'
+        : '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
+    }
+  } else {
+    thumbHtml = hasVoice
+      ? `<div class="my-progress-day-thumb has-voice">${renderMiniWaveform(entry.voice.waveform)}</div>`
+      : '<div class="my-progress-day-thumb is-empty voice"><span aria-hidden="true">+</span></div>';
+    if (hasVoice) {
+      meta = `Res ${entry.voice.resonanceScore}% · Clr ${entry.voice.clarityScore}%`;
+      trailing = `<span class="my-progress-day-score red">${entry.voice.voiceScore}</span>`;
+    } else {
+      meta = isToday ? "Ready to record" : "No recording yet";
+      trailing = isToday
+        ? '<span class="my-progress-day-cta-pill">Record</span>'
+        : '<span class="my-progress-day-arrow" aria-hidden="true">›</span>';
+    }
   }
 
-  if (modes.photo) {
-    return `<div class="my-progress-day-single face ${hasFace ? "has-data" : "is-empty"}">
-      ${hasFace ? `<img src="${entry.face.photo}" alt="" />` : '<span class="my-progress-slot-icon">🪞</span>'}
-      ${hasFace ? renderProgressScorePill(entry.face.jawlineScore, "blue", "face") : ""}
-      ${hasFace ? `<span class="my-progress-sub-scores"><i>Bal ${entry.face.symmetry}%</i></span>` : ""}
-    </div>`;
-  }
-
-  return `<div class="my-progress-day-single voice ${hasVoice ? "has-data" : "is-empty"}">
-    ${hasVoice ? renderMiniWaveform(entry.voice.waveform) : '<span class="my-progress-slot-icon">🎙️</span>'}
-    ${hasVoice ? renderProgressScorePill(entry.voice.voiceScore, "red", "voice") : ""}
-    ${hasVoice ? `<span class="my-progress-sub-scores"><i>Res ${entry.voice.resonanceScore}%</i><i>Clr ${entry.voice.clarityScore}%</i></span>` : ""}
-  </div>`;
-}
-
-function renderMyProgressScoreRow(entry, modes) {
-  const chips = [];
-  if (modes.photo && dailyEntryHasFace(entry)) {
-    chips.push(`<span class="my-progress-chip blue">Face ${entry.face.jawlineScore}</span>`);
-    chips.push(`<span class="my-progress-chip blue-soft">Bal ${entry.face.symmetry}%</span>`);
-  }
-  if (modes.voice && dailyEntryHasVoice(entry)) {
-    chips.push(`<span class="my-progress-chip red">Voice ${entry.voice.voiceScore}</span>`);
-    chips.push(`<span class="my-progress-chip red-soft">Res ${entry.voice.resonanceScore}%</span>`);
-  }
-  return chips.length ? `<div class="my-progress-chip-row">${chips.join("")}</div>` : "";
+  return `<button type="button" class="my-progress-day-row ${complete ? "is-complete" : "is-empty"}${isToday ? " is-today" : ""}" data-progress-day="${key}">
+    ${thumbHtml}
+    <span class="my-progress-day-info">
+      <strong>${label}</strong>
+      <em>${meta}</em>
+    </span>
+    ${trailing}
+  </button>`;
 }
 
 function dailyProgressModes() {
@@ -2609,23 +2637,16 @@ function renderMyProgress() {
       actions.innerHTML = btns.join("");
     }
 
+    const dayKeys = recentProgressDayKeys(14);
+    const loggedCount = dayKeys.filter((k) => dailyEntryComplete(store[k] || {}, modes)).length;
+    const timelineMeta = $("#my-progress-timeline-meta");
+    if (timelineMeta) {
+      timelineMeta.textContent = `${loggedCount} of ${dayKeys.length} logged`;
+    }
+
     const grid = $("#my-progress-grid");
     if (grid) {
-      grid.innerHTML = recentProgressDayKeys(14)
-        .map((key) => {
-          const entry = store[key] || {};
-          const complete = dailyEntryComplete(entry, modes);
-          const isToday = key === today;
-          return `<button type="button" class="my-progress-day-card ${complete ? "is-complete" : "is-empty"}${isToday ? " is-today" : ""}" data-progress-day="${key}">
-            <div class="my-progress-day-media">${renderMyProgressDayMedia(entry, modes)}</div>
-            <div class="my-progress-day-footer">
-              <strong>${formatProgressDayLabel(key)}</strong>
-              ${complete ? renderMyProgressScoreRow(entry, modes) : '<span class="my-progress-day-hint">Tap to analyze</span>'}
-            </div>
-            ${complete ? '<span class="my-progress-day-badge" aria-hidden="true">✓</span>' : ""}
-          </button>`;
-        })
-        .join("");
+      grid.innerHTML = dayKeys.map((key) => renderMyProgressTimelineDay(key, store[key] || {}, modes, today)).join("");
     }
     setMyProgressError("");
   } finally {
