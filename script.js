@@ -1510,50 +1510,58 @@ function habitsLead(track) {
   return "Tap to check off today’s cues.";
 }
 
-function focusSpotlightCopy(track) {
-  if (track === "voice") {
-    return {
-      kicker: "Session · voice grain",
-      lead: "Presence builds in layers — breath first, then tone.",
-    };
+function badgeDisplayMeta(badge) {
+  if (state.track === "voice" && badge.voiceTitle) {
+    return { emoji: badge.voiceEmoji || badge.emoji, title: badge.voiceTitle, sub: badge.voiceSub || badge.sub };
   }
-  if (track === "both") {
-    return {
-      kicker: "Session · full presence",
-      lead: "Face and voice in one calm rhythm — small reps, daily.",
-    };
-  }
-  return {
-    kicker: "Session · face form",
-    lead: "Soft tissue responds to consistency — sculpt with daily reps.",
-  };
+  return { emoji: badge.emoji, title: badge.title, sub: badge.sub };
 }
 
-function todaySessionPreview(limit = 3) {
-  const day = state.days.find((d) => d.n === state.currentDay);
-  if (!day) return { items: [], more: 0, total: 0, minutes: 0, done: 0, status: "locked", percent: 0 };
-  let items = [];
-  if (day.roadmap?.length) {
-    items = day.roadmap.map(roadmapToSessionItem);
-  } else {
-    items = day.ids.map((id) => exercises[id]).filter(Boolean);
-  }
-  const secs = items.reduce((sum, ex) => sum + (ex.duration || (ex.reps || 0) * 3 || 30), 0);
-  return {
-    items: items.slice(0, limit),
-    more: Math.max(0, items.length - limit),
-    total: items.length,
-    minutes: Math.max(1, Math.round(secs / 60)),
-    done: dayDoneCount(day),
-    status: day.status,
-    percent: day.percent || 0,
-  };
+function nextBadgeToUnlock(ctx) {
+  return BADGE_CATALOG.find((badge) => !state.unlockedBadges?.[badge.id]);
 }
 
-function formatPreviewDosage(ex) {
-  if (!ex) return "";
-  if (ex.duration != null) return formatTime(ex.duration);
-  return ex.eachSide ? `× ${ex.reps} each` : `× ${ex.reps}`;
+function badgeProgressToward(badge, ctx) {
+  if (badge.streak > 0) {
+    const current = ctx.bestStreak;
+    const target = badge.streak;
+    return {
+      label: `${Math.min(current, target)} / ${target} day streak`,
+      pct: Math.min(100, Math.round((current / target) * 100)),
+      remaining: Math.max(0, target - current),
+    };
+  }
+  if (badge.id === "day1") {
+    const current = ctx.sessionsDone;
+    return {
+      label: `${current} / 1 session`,
+      pct: current >= 1 ? 100 : 0,
+      remaining: current >= 1 ? 0 : 1,
+    };
+  }
+  if (badge.id === "photo") {
+    const current = ctx.photoCount;
+    return {
+      label: current >= 1 ? "Logged on device" : "Not logged yet",
+      pct: current >= 1 ? 100 : 0,
+      remaining: current >= 1 ? 0 : 1,
+    };
+  }
+  if (badge.id === "hour") {
+    const current = ctx.totalMinutes;
+    return {
+      label: `${current} / 60 guided min`,
+      pct: Math.min(100, Math.round((current / 60) * 100)),
+      remaining: Math.max(0, 60 - current),
+    };
+  }
+  return { label: "", pct: 0, remaining: 0 };
+}
+
+function momentumCopy(track) {
+  if (track === "voice") return "Small daily reps compound into a clearer, calmer voice.";
+  if (track === "both") return "Face and voice habits stack — consistency beats intensity.";
+  return "Daily reps reshape tone and posture — stay gentle, stay regular.";
 }
 
 function renderHomeWeek() {
@@ -1597,25 +1605,50 @@ function renderTrackExtras() {
   const root = $("#track-extras");
   if (!root) return;
   const track = state.track || "face";
-  const meta = trackMeta();
   const habits = habitCatalog(track);
   const checks = todayHabitMap();
   const doneCount = habits.filter((h) => checks[h.id]).length;
   const progressPct = habits.length ? (doneCount / habits.length) * 100 : 0;
-  const spotlight = focusSpotlightCopy(track);
-  const preview = todaySessionPreview(3);
-  const tags = meta.tags.split("·").map((t) => t.trim()).filter(Boolean);
-  const streak = Math.max(0, state.streak || 0);
-  const dayLabel = state.currentDay || 1;
-  const inProgress = preview.status !== "done" && preview.done > 0;
-  const ctaLabel =
-    preview.status === "done"
-      ? "Practice again"
-      : inProgress
-        ? "Continue Day " + dayLabel
-        : "Open Day " + dayLabel;
+  const sessionsDone = Math.max(0, state.currentDay - 1);
+  const photoCount = loadReportProgressCount();
+  const totalMinutes = sessionsDone * 9;
+  const badgeCtx = badgeContext(sessionsDone, photoCount, totalMinutes);
+  const consistency = computeConsistencyScore(14);
+  const weekDays = getWeekTrainingDays();
+  const weekSessions = weekDays.filter((d) => d.sessionDone).length;
+  const nextBadge = nextBadgeToUnlock(badgeCtx);
+  const earnedCount = BADGE_CATALOG.filter((b) => state.unlockedBadges?.[b.id]).length;
 
   renderHomeWeek();
+
+  let milestoneHtml = "";
+  if (nextBadge) {
+    const display = badgeDisplayMeta(nextBadge);
+    const progress = badgeProgressToward(nextBadge, badgeCtx);
+    milestoneHtml = `
+      <div class="momentum-milestone">
+        <div class="momentum-milestone-badge tier-${nextBadge.tier}" aria-hidden="true">${display.emoji}</div>
+        <div class="momentum-milestone-copy">
+          <p class="momentum-milestone-kicker">Next unlock</p>
+          <strong>${display.title}</strong>
+          <span>${display.sub}</span>
+          <div class="momentum-milestone-track">
+            <div class="momentum-milestone-fill" style="width:${progress.pct}%"></div>
+          </div>
+          <small>${progress.label}</small>
+        </div>
+      </div>`;
+  } else {
+    milestoneHtml = `
+      <div class="momentum-milestone momentum-milestone-complete">
+        <div class="momentum-milestone-badge tier-legend" aria-hidden="true">👑</div>
+        <div class="momentum-milestone-copy">
+          <p class="momentum-milestone-kicker">All earned</p>
+          <strong>Every badge unlocked</strong>
+          <span>You’ve built a real CARVE rhythm — keep showing up.</span>
+        </div>
+      </div>`;
+  }
 
   root.innerHTML = `
     <div class="extras-block">
@@ -1655,62 +1688,40 @@ function renderTrackExtras() {
         </div>
       </section>
 
-      <section class="home-panel spotlight-panel" aria-label="Today's session">
-        <div class="spotlight-shell">
-          <div class="spotlight-glow" aria-hidden="true"></div>
-          <div class="spotlight-head">
-            <div class="spotlight-head-copy">
-              <p class="spotlight-kicker">${spotlight.kicker} · day ${dayLabel}</p>
-              <h2 class="panel-title">Today's blueprint</h2>
-              <p class="spotlight-lead">${spotlight.lead}</p>
+      <section class="home-panel momentum-panel" aria-label="Your momentum">
+        <div class="momentum-shell">
+          <div class="momentum-head">
+            <div>
+              <p class="momentum-kicker">Momentum · ${earnedCount} / ${BADGE_CATALOG.length} badges</p>
+              <h2 class="panel-title">Keep the rhythm</h2>
+              <p class="momentum-lead">${momentumCopy(track)}</p>
             </div>
-            <div class="spotlight-art" aria-hidden="true">${meta.art}</div>
-          </div>
-          <div class="spotlight-tags">
-            ${tags.map((tag) => `<span class="spotlight-tag">${tag}</span>`).join("")}
-          </div>
-          <div class="spotlight-stats">
-            <div class="spotlight-stat">
-              <strong>${preview.total || "—"}</strong>
-              <span>Exercises</span>
-            </div>
-            <div class="spotlight-stat">
-              <strong>${preview.minutes || "—"}</strong>
-              <span>Minutes</span>
-            </div>
-            <div class="spotlight-stat">
-              <strong>${streak}</strong>
-              <span>Streak</span>
+            <div class="momentum-ring" style="--pct:${consistency}" aria-label="${consistency}% consistent">
+              <span class="momentum-ring-value">${consistency}<small>%</small></span>
+              <span class="momentum-ring-label">14-day</span>
             </div>
           </div>
-          ${
-            inProgress
-              ? `<div class="spotlight-progress">
-              <div class="spotlight-progress-track">
-                <div class="spotlight-progress-fill" style="width:${preview.percent}%"></div>
-              </div>
-              <p class="spotlight-progress-label">${preview.done} of ${preview.total} complete</p>
-            </div>`
-              : ""
-          }
-          <div class="spotlight-preview">
-            ${preview.items
-              .map(
-                (ex, i) => `<div class="spotlight-preview-row${i < preview.done ? " is-done" : ""}">
-                <span class="spotlight-preview-index">${i + 1}</span>
-                <span class="spotlight-preview-name">${ex.displayName || ex.name}</span>
-                <span class="spotlight-preview-dose">${formatPreviewDosage(ex)}</span>
-              </div>`
-              )
-              .join("")}
-            ${
-              preview.more
-                ? `<p class="spotlight-preview-more">+ ${preview.more} more in today's plan</p>`
-                : ""
-            }
+          <div class="momentum-week">
+            <div class="momentum-week-head">
+              <strong>This week</strong>
+              <span>${weekSessions} session${weekSessions === 1 ? "" : "s"}</span>
+            </div>
+            <div class="momentum-week-strip" role="list">
+              ${weekDays
+                .map((d) => {
+                  let cls = "momentum-day";
+                  if (d.sessionDone) cls += " done";
+                  if (d.isToday) cls += " today";
+                  if (d.isFuture) cls += " future";
+                  const inner = d.sessionDone ? "✓" : d.label;
+                  return `<div class="${cls}" role="listitem" title="${d.label}"><span>${inner}</span></div>`;
+                })
+                .join("")}
+            </div>
           </div>
-          <button type="button" class="spotlight-cta" data-open-today-plan>
-            <span>${ctaLabel}</span>
+          ${milestoneHtml}
+          <button type="button" class="momentum-cta" data-open-achievements>
+            <span>View achievements</span>
             <span aria-hidden="true">›</span>
           </button>
         </div>
@@ -1734,14 +1745,14 @@ function bindTrackExtras() {
       renderTrackExtras();
       return;
     }
-    if (e.target.closest("[data-open-today-plan]")) {
-      const day = state.days.find((d) => d.n === state.currentDay);
-      if (day && day.status !== "locked") {
-        openDay(state.currentDay);
-      } else {
-        renderDayList();
-        navigate("plan");
-      }
+    if (e.target.closest("[data-open-achievements]")) {
+      state.stack = ["reports"];
+      renderReports();
+      showView("reports");
+      $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "reports"));
+      window.requestAnimationFrame(() => {
+        $("#reports-badges-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
     }
   });
 }
