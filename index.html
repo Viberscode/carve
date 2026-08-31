@@ -991,6 +991,50 @@
         </div>
       </div>
 
+      <div class="modal support-modal" id="evidence-policy-modal" hidden>
+        <div class="modal-backdrop" data-close-evidence></div>
+        <div class="sheet support-sheet" role="dialog" aria-modal="true" aria-labelledby="evidence-policy-title">
+          <div class="sheet-handle"></div>
+          <header class="support-head">
+            <span class="support-icon support-icon-evidence" aria-hidden="true">🔒</span>
+            <div>
+              <p class="support-kicker">Privacy &amp; claims</p>
+              <h2 id="evidence-policy-title">Evidence policy</h2>
+            </div>
+          </header>
+          <div class="sheet-body support-body">
+            <p class="support-lead">
+              CARVE is a habit-training app. Everything below explains what we measure, what we claim, and what stays on your device.
+            </p>
+            <div class="evidence-policy-list">
+              <section class="evidence-policy-block">
+                <h3>What CARVE trains</h3>
+                <p>Soft tissue tone, facial posture, jaw-release habits, breathing patterns, and vocal resonance through guided daily drills.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>What we do not claim</h3>
+                <p>CARVE does not claim to change bone structure, skull shape, or genetics. Scores reflect on-device estimates for tracking your own progress — not medical diagnoses.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>How analysis works</h3>
+                <p>Face and voice scans run entirely on this device. Photos and recordings are not uploaded to CARVE servers. Your data stays in local storage unless you export or delete it.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>Interpreting your scores</h3>
+                <p>Trends over time matter more than any single number. Use scores to stay consistent with drills — not as proof of permanent structural change.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>When to seek professional advice</h3>
+                <p>CARVE is not a substitute for dental, medical, or speech therapy care. Consult a qualified professional for pain, TMJ concerns, or voice disorders.</p>
+              </section>
+            </div>
+          </div>
+          <footer class="support-foot">
+            <button type="button" class="pill pill-gradient" data-close-evidence>Understood</button>
+          </footer>
+        </div>
+      </div>
+
       <div class="modal" id="modal" hidden>
         <div class="modal-backdrop" data-close-modal></div>
         <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -1033,6 +1077,6 @@
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=prefs1"></script>
+  <script src="script.js?v=evidence1"></script>
 </body>
 </html>

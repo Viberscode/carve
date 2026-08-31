@@ -2102,6 +2102,16 @@ function closeFeedbackModal() {
   if (modal) modal.hidden = true;
 }
 
+function openEvidencePolicyModal() {
+  const modal = $("#evidence-policy-modal");
+  if (modal) modal.hidden = false;
+}
+
+function closeEvidencePolicyModal() {
+  const modal = $("#evidence-policy-modal");
+  if (modal) modal.hidden = true;
+}
+
 function submitFeedback(event) {
   event.preventDefault();
   const topic = $("#feedback-topic")?.value || "general";
@@ -5385,10 +5395,14 @@ function bind() {
 
   const meToasts = {
     "btn-sign-out": "Signed out of this device session",
-    "btn-evidence": "Evidence policy — soft tissue & habits only",
   };
   Object.keys(meToasts).forEach((id) => {
     $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
+  });
+
+  $("#btn-evidence")?.addEventListener("click", openEvidencePolicyModal);
+  $$("[data-close-evidence]").forEach((el) => {
+    el.addEventListener("click", closeEvidencePolicyModal);
   });
 
   $("#btn-help")?.addEventListener("click", openHelpFaqModal);

@@ -4985,6 +4985,39 @@ body.mirror-mode-on #reports-photo-video {
   border-color: #ddd6fe;
 }
 
+.support-icon-evidence {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.evidence-policy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evidence-policy-block {
+  border: 1px solid var(--line-gray);
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px 16px;
+}
+
+.evidence-policy-block h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--black);
+}
+
+.evidence-policy-block p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--sub-gray);
+}
+
 .support-kicker {
   margin: 0 0 2px;
   font-size: 11px;
