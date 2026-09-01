@@ -597,11 +597,27 @@ function stopCoachPlayer(el) {
 }
 
 function stopCoachPlayers(root = document) {
-  root.querySelectorAll(".coach-player").forEach(stopCoachPlayer);
+  root.querySelectorAll(".coach-player, .coach-static").forEach(stopCoachPlayer);
+}
+
+function renderVoiceCoachStatic(el, ex) {
+  if (!el) return;
+  stopCoachPlayer(el);
+  el.classList.add("coach-static");
+  el.classList.remove("coach-player");
+  const emoji = ex?.emoji || emojiForName(ex?.displayName || ex?.name || ex?.id || "");
+  el.innerHTML = `<span class="coach-static-emoji" aria-hidden="true">${emoji}</span>`;
+  el.dataset.coachSet = "voice-static";
 }
 
 function startCoachPlayer(el, ex) {
   if (!el) return;
+  if (isVoiceGrainSession()) {
+    renderVoiceCoachStatic(el, ex);
+    return;
+  }
+  el.classList.remove("coach-static");
+  if (!el.classList.contains("coach-player")) el.classList.add("coach-player");
   stopCoachPlayer(el);
   const slug = videoSlugForExercise(ex);
   el.dataset.coachSet = slug;
@@ -669,6 +685,11 @@ function emojiForName(name) {
 }
 
 function clipArtBoy(exOrKey) {
+  const ex = typeof exOrKey === "string" ? { name: exOrKey } : exOrKey;
+  if (isVoiceGrainSession()) {
+    const emoji = ex?.emoji || emojiForName(ex?.displayName || ex?.name || "");
+    return `<span class="coach-static thumb" aria-hidden="true"><span class="coach-static-emoji">${emoji}</span></span>`;
+  }
   const set =
     typeof exOrKey === "string" ? coachSetForName(exOrKey) : coachSetForExercise(exOrKey);
   return `<span class="coach-player thumb" data-coach-set="${set}"></span>`;
@@ -5661,7 +5682,8 @@ function renderDayView(n, { push } = { push: true }) {
       openModal(idx, state.sessionIds);
     });
     list.appendChild(row);
-    startCoachPlayer(row.querySelector(".coach-player"), ex);
+    const coachEl = row.querySelector(".coach-player");
+    if (coachEl) startCoachPlayer(coachEl, ex);
   });
   if (push) navigate("day");
   else showView("day");
@@ -5714,7 +5736,7 @@ function beginCountdown() {
   const readyHint = $("#player-ready")?.querySelector(".player-hint");
   if (readyHint) {
     readyHint.textContent = isVoiceGrainSession()
-      ? "Listen to the coach · match the sound and movement"
+      ? "Listen to the coach · follow the voice cues"
       : "Match the coach · breathe easy";
   }
   startVoiceExerciseCoach(ex);
@@ -5722,6 +5744,7 @@ function beginCountdown() {
   $("#player-active").hidden = true;
   const cd = $("#countdown");
   cd.hidden = false;
+  cd.classList.toggle("no-pop", isVoiceGrainSession());
   let n = 3;
   cd.textContent = n;
   state.timer = setInterval(() => {
@@ -5732,9 +5755,11 @@ function beginCountdown() {
       return;
     }
     cd.textContent = n;
-    cd.style.animation = "none";
-    void cd.offsetWidth;
-    cd.style.animation = "";
+    if (!isVoiceGrainSession()) {
+      cd.style.animation = "none";
+      void cd.offsetWidth;
+      cd.style.animation = "";
+    }
   }, 1000);
 }
 
@@ -5839,7 +5864,7 @@ function finishDay() {
 /* Modal */
 function openModal(index) {
   state.modalIndex = index;
-  state.modalTab = "animation";
+  state.modalTab = isVoiceGrainSession() ? "howto" : "animation";
   renderModal();
   $("#modal").hidden = false;
   document.body.style.overflow = "hidden";
@@ -5862,12 +5887,21 @@ function renderModal() {
   const total = state.sessionItems.length || state.sessionIds.length;
   $("#modal-title").textContent = ex.name;
   $("#modal-pager").textContent = `${state.modalIndex + 1}/${total}`;
-  $$(".tab-pill").forEach((t) => t.classList.toggle("active", t.dataset.mtab === state.modalTab));
+  $$(".tab-pill").forEach((t) => {
+    const isAnimation = t.dataset.mtab === "animation";
+    if (isAnimation) t.hidden = isVoiceGrainSession();
+    t.classList.toggle("active", t.dataset.mtab === state.modalTab);
+  });
 
-  startCoachPlayer($("#modal-coach"), ex);
+  const modalMedia = $("#modal-media");
+  if (modalMedia) modalMedia.hidden = isVoiceGrainSession();
+
+  if (!isVoiceGrainSession()) startCoachPlayer($("#modal-coach"), ex);
   const hint = $("#modal-media-hint");
   if (hint) {
-    if (state.modalTab === "muscle") {
+    if (isVoiceGrainSession()) {
+      hint.textContent = "";
+    } else if (state.modalTab === "muscle") {
       hint.textContent = ex.voice
         ? "Vocal tract focus — match the coach"
         : "Face muscle focus — match the coach";

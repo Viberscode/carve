@@ -6923,6 +6923,43 @@ body.mirror-mode-on #reports-photo-video {
   border-radius: 24px;
 }
 
+.coach-static {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(165deg, #f8fafc 0%, #eef2ff 100%);
+  border: 1px solid #e2e8f0;
+}
+
+.coach-static.thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+}
+
+.coach-static.stage,
+.coach-player.coach-static.stage,
+#player-coach.coach-static {
+  width: min(78vw, 320px);
+  height: min(78vw, 320px);
+  border-radius: 24px;
+}
+
+.coach-static-emoji {
+  font-size: clamp(40px, 12vw, 56px);
+  line-height: 1;
+}
+
+.coach-static.thumb .coach-static-emoji {
+  font-size: 28px;
+}
+
+.countdown.no-pop {
+  animation: none;
+}
+
 .ex-copy {
   flex: 1;
   min-width: 0;
