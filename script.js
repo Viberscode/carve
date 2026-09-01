@@ -755,6 +755,7 @@ const state = {
   freeFaceScanUsed: false,
   freeVoiceScanUsed: false,
   toastTimer: null,
+  voiceCoachPlan: null,
 };
 
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -879,14 +880,331 @@ function applyMirrorMode() {
   document.body.classList.toggle("mirror-mode-on", Boolean(state.settings.mirror));
 }
 
-function speakCoachCue(text) {
+const VOICE_COACH_LIBRARY = [
+  {
+    match: /diaphragmatic|belly breath/i,
+    intro: "Diaphragmatic breathing. One hand on your belly.",
+    steps: [
+      "Inhale slowly through your nose.",
+      "Let your belly expand, not your chest.",
+      "Exhale gently on a soft hiss.",
+      "Keep your shoulders quiet and relaxed.",
+    ],
+  },
+  {
+    match: /chewing method|froschel/i,
+    intro: "Chewing method. Soft jaw, easy rhythm.",
+    steps: [
+      "Sit tall with lips gently closed.",
+      "Make small chewing motions with the jaw.",
+      "Keep the tongue relaxed on the palate.",
+      "Stay light — no clenching.",
+    ],
+  },
+  {
+    match: /humming|chin-to-sky|chin drop/i,
+    intro: "Humming with a gentle chin drop.",
+    steps: [
+      "Inhale quietly through your nose.",
+      "Hum on a comfortable mid pitch.",
+      "Feel vibration in your lips and face.",
+      "Keep the throat soft and open.",
+    ],
+  },
+  {
+    match: /lip trill|motorboat/i,
+    intro: "Lip trills. Loose lips, easy air.",
+    steps: [
+      "Take a comfortable breath in.",
+      "Blow air through relaxed lips.",
+      "Keep the sound light and buzzy.",
+      "Do not push or strain.",
+    ],
+  },
+  {
+    match: /pen-in-mouth|articulation drill/i,
+    intro: "Pen-in-mouth articulation. Clear and gentle.",
+    steps: [
+      "Hold the pen lightly between your teeth.",
+      "Speak slowly with exaggerated mouth shapes.",
+      "Keep consonants crisp but easy.",
+      "Remove the pen and notice the clarity.",
+    ],
+  },
+  {
+    match: /tongue twister/i,
+    intro: "Tongue twisters. Start slow, then build speed.",
+    steps: [
+      "Say each phrase slowly and clearly.",
+      "Keep the jaw loose on every syllable.",
+      "Speed up only when it stays clean.",
+      "Stop if your tongue or throat tenses.",
+    ],
+  },
+  {
+    match: /yawn-sigh|yawn sigh/i,
+    intro: "Yawn-sigh. Open the throat gently.",
+    steps: [
+      "Take a silent yawn feeling in the back of the throat.",
+      "Let the breath flow out on a soft sigh.",
+      "Keep the sound easy and unforced.",
+      "Repeat with a relaxed neck.",
+    ],
+  },
+  {
+    match: /straw phonation|straw/i,
+    intro: "Straw phonation. Light resistance, easy tone.",
+    steps: [
+      "Hum or sing gently through a straw.",
+      "Keep the pitch comfortable.",
+      "Feel steady airflow without pushing.",
+      "Stop if anything feels tight.",
+    ],
+  },
+  {
+    match: /vocal fry/i,
+    intro: "Vocal fry. Lowest comfortable creak, very light.",
+    steps: [
+      "Use only a tiny amount of air.",
+      "Let the sound crackle softly in your throat.",
+      "Never squeeze or grind the voice.",
+      "Stop immediately if you feel hoarse.",
+    ],
+  },
+  {
+    match: /pitch glide|siren|ng slide/i,
+    intro: "Pitch glides. Smooth sirens on an easy pitch.",
+    steps: [
+      "Start on a comfortable hum or NG sound.",
+      "Glide slowly up, then slowly down.",
+      "Keep the throat relaxed through the slide.",
+      "Stay in a range that feels easy.",
+    ],
+  },
+  {
+    match: /gargl/i,
+    intro: "Gargling exercise. Easy water, relaxed throat.",
+    steps: [
+      "Use lukewarm water if you are gargling.",
+      "Gargle gently without forcing air.",
+      "Keep the neck and jaw soft.",
+      "Spit out and breathe through your nose.",
+    ],
+  },
+  {
+    match: /vowel stretch/i,
+    intro: "Vowel stretching. Long, open vowel shapes.",
+    steps: [
+      "Pick a comfortable pitch.",
+      "Sustain each vowel with steady breath.",
+      "Open the mouth without tension.",
+      "Move smoothly from vowel to vowel.",
+    ],
+  },
+  {
+    match: /neck|jaw relaxation|massage/i,
+    intro: "Neck and jaw release. Small, gentle circles.",
+    steps: [
+      "Massage along the jaw hinge lightly.",
+      "Roll the shoulders down and back.",
+      "Let the tongue rest on the palate.",
+      "Take a slow nasal breath between sets.",
+    ],
+  },
+  {
+    match: /posture reset|open airway/i,
+    intro: "Posture reset. Tall spine, open airway.",
+    steps: [
+      "Stack your head over your shoulders.",
+      "Open the chest without arching the back.",
+      "Let the chin stay level, not tucked down.",
+      "Breathe in and feel more space.",
+    ],
+  },
+  {
+    match: /chest resonance/i,
+    intro: "Chest resonance hum. Feel vibration in the chest.",
+    steps: [
+      "Hum on a low comfortable pitch.",
+      "Place a hand on your sternum.",
+      "Keep the sound warm, not pushed.",
+      "Let the buzz spread through the torso.",
+    ],
+  },
+  {
+    match: /downward inflection/i,
+    intro: "Downward inflection. End phrases with calm authority.",
+    steps: [
+      "Speak a short phrase on one breath.",
+      "Let the pitch glide slightly down at the end.",
+      "Keep the volume steady, not louder.",
+      "Stay relaxed in the throat.",
+    ],
+  },
+  {
+    match: /thumb-knuckle|bite resistance/i,
+    intro: "Thumb-knuckle bite drill. Gentle resistance only.",
+    steps: [
+      "Place knuckles lightly between the teeth.",
+      "Hum or speak without biting down hard.",
+      "Keep the jaw loose while you work.",
+      "Stop if anything feels sore.",
+    ],
+  },
+  {
+    match: /reading aloud/i,
+    intro: "Slow reading aloud. Clear words, easy pace.",
+    steps: [
+      "Read one sentence at a time.",
+      "Pause at punctuation to breathe.",
+      "Keep consonants light and precise.",
+      "Maintain steady volume throughout.",
+    ],
+  },
+  {
+    match: /mirror practice/i,
+    intro: "Mirror practice. Watch your mouth shapes.",
+    steps: [
+      "Exaggerate lip and jaw movement slightly.",
+      "Keep the face relaxed while you move.",
+      "Match the coach on screen.",
+      "Breathe between each repetition.",
+    ],
+  },
+  {
+    match: /ma-me-mi|consonant-vowel/i,
+    intro: "Ma-me-mi-mo-mu drill. Clean consonants and vowels.",
+    steps: [
+      "Say each syllable with equal length.",
+      "Keep the tongue active but not tight.",
+      "Open the mouth on the vowel sounds.",
+      "Repeat in a steady rhythm.",
+    ],
+  },
+  {
+    match: /recording|playback|self-review/i,
+    intro: "Recording and playback. Listen with kind ears.",
+    steps: [
+      "Record one short phrase.",
+      "Play it back at a comfortable volume.",
+      "Notice clarity, pace, and breath.",
+      "Adjust gently on the next take.",
+    ],
+  },
+  {
+    match: /breath control counting/i,
+    intro: "Breath control counting. Steady exhale.",
+    steps: [
+      "Inhale deeply into the belly.",
+      "Count aloud on one continuous exhale.",
+      "Keep the numbers even and relaxed.",
+      "Note how far you get without strain.",
+    ],
+  },
+  {
+    match: /om chant|resonant om/i,
+    intro: "Resonant OM chant. Long, open sound.",
+    steps: [
+      "Inhale through the nose.",
+      "Chant OM on one comfortable pitch.",
+      "Feel resonance in the chest and face.",
+      "Let the sound fade without pushing.",
+    ],
+  },
+  {
+    match: /voice projection|projection practice/i,
+    intro: "Voice projection. Support from the breath, not the throat.",
+    steps: [
+      "Stand tall with ribs wide.",
+      "Speak toward a point across the room.",
+      "Increase volume from the belly, not the neck.",
+      "Keep the tone warm and steady.",
+    ],
+  },
+];
+
+function isVoiceGrainSession() {
+  return state.track === "voice";
+}
+
+function getVoiceCoachScript(ex) {
+  const label = (ex.displayName || ex.name || "").trim();
+  const key = label.toLowerCase();
+  for (const entry of VOICE_COACH_LIBRARY) {
+    if (entry.match.test(key)) {
+      return { intro: entry.intro, steps: [...entry.steps] };
+    }
+  }
+  const steps = (ex.steps || []).map((step) => String(step).replace(/^\d+\.\s*/, "").trim()).filter(Boolean);
+  return {
+    intro: `${label}. Follow the coach on screen.`,
+    steps: steps.length
+      ? steps
+      : [
+          "Set up tall with an open chest.",
+          "Match the on-screen movement slowly.",
+          "Keep your throat soft throughout.",
+        ],
+  };
+}
+
+function buildVoiceCoachMarks(stepCount, totalSec) {
+  if (stepCount <= 1 || !totalSec) return [];
+  const marks = [];
+  for (let i = 1; i < stepCount; i += 1) {
+    marks.push(Math.max(1, Math.floor(totalSec * (1 - i / stepCount))));
+  }
+  return marks;
+}
+
+function clearVoiceCoach() {
+  state.voiceCoachPlan = null;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+function speakCoachCue(text, opts = {}) {
   if (!state.settings.coachVoice || !text) return;
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = 0.95;
+  utter.rate = opts.rate ?? (isVoiceGrainSession() ? 0.92 : 0.95);
   utter.volume = 0.9;
   window.speechSynthesis.speak(utter);
+}
+
+function startVoiceExerciseCoach(ex) {
+  if (!isVoiceGrainSession()) return;
+  const script = getVoiceCoachScript(ex);
+  speakCoachCue(script.intro);
+}
+
+function beginVoiceExerciseCoach(ex) {
+  if (!isVoiceGrainSession()) {
+    state.voiceCoachPlan = null;
+    speakCoachCue(ex.displayName || ex.name);
+    return;
+  }
+  const script = getVoiceCoachScript(ex);
+  const steps = script.steps.filter(Boolean);
+  const marks = buildVoiceCoachMarks(steps.length, state.total);
+  state.voiceCoachPlan = { steps, marks, stepIndex: 0 };
+  if (!steps[0]) return;
+  window.setTimeout(() => {
+    if (state.phase !== "active" || !state.voiceCoachPlan) return;
+    speakCoachCue(steps[0]);
+    state.voiceCoachPlan.stepIndex = 1;
+  }, 700);
+}
+
+function tickVoiceExerciseCoach() {
+  const plan = state.voiceCoachPlan;
+  if (!plan || !isVoiceGrainSession() || state.paused || state.phase !== "active") return;
+  const idx = plan.stepIndex;
+  if (idx >= plan.steps.length) return;
+  const mark = plan.marks[idx - 1];
+  if (mark == null || state.remaining > mark) return;
+  speakCoachCue(plan.steps[idx]);
+  plan.stepIndex += 1;
 }
 
 function applySettingsUi() {
@@ -5385,6 +5703,7 @@ function currentEx() {
 
 function beginCountdown() {
   clearPlayerTimer();
+  clearVoiceCoach();
   state.phase = "countdown";
   state.paused = false;
   const ex = currentEx();
@@ -5392,6 +5711,13 @@ function beginCountdown() {
   startCoachPlayer($("#player-coach"), ex);
   $("#ready-name").textContent = ex.name;
   $("#active-name").textContent = ex.name;
+  const readyHint = $("#player-ready")?.querySelector(".player-hint");
+  if (readyHint) {
+    readyHint.textContent = isVoiceGrainSession()
+      ? "Listen to the coach · match the sound and movement"
+      : "Match the coach · breathe easy";
+  }
+  startVoiceExerciseCoach(ex);
   $("#player-ready").hidden = false;
   $("#player-active").hidden = true;
   const cd = $("#countdown");
@@ -5425,7 +5751,7 @@ function beginActive() {
   $("#timer").textContent = formatTime(state.remaining);
   $("#pause-icon").textContent = "⏸";
   updatePauseProgress();
-  speakCoachCue(ex.displayName || ex.name);
+  beginVoiceExerciseCoach(ex);
   state.timer = setInterval(tickActive, 1000);
 }
 
@@ -5434,6 +5760,7 @@ function tickActive() {
   state.remaining -= 1;
   $("#timer").textContent = formatTime(Math.max(0, state.remaining));
   updatePauseProgress();
+  tickVoiceExerciseCoach();
   if (state.remaining <= 0) {
     clearPlayerTimer();
     nextExercise();
@@ -5448,6 +5775,7 @@ function updatePauseProgress() {
 function nextExercise() {
   recordCompletedExerciseTime();
   saveState();
+  clearVoiceCoach();
   const len = state.sessionItems.length || state.sessionIds.length;
   const day = state.days.find((d) => d.n === state.openDayN);
   if (day && day.status !== "done") {
@@ -5465,12 +5793,14 @@ function nextExercise() {
 
 function prevExercise() {
   if (state.sessionIndex <= 0) return;
+  clearVoiceCoach();
   state.sessionIndex -= 1;
   beginCountdown();
 }
 
 function finishDay() {
   clearPlayerTimer();
+  clearVoiceCoach();
   const day = state.days.find((d) => d.n === (state.openDayN || state.currentDay));
   const alreadyDone = day?.status === "done";
   if (day) {
@@ -5928,6 +6258,10 @@ function bind() {
     if (state.phase !== "active") return;
     state.paused = !state.paused;
     $("#pause-icon").textContent = state.paused ? "▶" : "⏸";
+    if (window.speechSynthesis) {
+      if (state.paused) window.speechSynthesis.pause();
+      else if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+    }
   });
   $("#btn-next").addEventListener("click", () => {
     clearPlayerTimer();
