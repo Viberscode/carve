@@ -6960,6 +6960,10 @@ body.mirror-mode-on #reports-photo-video {
   animation: none;
 }
 
+.coach-player.voice-grain-thumb {
+  box-shadow: inset 0 0 0 1px #e2e8f0;
+}
+
 .ex-copy {
   flex: 1;
   min-width: 0;

@@ -515,6 +515,53 @@ function coachSetForExercise(ex) {
 }
 
 const VIDEO_VER = "7";
+const VOICE_VIDEO_VER = "1";
+
+const VOICE_GRAIN_VIDEO_RULES = [
+  ["diaphragmatic belly", "diaphragmatic_breathing"],
+  ["chewing method", "chewing_method"],
+  ["humming chin", "humming_chin_to_sky"],
+  ["chin drop hum", "humming_chin_to_sky"],
+  ["lip trill", "lip_trills"],
+  ["motorboat", "lip_trills"],
+  ["pen-in-mouth", "pen_in_mouth"],
+  ["tongue twister speed", "tongue_twister_speed_ladder"],
+  ["tongue twister", "tongue_twisters"],
+  ["yawn-sigh", "yawn_sigh"],
+  ["straw phonation", "straw_phonation"],
+  ["vocal fry", "vocal_fry"],
+  ["pitch glide", "pitch_glides"],
+  ["siren", "pitch_glides"],
+  ["ng slide", "pitch_glides"],
+  ["gargling", "gargling"],
+  ["vowel stretch", "vowel_stretching"],
+  ["neck & jaw", "neck_jaw_massage"],
+  ["neck and jaw", "neck_jaw_massage"],
+  ["posture reset", "posture_reset"],
+  ["chest resonance", "chest_resonance_hum"],
+  ["downward inflection", "downward_inflection"],
+  ["thumb-knuckle", "thumb_knuckle_bite"],
+  ["slow reading", "slow_reading"],
+  ["mirror practice", "mirror_practice"],
+  ["ma-me-mi", "ma_me_mi_mo_mu"],
+  ["consonant-vowel", "ma_me_mi_mo_mu"],
+  ["recording & playback", "recording_playback"],
+  ["breath control counting", "breath_control_counting"],
+  ["resonant om", "resonant_om_chant"],
+  ["voice projection", "voice_projection"],
+];
+
+function voiceGrainSlugForExercise(ex) {
+  const name = (ex?.displayName || ex?.name || ex?.id || "").toLowerCase();
+  for (const [needle, slug] of VOICE_GRAIN_VIDEO_RULES) {
+    if (name.includes(needle)) return slug;
+  }
+  return "diaphragmatic_breathing";
+}
+
+function voiceGrainVideoUrl(slug) {
+  return `videos/voice-grain/${slug}.mp4?v=${VOICE_VIDEO_VER}`;
+}
 
 function videoSlugForName(name) {
   const raw = name || "";
@@ -610,10 +657,42 @@ function renderVoiceCoachStatic(el, ex) {
   el.dataset.coachSet = "voice-static";
 }
 
+function startVoiceGrainPlayer(el, ex) {
+  if (!el) return;
+  stopCoachPlayer(el);
+  el.classList.remove("coach-static");
+  if (!el.classList.contains("coach-player")) el.classList.add("coach-player");
+  const slug = voiceGrainSlugForExercise(ex);
+  el.dataset.coachSet = slug;
+  el.innerHTML = "";
+  const isThumb = el.classList.contains("thumb");
+  const v = document.createElement("video");
+  v.className = "coach-video";
+  v.muted = isThumb || !state.settings.coachVoice;
+  v.defaultMuted = v.muted;
+  v.loop = true;
+  v.autoplay = true;
+  v.playsInline = true;
+  v.setAttribute("playsinline", "");
+  v.setAttribute("webkit-playsinline", "");
+  if (isThumb) v.setAttribute("muted", "");
+  else if (v.muted) v.setAttribute("muted", "");
+  v.preload = isThumb ? "none" : "auto";
+  v.src = voiceGrainVideoUrl(slug);
+  v.onerror = () => {
+    v.onerror = null;
+    renderVoiceCoachStatic(el, ex);
+  };
+  el.appendChild(v);
+  const play = () => v.play().catch(() => {});
+  v.addEventListener("canplay", play);
+  play();
+}
+
 function startCoachPlayer(el, ex) {
   if (!el) return;
   if (isVoiceGrainSession()) {
-    renderVoiceCoachStatic(el, ex);
+    startVoiceGrainPlayer(el, ex);
     return;
   }
   el.classList.remove("coach-static");
@@ -685,10 +764,10 @@ function emojiForName(name) {
 }
 
 function clipArtBoy(exOrKey) {
-  const ex = typeof exOrKey === "string" ? { name: exOrKey } : exOrKey;
   if (isVoiceGrainSession()) {
-    const emoji = ex?.emoji || emojiForName(ex?.displayName || ex?.name || "");
-    return `<span class="coach-static thumb" aria-hidden="true"><span class="coach-static-emoji">${emoji}</span></span>`;
+    const ex = typeof exOrKey === "string" ? { name: exOrKey } : exOrKey;
+    const slug = voiceGrainSlugForExercise(ex);
+    return `<span class="coach-player thumb voice-grain-thumb" data-coach-set="${slug}"></span>`;
   }
   const set =
     typeof exOrKey === "string" ? coachSetForName(exOrKey) : coachSetForExercise(exOrKey);
@@ -1185,6 +1264,7 @@ function clearVoiceCoach() {
 
 function speakCoachCue(text, opts = {}) {
   if (!state.settings.coachVoice || !text) return;
+  if (isVoiceGrainSession() && !opts.forceVoiceGrain) return;
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
@@ -1195,8 +1275,7 @@ function speakCoachCue(text, opts = {}) {
 
 function startVoiceExerciseCoach(ex) {
   if (!isVoiceGrainSession()) return;
-  const script = getVoiceCoachScript(ex);
-  speakCoachCue(script.intro);
+  /* Voice Grain uses narrated exercise videos instead of TTS. */
 }
 
 function beginVoiceExerciseCoach(ex) {
@@ -1205,16 +1284,7 @@ function beginVoiceExerciseCoach(ex) {
     speakCoachCue(ex.displayName || ex.name);
     return;
   }
-  const script = getVoiceCoachScript(ex);
-  const steps = script.steps.filter(Boolean);
-  const marks = buildVoiceCoachMarks(steps.length, state.total);
-  state.voiceCoachPlan = { steps, marks, stepIndex: 0 };
-  if (!steps[0]) return;
-  window.setTimeout(() => {
-    if (state.phase !== "active" || !state.voiceCoachPlan) return;
-    speakCoachCue(steps[0]);
-    state.voiceCoachPlan.stepIndex = 1;
-  }, 700);
+  state.voiceCoachPlan = null;
 }
 
 function tickVoiceExerciseCoach() {
@@ -5736,7 +5806,7 @@ function beginCountdown() {
   const readyHint = $("#player-ready")?.querySelector(".player-hint");
   if (readyHint) {
     readyHint.textContent = isVoiceGrainSession()
-      ? "Listen to the coach · follow the voice cues"
+      ? "Watch and listen · follow the coached demo"
       : "Match the coach · breathe easy";
   }
   startVoiceExerciseCoach(ex);
@@ -5855,7 +5925,7 @@ function finishDay() {
   refreshHome();
   renderDayList();
   saveState();
-  speakCoachCue("Session complete");
+  speakCoachCue("Session complete", { forceVoiceGrain: true });
   showToast("Day complete — small wins stack.");
   state.stack = ["home"];
   showView("home");
@@ -5864,7 +5934,7 @@ function finishDay() {
 /* Modal */
 function openModal(index) {
   state.modalIndex = index;
-  state.modalTab = isVoiceGrainSession() ? "howto" : "animation";
+  state.modalTab = "animation";
   renderModal();
   $("#modal").hidden = false;
   document.body.style.overflow = "hidden";
@@ -5888,19 +5958,18 @@ function renderModal() {
   $("#modal-title").textContent = ex.name;
   $("#modal-pager").textContent = `${state.modalIndex + 1}/${total}`;
   $$(".tab-pill").forEach((t) => {
-    const isAnimation = t.dataset.mtab === "animation";
-    if (isAnimation) t.hidden = isVoiceGrainSession();
+    t.hidden = false;
     t.classList.toggle("active", t.dataset.mtab === state.modalTab);
   });
 
   const modalMedia = $("#modal-media");
-  if (modalMedia) modalMedia.hidden = isVoiceGrainSession();
+  if (modalMedia) modalMedia.hidden = false;
 
-  if (!isVoiceGrainSession()) startCoachPlayer($("#modal-coach"), ex);
+  startCoachPlayer($("#modal-coach"), ex);
   const hint = $("#modal-media-hint");
   if (hint) {
     if (isVoiceGrainSession()) {
-      hint.textContent = "";
+      hint.textContent = "Watch and listen — coached voice demo";
     } else if (state.modalTab === "muscle") {
       hint.textContent = ex.voice
         ? "Vocal tract focus — match the coach"
@@ -6292,6 +6361,11 @@ function bind() {
     if (state.phase !== "active") return;
     state.paused = !state.paused;
     $("#pause-icon").textContent = state.paused ? "▶" : "⏸";
+    const playerVideo = $("#player-coach")?.querySelector("video");
+    if (playerVideo) {
+      if (state.paused) playerVideo.pause();
+      else playerVideo.play().catch(() => {});
+    }
     if (window.speechSynthesis) {
       if (state.paused) window.speechSynthesis.pause();
       else if (window.speechSynthesis.paused) window.speechSynthesis.resume();
