@@ -3409,7 +3409,12 @@ async function subscribeCarvePlus() {
     await loadDodoConfig();
   }
   if (!state.dodoConfigured) {
-    setCarvePlusPayStatus("Start the app with python serve.py, then try Subscribe again.");
+    const onVercel = /vercel\.app$/i.test(window.location.hostname);
+    setCarvePlusPayStatus(
+      onVercel
+        ? "Add Dodo env vars in Vercel and redeploy, then try Subscribe again."
+        : "Start the app with python serve.py, then try Subscribe again."
+    );
     showToast("Payment server is not running");
     return;
   }

@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/dodo/*.py": {
+      "includeFiles": "dodo_backend.py",
+      "maxDuration": 30
+    }
+  }
+}

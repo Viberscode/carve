@@ -1,2 +1,4 @@
 dodo-secrets.json
 server-data/
+__pycache__/
+*.pyc
