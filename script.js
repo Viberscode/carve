@@ -818,6 +818,7 @@ function roadmapToSessionItem(str) {
 }
 
 const STORAGE_KEY = "carve-web-v1";
+const AUTH_STORAGE_KEY = "carve-web-auth-v1";
 
 const defaultSettings = {
   mirror: true,
@@ -856,6 +857,9 @@ const state = {
   freeVoiceScanUsed: false,
   toastTimer: null,
   voiceCoachPlan: null,
+  user: null,
+  googleTokenClient: null,
+  pendingTrack: null,
 };
 
 const $ = (sel, el = document) => el.querySelector(sel);
@@ -942,6 +946,255 @@ function loadState() {
   } catch (_) {
     return false;
   }
+}
+
+function googleClientId() {
+  return String(window.CARVE_GOOGLE_CLIENT_ID || "").trim();
+}
+
+function isSignedIn() {
+  return Boolean(state.user?.id && state.user.provider === "google");
+}
+
+function saveAuth() {
+  try {
+    if (!state.user || state.user.provider !== "google") {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state.user));
+  } catch (_) {
+    /* storage full or blocked */
+  }
+}
+
+function loadAuth() {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data?.id || data.provider === "guest") {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      return false;
+    }
+    state.user = data;
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function parseGoogleJwt(credential) {
+  const payload = credential.split(".")[1];
+  const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+  return JSON.parse(json);
+}
+
+function applySignedInUser(user, { toast } = {}) {
+  state.user = user;
+  if (user.name) state.profileName = String(user.name).trim().slice(0, 24) || state.profileName;
+  saveAuth();
+  renderMe();
+  if (toast) showToast(toast);
+  const track = state.pendingTrack;
+  state.pendingTrack = null;
+  unlockTrainingAuth();
+  if (track && $("#view-home")?.classList.contains("view-active")) {
+    refreshHome();
+    return;
+  }
+  if (track) {
+    selectTrack(track);
+    return;
+  }
+  state.stack = ["landing"];
+  showView("landing");
+}
+
+function openAuthModal(track) {
+  if (track) state.pendingTrack = track;
+  setAuthStatus("", false);
+  const modal = $("#auth-modal");
+  if (modal) modal.hidden = false;
+}
+
+function closeAuthModal() {
+  const modal = $("#auth-modal");
+  if (modal) modal.hidden = true;
+  $("#btn-google-signin")?.removeAttribute("disabled");
+}
+
+function lockTrainingAuth() {
+  $("#app")?.classList.add("auth-locked");
+  openAuthModal();
+}
+
+function unlockTrainingAuth() {
+  $("#app")?.classList.remove("auth-locked");
+  closeAuthModal();
+}
+
+function cancelPendingAuth() {
+  state.pendingTrack = null;
+  unlockTrainingAuth();
+  state.stack = ["landing"];
+  showView("landing");
+}
+
+function signOutAccount() {
+  const email = state.user?.email;
+  try {
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.disableAutoSelect();
+      if (email) window.google.accounts.id.revoke(email, () => {});
+    }
+  } catch (_) {
+    /* GIS optional */
+  }
+  state.user = null;
+  state.pendingTrack = null;
+  saveAuth();
+  unlockTrainingAuth();
+  state.stack = ["landing"];
+  showView("landing");
+  renderMe();
+  showToast("Signed out");
+}
+
+function setAuthStatus(message, show = true) {
+  const el = $("#auth-status");
+  if (!el) return;
+  if (!show || !message) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  el.hidden = false;
+  el.textContent = message;
+}
+
+function onGoogleCredential(response) {
+  try {
+    const payload = parseGoogleJwt(response.credential);
+    applySignedInUser(
+      {
+        provider: "google",
+        id: payload.sub,
+        name: payload.name || payload.given_name || "CARVE athlete",
+        email: payload.email || "",
+        picture: payload.picture || "",
+      },
+      { toast: `Signed in as ${payload.given_name || payload.name || "Google"}` }
+    );
+  } catch (_) {
+    setAuthStatus("Could not finish Google sign-in. Try again.");
+    showToast("Google sign-in failed");
+  }
+}
+
+async function onGoogleAccessToken(tokenResponse) {
+  if (tokenResponse?.error) {
+    setAuthStatus(tokenResponse.error_description || "Google sign-in was cancelled.");
+    $("#btn-google-signin")?.removeAttribute("disabled");
+    return;
+  }
+  try {
+    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+    });
+    if (!res.ok) throw new Error("userinfo");
+    const info = await res.json();
+    applySignedInUser(
+      {
+        provider: "google",
+        id: info.sub,
+        name: info.name || info.given_name || "CARVE athlete",
+        email: info.email || "",
+        picture: info.picture || "",
+      },
+      { toast: `Signed in as ${info.given_name || info.name || "Google"}` }
+    );
+  } catch (_) {
+    setAuthStatus("Could not load your Google profile. Try again.");
+    showToast("Google sign-in failed");
+  } finally {
+    $("#btn-google-signin")?.removeAttribute("disabled");
+  }
+}
+
+function initGoogleAuth() {
+  const clientId = googleClientId();
+  const btn = $("#btn-google-signin");
+  if (!clientId) {
+    setAuthStatus("Add your Google Client ID in auth-config.js to enable Google sign-in.");
+    return;
+  }
+  setAuthStatus("", false);
+  if (!window.google?.accounts) return;
+
+  window.google.accounts.id.initialize({
+    client_id: clientId,
+    callback: onGoogleCredential,
+    auto_select: false,
+    cancel_on_tap_outside: true,
+    use_fedcm_for_prompt: true,
+  });
+
+  if (window.google.accounts.oauth2?.initTokenClient) {
+    state.googleTokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: "openid email profile",
+      callback: onGoogleAccessToken,
+    });
+  }
+
+  if (!isSignedIn() && btn) btn.removeAttribute("disabled");
+}
+
+function startGoogleSignIn() {
+  const clientId = googleClientId();
+  if (!clientId) {
+    setAuthStatus("Add your Google Client ID in auth-config.js, then refresh.");
+    showToast("Google Client ID is missing");
+    return;
+  }
+  if (!window.google?.accounts) {
+    setAuthStatus("Google sign-in is still loading. Try again in a moment.");
+    return;
+  }
+  const btn = $("#btn-google-signin");
+  if (btn) btn.disabled = true;
+  setAuthStatus("", false);
+  if (state.googleTokenClient) {
+    state.googleTokenClient.requestAccessToken();
+    window.setTimeout(() => btn?.removeAttribute("disabled"), 4000);
+    return;
+  }
+  window.google.accounts.id.prompt((notification) => {
+    btn?.removeAttribute("disabled");
+    if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
+      setAuthStatus("Popup was blocked or this origin is not allowed in Google Cloud. Add http://127.0.0.1:8080 as an authorized JavaScript origin.");
+    }
+  });
+}
+
+function whenGoogleReady(cb) {
+  if (window.google?.accounts) {
+    cb();
+    return;
+  }
+  let tries = 0;
+  const t = window.setInterval(() => {
+    tries += 1;
+    if (window.google?.accounts) {
+      window.clearInterval(t);
+      cb();
+    } else if (tries > 80) {
+      window.clearInterval(t);
+      if (!googleClientId()) return;
+      setAuthStatus("Could not load Google sign-in. Check your connection and refresh.");
+    }
+  }, 100);
 }
 
 function showToast(message, ms = 2600) {
@@ -1521,6 +1774,11 @@ function formatTime(sec) {
 }
 
 function showView(id) {
+  const allowLockedHome = id === "home" && Boolean(state.pendingTrack) && !isSignedIn();
+  if (id !== "landing" && !isSignedIn() && !allowLockedHome) {
+    id = "landing";
+    state.stack = ["landing"];
+  }
   if (id !== "reports" && id !== "my-progress") {
     stopFaceCamera();
     stopProgressMedia();
@@ -1574,6 +1832,8 @@ function goBack() {
 function selectTrack(track) {
   if (state.transitioning) return;
   state.transitioning = true;
+  const needsAuth = !isSignedIn();
+  state.pendingTrack = needsAuth ? track : null;
 
   const landing = $("#view-landing");
   landing.classList.add("view-leaving");
@@ -1605,6 +1865,9 @@ function selectTrack(track) {
 
     landing.classList.remove("view-leaving");
     state.transitioning = false;
+
+    if (needsAuth) lockTrainingAuth();
+    else unlockTrainingAuth();
 
     window.setTimeout(() => home.classList.remove("view-entering"), 520);
   }, 400);
@@ -2667,7 +2930,23 @@ function meStreakDisplayCount() {
 function renderMe() {
   const meta = trackMeta();
   const avatar = $("#profile-avatar");
-  if (avatar) avatar.textContent = profileInitials(state.profileName);
+  if (avatar) {
+    const photo = state.user?.picture;
+    if (photo) {
+      avatar.classList.add("has-photo");
+      avatar.innerHTML = `<img src="${photo}" alt="" referrerpolicy="no-referrer">`;
+    } else {
+      avatar.classList.remove("has-photo");
+      avatar.textContent = profileInitials(state.user?.name || state.profileName);
+    }
+  }
+
+  const emailEl = $("#profile-email");
+  if (emailEl) {
+    const email = state.user?.email || "";
+    emailEl.hidden = !email;
+    emailEl.textContent = email;
+  }
 
   const programLine = $("#me-program-line");
   if (programLine) {
@@ -6047,6 +6326,12 @@ function bind() {
     btn.addEventListener("click", () => selectTrack(btn.dataset.track));
   });
 
+  $("#btn-google-signin")?.addEventListener("click", startGoogleSignIn);
+  $("#btn-sign-out")?.addEventListener("click", signOutAccount);
+  $$("[data-close-auth]").forEach((el) => {
+    el.addEventListener("click", cancelPendingAuth);
+  });
+
   $("#btn-change-track")?.addEventListener("click", () => {
     clearPlayerTimer();
     state.stack = ["landing"];
@@ -6176,13 +6461,6 @@ function bind() {
         track === "voice" ? "Switched to Voice Grain" : track === "both" ? "Switched to Full Presence" : "Switched to Face Form"
       );
     });
-  });
-
-  const meToasts = {
-    "btn-sign-out": "Signed out of this device session",
-  };
-  Object.keys(meToasts).forEach((id) => {
-    $("#" + id)?.addEventListener("click", () => showToast(meToasts[id]));
   });
 
   $("#btn-evidence")?.addEventListener("click", openEvidencePolicyModal);
@@ -6406,7 +6684,12 @@ function init() {
   bind();
   preloadCoachFrames();
   loadState();
+  loadAuth();
+  if (state.user?.name && (!state.profileName || state.profileName === "Priya")) {
+    state.profileName = String(state.user.name).trim().slice(0, 24);
+  }
   applySettingsUi();
+  whenGoogleReady(initGoogleAuth);
   state.stack = ["landing"];
   showView("landing");
 }
