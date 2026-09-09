@@ -5461,6 +5461,16 @@ body.mirror-mode-on #reports-photo-video {
   font-size: 13px;
 }
 
+.carve-plus-pay-status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #c45c3a;
+}
+
+.carve-plus-pay-status.is-ok {
+  color: #2f6b4f;
+}
+
 .carve-plus-sheet-foot {
   display: flex;
   flex-direction: column;

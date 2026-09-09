@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=googleAuth6" />
+  <link rel="stylesheet" href="styles.css?v=dodoPay7" />
 </head>
 <body>
   <div class="device">
@@ -585,7 +585,7 @@
               <span class="me-plus-detail" id="me-plus-detail">
                 Unlock unlimited face &amp; voice scans
               </span>
-              <span class="me-plus-price-line" id="me-plus-price-line"><em>$24.99</em>/mo</span>
+              <span class="me-plus-price-line" id="me-plus-price-line"><em id="me-plus-price-amount">₹1500</em><span id="me-plus-price-interval">/mo</span></span>
             </span>
             <span class="me-plus-chevron" aria-hidden="true">›</span>
           </button>
@@ -844,8 +844,8 @@
           </header>
           <div class="sheet-body carve-plus-sheet-body">
             <div class="carve-plus-price-block">
-              <strong class="carve-plus-price">$24.99</strong>
-              <span class="carve-plus-price-unit">/ month</span>
+              <strong class="carve-plus-price" id="carve-plus-price">₹1500</strong>
+              <span class="carve-plus-price-unit" id="carve-plus-price-unit">/ month</span>
             </div>
             <ul class="carve-plus-features">
               <li>Unlimited face analysis scans</li>
@@ -853,10 +853,11 @@
               <li>Full Presence combined check-ins</li>
               <li>Weekly progress photos &amp; recordings</li>
             </ul>
-            <p class="carve-plus-note muted">Cancel anytime · stays on this device</p>
+            <p class="carve-plus-note muted">Cancel anytime · billed securely with Dodo Payments</p>
+            <p class="carve-plus-pay-status" id="carve-plus-pay-status" hidden></p>
           </div>
           <footer class="carve-plus-sheet-foot">
-            <button type="button" class="pill pill-gradient" id="btn-carve-plus-subscribe">Subscribe — $24.99/mo</button>
+            <button type="button" class="pill pill-gradient" id="btn-carve-plus-subscribe">Subscribe — ₹1500/mo</button>
             <button type="button" class="carve-plus-dismiss" data-close-carve-plus>Not now</button>
           </footer>
         </div>
@@ -1109,10 +1110,12 @@
 
   <script src="vendor/jspdf.umd.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dodopayments-checkout@1.9.9/dist/index.js"></script>
   <script src="auth-config.js"></script>
+  <script src="payments-config.js?v=dodoPay7"></script>
   <script src="data.js?v=landing9"></script>
   <script src="faceAnalysis.js?v=trends1"></script>
   <script src="voiceAnalysis.js?v=trends1"></script>
-  <script src="script.js?v=googleAuth6"></script>
+  <script src="script.js?v=dodoPay7"></script>
 </body>
 </html>

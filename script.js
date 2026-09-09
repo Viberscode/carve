@@ -853,6 +853,15 @@ const state = {
   stack: ["landing"],
   settings: { ...defaultSettings },
   carvePlus: false,
+  plusRenewsAt: null,
+  plusStatus: "none",
+  dodoMode: "test",
+  dodoConfigured: false,
+  dodoReady: false,
+  dodoReachedPayment: false,
+  apiOrigin: "",
+  plusPriceLabel: "₹1500",
+  plusPriceInterval: "/mo",
   freeFaceScanUsed: false,
   freeVoiceScanUsed: false,
   toastTimer: null,
@@ -898,6 +907,8 @@ function saveState() {
         startedAt: state.startedAt,
         settings: state.settings,
         carvePlus: state.carvePlus,
+        plusRenewsAt: state.plusRenewsAt,
+        plusStatus: state.plusStatus,
         freeFaceScanUsed: state.freeFaceScanUsed,
         freeVoiceScanUsed: state.freeVoiceScanUsed,
       })
@@ -931,6 +942,8 @@ function loadState() {
     state.startedAt = data.startedAt || null;
     state.settings = { ...defaultSettings, ...(data.settings || {}) };
     state.carvePlus = Boolean(data.carvePlus);
+    state.plusRenewsAt = data.plusRenewsAt || null;
+    state.plusStatus = data.plusStatus || (state.carvePlus ? "active" : "none");
     state.freeFaceScanUsed = Boolean(data.freeFaceScanUsed);
     state.freeVoiceScanUsed = Boolean(data.freeVoiceScanUsed);
     if (!state.carvePlus) {
@@ -999,6 +1012,8 @@ function applySignedInUser(user, { toast } = {}) {
   const track = state.pendingTrack;
   state.pendingTrack = null;
   unlockTrainingAuth();
+  applyCachedPlusForUser(user.id);
+  syncCarvePlusFromServer();
   if (track && $("#view-home")?.classList.contains("view-active")) {
     refreshHome();
     return;
@@ -1053,6 +1068,7 @@ function signOutAccount() {
   }
   state.user = null;
   state.pendingTrack = null;
+  setPlusEntitlement({ active: false, status: "none", next_billing_date: null }, { persist: false });
   saveAuth();
   unlockTrainingAuth();
   state.stack = ["landing"];
@@ -2973,18 +2989,23 @@ function renderMe() {
   if (plusChip) plusChip.textContent = hasCarvePlus() ? "Active" : "Upgrade";
   if (plusDetail) {
     plusDetail.textContent = hasCarvePlus()
-      ? "Unlimited face & voice scans on this device"
+      ? "Unlimited face & voice scans"
       : "Unlock unlimited face & voice scans";
   }
   if (plusPrice) {
+    const price = plusPriceLabel();
+    const interval = plusPriceInterval();
     if (hasCarvePlus()) {
+      const renews = formatPlusRenews(state.plusRenewsAt);
       plusPrice.className = "me-plus-price-block is-subscribed";
       plusPrice.innerHTML =
-        '<span class="me-plus-renewal">Renews <strong>Sep 24</strong></span>' +
-        '<span class="me-plus-price-amount"><strong>$24.99</strong><span>/mo</span></span>';
+        (renews
+          ? `<span class="me-plus-renewal">Renews <strong>${renews}</strong></span>`
+          : `<span class="me-plus-renewal">Subscription active</span>`) +
+        `<span class="me-plus-price-amount"><strong>${price}</strong><span>${interval}</span></span>`;
     } else {
       plusPrice.className = "me-plus-price-line";
-      plusPrice.innerHTML = "<em>$24.99</em>/mo";
+      plusPrice.innerHTML = `<em>${price}</em>${interval}`;
     }
   }
   if (plusCard) plusCard.classList.toggle("is-subscribed", hasCarvePlus());
@@ -2995,17 +3016,20 @@ function renderMe() {
 function openCarvePlusPlan() {
   const modal = $("#carve-plus-modal");
   if (!modal) return;
+  setCarvePlusPayStatus("");
   const subscribeBtn = $("#btn-carve-plus-subscribe");
+  const priceEl = $("#carve-plus-price");
+  const unitEl = $("#carve-plus-price-unit");
+  if (priceEl) priceEl.textContent = plusPriceLabel();
+  if (unitEl) unitEl.textContent = plusPriceInterval() === "/mo" ? "/ month" : plusPriceInterval();
   if (subscribeBtn) {
-    if (hasCarvePlus()) {
-      subscribeBtn.textContent = "CARVE Plus active";
-      subscribeBtn.disabled = true;
-    } else {
-      subscribeBtn.textContent = "Subscribe — $24.99/mo";
-      subscribeBtn.disabled = false;
-    }
+    subscribeBtn.disabled = false;
+    subscribeBtn.textContent = hasCarvePlus()
+      ? `Renew / manage — ${plusPriceLabel()}${plusPriceInterval()}`
+      : `Subscribe — ${plusPriceLabel()}${plusPriceInterval()}`;
   }
   modal.hidden = false;
+  loadDodoConfig();
 }
 
 function closeCarvePlusPlan() {
@@ -3137,18 +3161,290 @@ function submitFeedback(event) {
   showToast("Thanks — your feedback was saved on this device");
 }
 
-function subscribeCarvePlus() {
-  if (hasCarvePlus()) {
-    closeCarvePlusPlan();
+function apiUrl(path) {
+  return path;
+}
+
+function plusPriceLabel() {
+  return String(state.plusPriceLabel || window.CARVE_PLUS_PRICE_LABEL || "₹1500");
+}
+
+function plusPriceInterval() {
+  return String(state.plusPriceInterval || window.CARVE_PLUS_PRICE_INTERVAL || "/mo");
+}
+
+function formatPlusRenews(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function plusCacheStore() {
+  try {
+    const raw = localStorage.getItem("carve-plus-by-user-v1");
+    const data = raw ? JSON.parse(raw) : {};
+    return data && typeof data === "object" ? data : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function writePlusCache(userId, record) {
+  if (!userId) return;
+  try {
+    const all = plusCacheStore();
+    all[userId] = {
+      active: Boolean(record?.active),
+      status: record?.status || (record?.active ? "active" : "none"),
+      next_billing_date: record?.next_billing_date || null,
+    };
+    localStorage.setItem("carve-plus-by-user-v1", JSON.stringify(all));
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+function applyCachedPlusForUser(userId) {
+  const rec = plusCacheStore()[userId];
+  if (!rec) {
+    setPlusEntitlement({ active: false, status: "none", next_billing_date: null }, { persist: true });
     return;
   }
-  state.carvePlus = true;
-  saveState();
+  setPlusEntitlement(rec, { persist: true });
+}
+
+function setPlusEntitlement(record, { persist = true, toast } = {}) {
+  const active = Boolean(record?.active);
+  const changed = state.carvePlus !== active || state.plusRenewsAt !== (record?.next_billing_date || null);
+  state.carvePlus = active;
+  state.plusStatus = record?.status || (active ? "active" : "none");
+  state.plusRenewsAt = record?.next_billing_date || null;
+  if (state.user?.id) writePlusCache(state.user.id, record);
+  if (persist && changed) saveState();
   renderMe();
   syncAnalysisPaywallUi();
-  closeCarvePlusPlan();
   renderDailyProgressCard();
-  showToast("CARVE Plus is active on this device");
+  if (toast) showToast(toast);
+}
+
+function setCarvePlusPayStatus(message, ok = false) {
+  const el = $("#carve-plus-pay-status");
+  if (!el) return;
+  if (!message) {
+    el.hidden = true;
+    el.textContent = "";
+    el.classList.remove("is-ok");
+    return;
+  }
+  el.hidden = false;
+  el.textContent = message;
+  el.classList.toggle("is-ok", Boolean(ok));
+}
+
+function dodoCheckoutSdk() {
+  return window.DodoPaymentsCheckout?.DodoPayments || window.DodoPayments || null;
+}
+
+async function loadDodoConfig() {
+  try {
+    const res = await fetch("/api/dodo/config", { cache: "no-store" });
+    if (!res.ok) {
+      state.dodoConfigured = false;
+      return null;
+    }
+    const data = await res.json();
+    if (typeof data.configured !== "boolean") {
+      state.dodoConfigured = false;
+      return null;
+    }
+    state.dodoConfigured = Boolean(data.configured);
+    state.dodoMode = data.mode === "live" ? "live" : "test";
+    if (data.price_label) state.plusPriceLabel = data.price_label;
+    if (data.price_interval) state.plusPriceInterval = data.price_interval;
+    const priceEl = $("#carve-plus-price");
+    const unitEl = $("#carve-plus-price-unit");
+    const subscribeBtn = $("#btn-carve-plus-subscribe");
+    if (priceEl) priceEl.textContent = plusPriceLabel();
+    if (unitEl) unitEl.textContent = plusPriceInterval() === "/mo" ? "/ month" : plusPriceInterval();
+    if (subscribeBtn && !hasCarvePlus() && !subscribeBtn.disabled) {
+      subscribeBtn.textContent = `Subscribe — ${plusPriceLabel()}${plusPriceInterval()}`;
+    }
+    renderMe();
+    return data;
+  } catch (_) {
+    state.dodoConfigured = false;
+    return null;
+  }
+}
+
+function initDodoCheckout() {
+  const sdk = dodoCheckoutSdk();
+  if (!sdk?.Initialize || state.dodoReady) return;
+  try {
+    sdk.Initialize({
+      mode: state.dodoMode === "live" ? "live" : "test",
+      displayType: "overlay",
+      onEvent: onDodoCheckoutEvent,
+    });
+    state.dodoReady = true;
+  } catch (_) {
+    state.dodoReady = false;
+  }
+}
+
+function onDodoCheckoutEvent(event) {
+  const type = event?.event_type;
+  if (type === "checkout.opened") state.dodoReachedPayment = false;
+  if (type === "checkout.payment_page_opened" || type === "checkout.customer_details_submitted") {
+    state.dodoReachedPayment = true;
+  }
+  if (type === "checkout.error") {
+    setCarvePlusPayStatus(event?.data?.message || "Checkout failed. Try again.");
+    resetSubscribeButton();
+    return;
+  }
+  if (type === "checkout.link_expired") {
+    setCarvePlusPayStatus("Checkout expired. Tap Subscribe to start again.");
+    resetSubscribeButton();
+    return;
+  }
+  if (type === "checkout.redirect" || type === "checkout.closed") {
+    pollCarvePlusAfterCheckout({
+      expectPayment: type === "checkout.redirect" || state.dodoReachedPayment,
+    });
+  }
+}
+
+function resetSubscribeButton() {
+  const btn = $("#btn-carve-plus-subscribe");
+  if (!btn || hasCarvePlus()) return;
+  btn.disabled = false;
+  btn.textContent = `Subscribe — ${plusPriceLabel()}${plusPriceInterval()}`;
+}
+
+async function syncCarvePlusFromServer({ toastOnActivate = false, sessionId = "" } = {}) {
+  if (!isSignedIn() && !sessionId) return null;
+  try {
+    const params = new URLSearchParams();
+    if (state.user?.id) params.set("user_id", state.user.id);
+    if (state.user?.email) params.set("email", state.user.email);
+    if (sessionId) params.set("session_id", sessionId);
+    const res = await fetch(apiUrl(`/api/dodo/status?${params}`), { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const wasActive = hasCarvePlus();
+    setPlusEntitlement(data, { persist: true });
+    if (data.active && toastOnActivate && !wasActive) {
+      closeCarvePlusPlan();
+      showToast("CARVE Plus is active");
+    }
+    return data;
+  } catch (_) {
+    return null;
+  }
+}
+
+async function pollCarvePlusAfterCheckout({ expectPayment = false, sessionId = "" } = {}) {
+  const btn = $("#btn-carve-plus-subscribe");
+  const attempts = expectPayment ? 12 : 4;
+  if (expectPayment && btn && !hasCarvePlus()) {
+    btn.disabled = true;
+    btn.textContent = "Confirming payment…";
+    setCarvePlusPayStatus("Confirming your subscription…", true);
+  }
+  for (let i = 0; i < attempts; i += 1) {
+    const data = await syncCarvePlusFromServer({ toastOnActivate: true, sessionId });
+    if (data?.active) {
+      setCarvePlusPayStatus("CARVE Plus is active.", true);
+      return data;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+  }
+  if (!hasCarvePlus()) {
+    if (expectPayment) {
+      setCarvePlusPayStatus(
+        "Payment is still confirming. Plus unlocks as soon as Dodo reports it active."
+      );
+    }
+    resetSubscribeButton();
+  }
+  return null;
+}
+
+async function handleDodoReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get("session_id") || "";
+  const checkoutReturn = params.get("dodo_checkout") || sessionId;
+  const status = String(params.get("status") || "").toLowerCase();
+  if (!checkoutReturn && !status) return;
+  try {
+    if (sessionId) sessionStorage.setItem("carve-dodo-session", sessionId);
+  } catch (_) {
+    /* ignore */
+  }
+  window.history.replaceState({}, document.title, window.location.pathname);
+  if (status === "failed") {
+    setCarvePlusPayStatus("Payment failed. You can try again.");
+    showToast("Payment failed");
+    return;
+  }
+  const paid = await pollCarvePlusAfterCheckout({
+    expectPayment: status === "success" || Boolean(checkoutReturn),
+    sessionId,
+  });
+  if (paid?.active) {
+    openCarvePlusPlan();
+    showToast("CARVE Plus is active");
+  }
+}
+
+async function subscribeCarvePlus() {
+  if (!isSignedIn() || !state.user?.email) {
+    setCarvePlusPayStatus("Sign in with Google before subscribing.");
+    showToast("Sign in to subscribe");
+    return;
+  }
+  if (!state.dodoConfigured) {
+    await loadDodoConfig();
+  }
+  if (!state.dodoConfigured) {
+    setCarvePlusPayStatus("Start the app with python serve.py, then try Subscribe again.");
+    showToast("Payment server is not running");
+    return;
+  }
+  const btn = $("#btn-carve-plus-subscribe");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Opening checkout…";
+  }
+  setCarvePlusPayStatus("Opening Dodo Payments…", true);
+  try {
+    const res = await fetch(apiUrl("/api/dodo/checkout"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: state.user.id,
+        email: state.user.email,
+        name: state.user.name || state.profileName || "CARVE member",
+        return_url: `${window.location.origin}/?dodo_checkout=1`,
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.checkout_url) {
+      throw new Error(data.error || "Could not start checkout");
+    }
+    try {
+      if (data.session_id) sessionStorage.setItem("carve-dodo-session", data.session_id);
+    } catch (_) {
+      /* ignore */
+    }
+    window.location.href = data.checkout_url;
+  } catch (err) {
+    setCarvePlusPayStatus(err?.message || "Could not start checkout.");
+    showToast(err?.message || "Checkout failed");
+    resetSubscribeButton();
+  }
 }
 
 function renderReports() {
@@ -6688,10 +6984,26 @@ function init() {
   if (state.user?.name && (!state.profileName || state.profileName === "Priya")) {
     state.profileName = String(state.user.name).trim().slice(0, 24);
   }
+  if (state.user?.id) applyCachedPlusForUser(state.user.id);
   applySettingsUi();
   whenGoogleReady(initGoogleAuth);
   state.stack = ["landing"];
   showView("landing");
+  bootPayments();
+}
+
+async function bootPayments() {
+  await loadDodoConfig();
+  let storedSession = "";
+  try {
+    storedSession = sessionStorage.getItem("carve-dodo-session") || "";
+  } catch (_) {
+    storedSession = "";
+  }
+  await handleDodoReturn();
+  if (isSignedIn()) {
+    await syncCarvePlusFromServer({ sessionId: storedSession, toastOnActivate: true });
+  }
 }
 
 init();
