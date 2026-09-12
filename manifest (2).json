@@ -1,0 +1,19 @@
+{
+  "background_color": "#ffffff",
+  "description": "CARVE — face &amp; voice training. Tone muscles, posture, and vocal habits — never bone structure.",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "Carve",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "Carve",
+  "start_url": "https://carve-lime.vercel.app/",
+  "theme_color": "#ffffff",
+  "categories": [
+    "beauty",
+    "fitness",
+    "games",
+    "health &amp; fitness",
+    "lifestyle"
+  ]
+}
