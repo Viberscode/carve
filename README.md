@@ -6,6 +6,14 @@
 🌐 **Live Prototype:** https://carve-lime.vercel.app/
 
 ---
+### Team Members
+
+**Team Leader:** Amulya Singla
+
+**Team Member:** Medhansh Garg
+
+**Team Member:** Himanshu Singhal
+
 
 ## 🌍 Overview
 
