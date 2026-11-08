@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>CARVE v2 preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0b1322;
+    --surface: #141f33;
+    --raised: #1c2942;
+    --line: #26344f;
+    --mist: #e9eef7;
+    --muted: #8c9ab3;
+    --face: #f4b793;
+    --voice: #7fe0d3;
+    --track: var(--face);
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --body: "Instrument Sans", system-ui, sans-serif;
+  }
+  [data-track="voice"] { --track: var(--voice); }
+  [data-track="both"] { --track: var(--face); }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #05080f;
+    color: var(--mist);
+    font: 400 16px/1.5 var(--body);
+    -webkit-font-smoothing: antialiased;
+    display: grid;
+    place-items: center;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--track); outline-offset: 3px; border-radius: 8px; }
+
+  /* Phone frame on desktop; full screen on a phone. */
+  .device {
+    position: relative;
+    width: 390px;
+    height: 844px;
+    border-radius: 44px;
+    overflow: hidden;
+    background: var(--ink);
+    box-shadow: 0 0 0 10px #1a2232, 0 40px 80px rgba(0, 0, 0, 0.6);
+  }
+  @media (max-width: 480px) {
+    body { display: block; }
+    .device { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+  .screen.on { opacity: 1; pointer-events: auto; }
+  .scroll { flex: 1; overflow-y: auto; padding: 20px 22px 28px; scrollbar-width: none; }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  h1, h2, h3 { font-family: var(--display); margin: 0; letter-spacing: -0.02em; }
+  .muted { color: var(--muted); }
+
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; min-height: 56px; border: 0; border-radius: 18px;
+    background: var(--track); color: #10182a;
+    font-weight: 600; font-size: 16px;
+  }
+  .btn.ghost { background: transparent; color: var(--mist); border: 1px solid var(--line); }
+
+  /* ---------- Landing ---------- */
+  .landing { background: radial-gradient(120% 70% at 50% 0%, #1b2a47 0%, var(--ink) 60%); }
+  .landing .scroll { display: flex; flex-direction: column; padding-top: 72px; }
+  .wordmark { font-family: var(--display); font-weight: 800; font-size: 20px; letter-spacing: 0.3em; }
+  .landing h1 { font-size: 40px; line-height: 1.02; font-weight: 700; margin: 44px 0 14px; }
+  .landing .lead { color: var(--muted); max-width: 30ch; margin: 0 0 36px; }
+  .paths { display: grid; gap: 12px; margin-top: auto; }
+  .path {
+    display: grid; grid-template-columns: 52px 1fr; gap: 16px; align-items: center;
+    text-align: left; padding: 16px; border-radius: 22px;
+    background: var(--surface); border: 1px solid var(--line);
+  }
+  .path:hover, .path:focus-visible { border-color: var(--c); }
+  .path strong { display: block; font-family: var(--display); font-size: 19px; font-weight: 700; }
+  .path span span { color: var(--muted); font-size: 14px; }
+  .glyph { width: 52px; height: 52px; border-radius: 50%; border: 2px solid var(--c); display: grid; place-items: center; }
+  .glyph i { width: 18px; height: 18px; border-radius: 50%; background: var(--c); }
+  .glyph.both { border-color: var(--face); box-shadow: inset 0 0 0 6px var(--ink), inset 0 0 0 8px var(--voice); }
+  .glyph.both i { background: linear-gradient(135deg, var(--face), var(--voice)); }
+  .honest { margin: 22px 0 0; font-size: 13px; color: var(--muted); }
+
+  /* ---------- Sign-in sheet ---------- */
+  .veil { position: absolute; inset: 0; background: rgba(5, 8, 15, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 22px 34px;
+    background: var(--surface); border-radius: 28px 28px 0 0; border-top: 1px solid var(--line);
+    transform: translateY(100%); transition: transform 0.4s cubic-bezier(.2,.8,.2,1);
+  }
+  .signin.on .veil { opacity: 1; pointer-events: auto; }
+  .signin.on .sheet { transform: none; }
+  .sheet h2 { font-size: 28px; margin-bottom: 8px; }
+  .sheet p { color: var(--muted); margin: 0 0 24px; }
+  .gbtn { background: var(--mist); color: #10182a; }
+  .fine { font-size: 12px; color: var(--muted); margin: 16px 0 0; text-align: center; }
+
+  /* ---------- Shared top bar ---------- */
+  .top { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px 0; }
+  .streak { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--surface); font-weight: 600; font-size: 14px; }
+  .streak svg { width: 14px; height: 14px; }
+  .iconbtn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: transparent; display: grid; place-items: center; }
+
+  /* ---------- The breathing ring (signature element) ---------- */
+  .ring { position: relative; display: grid; place-items: center; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .bg { stroke: var(--raised); }
+  .ring .fg { stroke: var(--track); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+  .ring .inner { position: absolute; text-align: center; }
+
+  /* ---------- Home ---------- */
+  .greet { font-size: 30px; font-weight: 700; margin: 26px 0 4px; }
+  .sub { color: var(--muted); margin: 0; }
+  .today { display: grid; grid-template-columns: 148px 1fr; gap: 20px; align-items: center; margin: 28px 0 8px; }
+  .today .inner b { font-family: var(--display); font-size: 40px; font-weight: 800; display: block; line-height: 1; }
+  .today .inner small { color: var(--muted); font-size: 13px; }
+  .today h3 { font-size: 20px; margin-bottom: 6px; }
+  .today p { color: var(--muted); margin: 0 0 14px; font-size: 14px; }
+  .today .btn { min-height: 48px; border-radius: 14px; }
+
+  .block { margin-top: 34px; }
+  .block > h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: baseline; }
+  .block > h3 span { font-family: var(--body); font-size: 13px; font-weight: 500; color: var(--muted); }
+
+  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+  .day { display: grid; gap: 8px; justify-items: center; font-size: 12px; color: var(--muted); }
+  .mark { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 14px; border: 1px solid var(--line); color: var(--muted); }
+  .mark.done { background: var(--track); border-color: transparent; color: #10182a; }
+  .mark.missed { border-style: dashed; color: #f08a8a; border-color: #5a3340; }
+  .mark.now { border: 2px solid var(--track); color: var(--mist); }
+
+  .focus { margin: 0; padding: 4px 0 4px 18px; border-left: 2px solid var(--track); }
+  .focus strong { display: block; font-family: var(--display); font-size: 18px; margin-bottom: 6px; }
+  .focus p { margin: 0; color: #c5cfdf; }
+
+  .film { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 14px; }
+  .frame { aspect-ratio: 3 / 4; border-radius: 10px; background: var(--surface); border: 1px dashed var(--line); display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+  .frame.shot { border: 0; background: linear-gradient(160deg, #3b4a66, #232f48); }
+  .frame.now { border: 2px solid var(--track); color: var(--mist); }
+
+  .rewards { position: relative; display: flex; justify-content: space-between; padding: 12px 4px 0; }
+  .rewards::before { content: ""; position: absolute; left: 22px; right: 22px; top: 31px; height: 2px; background: var(--line); }
+  .rewards::after { content: ""; position: absolute; left: 22px; top: 31px; height: 2px; width: calc((100% - 44px) * 0.18); background: var(--track); }
+  .node { position: relative; z-index: 1; display: grid; justify-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .node i { width: 38px; height: 38px; border-radius: 50%; background: var(--ink); border: 2px solid var(--line); display: grid; place-items: center; font-style: normal; font-size: 16px; }
+  .node.got i { background: var(--track); border-color: var(--track); color: #10182a; }
+  .node.next i { border-color: var(--track); }
+  .node.next { color: var(--mist); }
+  .rewards-note { font-size: 14px; color: var(--muted); margin: 18px 0 0; }
+
+  .tabs { display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 12px 26px; background: var(--ink); border-top: 1px solid var(--line); }
+  .tab { background: none; border: 0; display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--muted); padding: 6px; }
+  .tab svg { width: 22px; height: 22px; }
+  .tab.on { color: var(--mist); }
+  .tab.on svg { color: var(--track); }
+
+  /* ---------- Day plan ---------- */
+  .dayhead { padding: 6px 22px 22px; }
+  .dayhead h1 { font-size: 40px; font-weight: 800; margin: 14px 0 6px; }
+  .dayhead p { color: var(--muted); margin: 0; }
+  .stats { display: flex; gap: 22px; margin-top: 18px; font-size: 14px; color: var(--muted); }
+  .stats b { color: var(--mist); font-family: var(--display); font-size: 20px; display: block; }
+  .phase { font-size: 13px; color: var(--muted); margin: 22px 0 8px; }
+  .ex { display: grid; grid-template-columns: 56px 1fr auto; gap: 14px; align-items: center; width: 100%; text-align: left; padding: 10px 0; background: none; border: 0; border-bottom: 1px solid var(--line); }
+  .ex video, .ex .thumb { width: 56px; height: 56px; border-radius: 16px; object-fit: cover; background: var(--surface); }
+  .ex strong { display: block; font-size: 16px; font-weight: 600; }
+  .ex span { color: var(--muted); font-size: 13px; }
+  .ex .tag { font-size: 11px; padding: 3px 8px; border-radius: 999px; background: color-mix(in srgb, var(--voice) 18%, transparent); color: var(--voice); }
+  .dock { padding: 14px 22px 30px; background: linear-gradient(transparent, var(--ink) 30%); }
+
+  /* ---------- Player ---------- */
+  .player { background: radial-gradient(90% 60% at 50% 40%, #18253f 0%, var(--ink) 70%); }
+  .player .scroll { display: flex; flex-direction: column; align-items: center; text-align: center; padding-top: 6px; }
+  .count { font-size: 13px; color: var(--muted); }
+  .player h2 { font-size: 26px; margin: 8px 0 22px; }
+  .stage { position: relative; width: 300px; height: 300px; }
+  .stage .ring { position: absolute; inset: 0; }
+  .stage video { position: absolute; inset: 22px; width: 256px; height: 256px; border-radius: 50%; object-fit: cover; }
+  .breathe { animation: breathe 8s ease-in-out infinite; }
+  @keyframes breathe { 0%, 100% { transform: scale(0.96); } 50% { transform: scale(1.02); } }
+  .time { font-family: var(--display); font-size: 64px; font-weight: 800; margin: 26px 0 0; line-height: 1; font-variant-numeric: tabular-nums; }
+  .cue { color: #c5cfdf; max-width: 30ch; margin: 12px 0 0; }
+  .controls { display: flex; justify-content: center; align-items: center; gap: 28px; padding: 18px 22px 34px; }
+  .controls .iconbtn { width: 56px; height: 56px; }
+  .play { width: 76px; height: 76px; border-radius: 50%; border: 0; background: var(--track); color: #10182a; display: grid; place-items: center; }
+  .segs { display: flex; gap: 4px; width: 100%; padding: 0 22px; }
+  .segs i { flex: 1; height: 3px; border-radius: 3px; background: var(--line); }
+  .segs i.done { background: var(--track); }
+
+  .switch { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px; border-radius: 999px; background: #121a2a; border: 1px solid #222d42; z-index: 10; font-size: 13px; }
+  .switch button { border: 0; background: none; color: #8c9ab3; padding: 6px 12px; border-radius: 999px; }
+  .switch button.on { background: #24324d; color: #e9eef7; }
+  /* On a phone the flow itself is clickable, so the screen switcher is hidden. */
+  @media (max-width: 480px) { .switch { display: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .breathe { animation: none; }
+    .screen, .sheet, .veil { transition: none; }
+  }
+</style>
+</head>
+<body>
+<nav class="switch" aria-label="Preview screens">
+  <button data-go="landing" class="on">Landing</button>
+  <button data-go="signin">Sign in</button>
+  <button data-go="home">Home</button>
+  <button data-go="day">Day</button>
+  <button data-go="player">Player</button>
+</nav>
+
+<div class="device" id="device" data-track="face">
+
+  <!-- Landing -->
+  <section class="screen landing on" id="s-landing" aria-label="Choose your practice">
+    <div class="scroll">
+      <div class="wordmark">CARVE</div>
+      <h1>A few quiet minutes for your face and voice.</h1>
+      <p class="lead">Pick a practice. We'll plan 30 days, one short session at a time.</p>
+      <div class="paths">
+        <button class="path" style="--c: var(--face)" data-pick="face">
+          <span class="glyph"><i></i></span>
+          <span><strong>Face Form</strong><span>Jaw, cheeks, neck and posture habits</span></span>
+        </button>
+        <button class="path" style="--c: var(--voice)" data-pick="voice">
+          <span class="glyph"><i></i></span>
+          <span><strong>Voice Grain</strong><span>Breath, resonance and an easy pitch</span></span>
+        </button>
+        <button class="path" style="--c: var(--face)" data-pick="both">
+          <span class="glyph both"><i></i></span>
+          <span><strong>Full Presence</strong><span>Face and voice together, 7–8 exercises a day</span></span>
+        </button>
+      </div>
+      <p class="honest">Trains muscles, posture and habits. It never changes bone structure.</p>
+    </div>
+  </section>
+
+  <!-- Sign in (sheet over landing) -->
+  <section class="screen signin" id="s-signin" aria-label="Sign in">
+    <div class="veil" data-go="landing"></div>
+    <div class="sheet" role="dialog" aria-labelledby="signin-title">
+      <h2 id="signin-title">Keep your streak safe</h2>
+      <p>Sign in so your plan, streak and Plus follow you to any device.</p>
+      <button class="btn gbtn" data-go="home">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.2l7.8 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.8-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.8l7.8-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.8 6.1C6.6 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <p class="fine">Photos and recordings stay on your phone.</p>
+    </div>
+  </section>
+
+  <!-- Home -->
+  <section class="screen" id="s-home" aria-label="Training">
+    <div class="top">
+      <div class="wordmark" style="font-size:15px">CARVE</div>
+      <div class="streak" aria-label="Current streak 4 days">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="color:var(--track)"><path d="M12 2c1 4-3 5-3 9a3 3 0 006 0c0-1-.3-2-.8-2.8C16.5 9.5 18 12 18 14a6 6 0 01-12 0c0-5 6-7 6-12z"/></svg>
+        4 days
+      </div>
+    </div>
+    <div class="scroll">
+      <h2 class="greet">Evening, Priya</h2>
+      <p class="sub">Face Form, day 5 of 30</p>
+
+      <div class="today">
+        <div class="ring">
+          <svg width="148" height="148" viewBox="0 0 148 148" aria-hidden="true">
+            <circle class="bg" cx="74" cy="74" r="64" fill="none" stroke-width="10" />
+            <circle class="fg" cx="74" cy="74" r="64" fill="none" stroke-width="10" stroke-dasharray="402" stroke-dashoffset="348" />
+          </svg>
+          <div class="inner"><b>5</b><small>of 30 days</small></div>
+        </div>
+        <div>
+          <h3>Today's session</h3>
+          <p>6 exercises, about 9 minutes. Warm-up first, stretch last.</p>
+          <button class="btn" data-go="day">Start</button>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>This week <span>3 of 7 trained</span></h3>
+        <div class="week" role="list">
+          <div class="day" role="listitem"><span class="mark done" aria-label="Monday trained">✓</span>M</div>
+          <div class="day" role="listitem"><span class="mark done" aria-label="Tuesday trained">✓</span>T</div>
+          <div class="day" role="listitem"><span class="mark missed" aria-label="Wednesday missed">✕</span>W</div>
+          <div class="day" role="listitem"><span class="mark done" aria-label="Thursday trained">✓</span>T</div>
+          <div class="day" role="listitem"><span class="mark now" aria-label="Friday, today">13</span>F</div>
+          <div class="day" role="listitem"><span class="mark">14</span>S</div>
+          <div class="day" role="listitem"><span class="mark">15</span>S</div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Today's focus</h3>
+        <blockquote class="focus">
+          <strong>Chin Tucks</strong>
+          <p>Glide your head straight back, like making a double chin. Keep your eyes level, don't tip down.</p>
+        </blockquote>
+      </div>
+
+      <div class="block">
+        <h3>7-day photo <span>Day 3 of 7</span></h3>
+        <div class="film">
+          <div class="frame shot" aria-label="Day 1 photo"></div>
+          <div class="frame shot" aria-label="Day 2 photo"></div>
+          <div class="frame now">3</div>
+          <div class="frame">4</div><div class="frame">5</div><div class="frame">6</div><div class="frame">7</div>
+        </div>
+        <button class="btn ghost">Take today's photo</button>
+      </div>
+
+      <div class="block">
+        <h3>Streak rewards <span>Best 4 days</span></h3>
+        <div class="rewards">
+          <div class="node got"><i>✓</i>3d</div>
+          <div class="node next"><i></i>7d</div>
+          <div class="node"><i></i>14d</div>
+          <div class="node"><i></i>21d</div>
+          <div class="node"><i></i>30d</div>
+        </div>
+        <p class="rewards-note">3 more days in a row unlocks Week Warrior and the Ocean card style.</p>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Main">
+      <button class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>Training</button>
+      <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 19V11M12 19V5M19 19v-6"/></svg>Reports</button>
+      <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="9" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>Me</button>
+    </nav>
+  </section>
+
+  <!-- Day plan -->
+  <section class="screen" id="s-day" aria-label="Day 5 plan">
+    <div class="top">
+      <button class="iconbtn" data-go="home" aria-label="Back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    </div>
+    <div class="dayhead">
+      <h1>Day 5</h1>
+      <p>Week 1 builds the habit. Move gently and stop if anything hurts.</p>
+      <div class="stats"><div><b>6</b>exercises</div><div><b>9 min</b>total</div><div><b>0/6</b>done</div></div>
+    </div>
+    <div class="scroll" style="padding-top:0">
+      <p class="phase">Foundation</p>
+      <button class="ex"><video src="../../videos/mewing.mp4" muted autoplay loop playsinline></video><span><strong>Mewing</strong><span>Hold through the day</span></span></button>
+      <p class="phase">Warm-up</p>
+      <button class="ex"><div class="thumb"></div><span><strong>Chin Tucks</strong><span>2 sets × 10 s hold</span></span></button>
+      <p class="phase">Main work</p>
+      <button class="ex"><video src="../../videos/jaw_resistance.mp4" muted autoplay loop playsinline></video><span><strong>Jaw Resistance Push</strong><span>2 sets × 10 s hold</span></span></button>
+      <button class="ex"><video src="../../videos/cheek_puffs.mp4" muted autoplay loop playsinline></video><span><strong>Cheek Puffs</strong><span>1 set × 10 reps</span></span></button>
+      <button class="ex"><video src="../../videos/fish_face.mp4" muted autoplay loop playsinline></video><span><strong>Fish Face</strong><span>2 sets × 8 s hold</span></span></button>
+      <p class="phase">Cool-down</p>
+      <button class="ex"><video src="../../videos/cobra_stretch.mp4" muted autoplay loop playsinline></video><span><strong>Platysma Stretch</strong><span>2 sets × 8 reps</span></span></button>
+    </div>
+    <div class="dock"><button class="btn" data-go="player">Start session</button></div>
+  </section>
+
+  <!-- Player -->
+  <section class="screen player" id="s-player" aria-label="Exercise player">
+    <div class="top">
+      <button class="iconbtn" data-go="day" aria-label="Close session"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <span class="count">3 of 6</span>
+      <span style="width:44px"></span>
+    </div>
+    <div class="segs" aria-hidden="true"><i class="done"></i><i class="done"></i><i></i><i></i><i></i><i></i></div>
+    <div class="scroll">
+      <h2>Jaw Resistance Push</h2>
+      <div class="stage breathe">
+        <div class="ring">
+          <svg width="300" height="300" viewBox="0 0 300 300" aria-hidden="true">
+            <circle class="bg" cx="150" cy="150" r="140" fill="none" stroke-width="8" />
+            <circle class="fg" id="timer-ring" cx="150" cy="150" r="140" fill="none" stroke-width="8" stroke-dasharray="880" stroke-dashoffset="0" />
+          </svg>
+        </div>
+        <video src="../../videos/jaw_resistance.mp4" muted autoplay loop playsinline></video>
+      </div>
+      <p class="time" id="timer" aria-live="off">0:20</p>
+      <p class="cue">Push at about half effort. Your jaw should never click or hurt.</p>
+    </div>
+    <div class="controls">
+      <button class="iconbtn" aria-label="Previous exercise"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 6l-8 6 8 6M7 6v12"/></svg></button>
+      <button class="play" id="play" aria-label="Pause"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
+      <button class="iconbtn" aria-label="Next exercise"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 6l8 6-8 6M17 6v12"/></svg></button>
+    </div>
+  </section>
+</div>
+
+<script>
+  const device = document.getElementById("device");
+  const switcher = document.querySelectorAll(".switch button");
+  function go(id) {
+    const target = id === "signin" ? "signin" : id;
+    document.querySelectorAll(".screen").forEach((s) => {
+      const on = s.id === "s-" + target || (target === "signin" && s.id === "s-landing");
+      s.classList.toggle("on", on);
+    });
+    switcher.forEach((b) => b.classList.toggle("on", b.dataset.go === id));
+    if (id === "player") startTimer();
+  }
+  document.addEventListener("click", (e) => {
+    const pick = e.target.closest("[data-pick]");
+    if (pick) { device.dataset.track = pick.dataset.pick; go("signin"); return; }
+    const el = e.target.closest("[data-go]");
+    if (el) go(el.dataset.go);
+  });
+
+  // Player timer drives the ring, so the signature element is live in the preview.
+  let timer = null, left = 20, paused = false;
+  function startTimer() {
+    clearInterval(timer); left = 20; paused = false; render();
+    timer = setInterval(() => { if (!paused && left > 0) { left -= 1; render(); } }, 1000);
+  }
+  function render() {
+    document.getElementById("timer").textContent = `0:${String(left).padStart(2, "0")}`;
+    document.getElementById("timer-ring").style.strokeDashoffset = String(880 * (1 - left / 20));
+  }
+  document.getElementById("play").addEventListener("click", (e) => {
+    paused = !paused;
+    e.currentTarget.setAttribute("aria-label", paused ? "Resume" : "Pause");
+    e.currentTarget.innerHTML = paused
+      ? '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>'
+      : '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  });
+</script>
+</body>
+</html>
