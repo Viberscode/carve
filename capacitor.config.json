@@ -1,0 +1,23 @@
+{
+  "appId": "com.carve.app",
+  "appName": "CARVE",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#05070A"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_carve",
+      "iconColor": "#1E3FE0"
+    },
+    "SocialLogin": {
+      "providers": {
+        "google": true,
+        "facebook": false,
+        "apple": false,
+        "twitter": false
+      },
+      "logLevel": 1
+    }
+  }
+}

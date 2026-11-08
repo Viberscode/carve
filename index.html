@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+  <meta name="theme-color" content="#05070A" />
+  <meta name="description" content="CARVE — face & voice training. Tone muscles, posture, and vocal habits — never bone structure." />
+  <title>CARVE APP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Montserrat:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=tour1" />
+  <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+  <div class="device">
+    <div id="app" class="app tabs-hidden">
+
+      <!-- ========== LANDING: choose track ========== -->
+      <section id="view-landing" class="view view-active landing" aria-label="Choose your path">
+        <div class="landing-bg" aria-hidden="true"></div>
+        <div class="landing-veil" aria-hidden="true"></div>
+        <div class="landing-inner">
+          <header class="landing-head">
+            <p class="landing-kicker">Choose your practice</p>
+            <h1 class="landing-brand">CARVE</h1>
+            <p class="landing-tag">Tone the face. Shape the voice.<br />Never the bone.</p>
+          </header>
+
+          <div class="track-choices" role="group" aria-label="Training path">
+            <button type="button" class="track-card track-card-face" data-track="face">
+              <span class="track-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="22" height="22" fill="none">
+                  <circle cx="24" cy="20" r="10" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M14 38c2.2-5.5 6.5-8.5 10-8.5S31.8 32.5 34 38" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M19 18.5h1.6M27.4 18.5H29M20.5 25c1.1 1.2 2.5 1.8 3.5 1.8s2.4-.6 3.5-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="track-copy">
+                <span class="track-name">Face Form</span>
+                <span class="track-desc">Jawline tone, soft tissue &amp; habit exercises.</span>
+              </span>
+              <span class="track-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+
+            <button type="button" class="track-card" data-track="voice">
+              <span class="track-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="22" height="22" fill="none">
+                  <rect x="19" y="9" width="10" height="18" rx="5" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M14 23a10 10 0 0 0 20 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M24 33v5M19.5 38h9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="track-copy">
+                <span class="track-name">Voice Grain</span>
+                <span class="track-desc">Breath, resonance &amp; habitual pitch training.</span>
+              </span>
+              <span class="track-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+
+            <button type="button" class="track-card" data-track="both">
+              <span class="track-icon" aria-hidden="true">
+                <svg viewBox="0 0 48 48" width="22" height="22" fill="none">
+                  <circle cx="17" cy="20" r="8" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M10 36c1.6-4 4.4-6.2 7-6.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <rect x="28" y="12" width="8" height="14" rx="4" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M25 26a7 7 0 0 0 14 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M32 33v4M28.5 37h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </span>
+              <span class="track-copy">
+                <span class="track-name">Full Presence</span>
+                <span class="track-desc">Integrated Daily Practice: Face &amp; Voice.</span>
+              </span>
+              <span class="track-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                  <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+
+          <footer class="landing-foot">
+            <div class="landing-mark" aria-hidden="true"></div>
+            <div>
+              <p class="landing-foot-title">Presence over pressure</p>
+              <p class="landing-foot-sub">Train the look. Train the sound.</p>
+            </div>
+          </footer>
+        </div>
+      </section>
+
+      <!-- ========== TRAINING HOME ========== -->
+      <section id="view-home" class="view" data-tab="training" hidden>
+        <header class="topbar">
+          <button type="button" class="brand-btn" id="btn-change-track" title="Change path">
+            <h1 class="brand">CARVE</h1>
+          </button>
+          <div class="streak" id="streak-badge" title="Streak">
+            <span class="flame" aria-hidden="true">🔥</span>
+            <span id="streak-count">0</span>
+          </div>
+        </header>
+
+        <div class="scroll">
+          <div id="home-week" class="home-week"></div>
+
+          <div class="hero-card" id="btn-start-today" role="button" tabindex="0" aria-label="Start today's practice">
+            <div class="hero-bg" aria-hidden="true"></div>
+            <div class="hero-top">
+              <div class="hero-copy">
+                <p class="hero-kicker">Today’s session</p>
+                <p class="hero-day" id="hero-day">Day 1</p>
+              </div>
+              <div class="hero-visual">
+                <button type="button" class="hero-photo-btn" id="btn-hero-photo" aria-label="Add your photo">
+                  <img src="assets/hero-jawline.png" alt="" class="hero-photo" id="hero-photo" />
+                  <span class="hero-photo-badge" id="hero-photo-badge" aria-hidden="true">+</span>
+                </button>
+                <div class="hero-ring" id="hero-ring" style="--pct:0" aria-hidden="true">
+                  <span id="hero-ring-label">0%</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-foot">
+              <div class="hero-progress">
+                <div class="hero-progress-track">
+                  <div class="hero-progress-fill" id="hero-bar" style="width:0%"></div>
+                </div>
+                <p class="hero-progress-label"><span id="days-done">0</span> / 30 days</p>
+              </div>
+              <span class="hero-cta" id="hero-start-label">Start session</span>
+            </div>
+          </div>
+          <div class="hero-plan-link">
+            <button type="button" class="plan-box-btn" id="btn-open-plan">
+              <span>View 30-day plan</span>
+              <span class="plan-box-arrow" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <!-- Track-specific content -->
+          <div id="track-extras"></div>
+
+          <p class="disclaimer" id="home-disclaimer">
+            CARVE trains muscles, posture, habits, skin tone, and vocal technique — never bone structure.
+          </p>
+          <input type="file" id="hero-photo-input" accept="image/*" capture="user" hidden />
+          <input type="file" id="daily-photo-input" accept="image/*" capture="user" hidden />
+        </div>
+      </section>
+
+      <!-- ========== REPORTS ========== -->
+      <section id="view-reports" class="view reports-view" data-tab="reports" hidden>
+        <header class="topbar">
+          <h1 class="page-title">Reports</h1>
+        </header>
+        <div class="scroll reports-scroll">
+          <div class="streak-hero" id="reports-streak-card">
+            <div class="streak-hero-bg" aria-hidden="true"></div>
+            <div class="streak-hero-body">
+              <div class="streak-hero-top">
+                <div class="streak-hero-flame" aria-hidden="true">🔥</div>
+                <div class="streak-hero-headline">
+                  <p class="streak-hero-kicker">Current streak</p>
+                  <p class="streak-hero-count">
+                    <strong id="reports-streak">0</strong>
+                    <span>days</span>
+                  </p>
+                </div>
+              </div>
+              <p class="streak-hero-sub" id="reports-sessions">No sessions yet · start Day 1</p>
+              <div class="streak-hero-mini">
+                <div class="streak-hero-mini-stat">
+                  <strong id="reports-stat-sessions">0</strong>
+                  <span>Sessions</span>
+                </div>
+                <div class="streak-hero-mini-stat">
+                  <strong id="reports-stat-minutes">0</strong>
+                  <span>Minutes</span>
+                </div>
+              </div>
+              <div class="streak-hero-cal-wrap">
+                <p class="streak-hero-cal-label" id="reports-streak-cal-label">Day 1 · your journey starts here</p>
+                <div class="cal streak-hero-cal" id="streak-cal"></div>
+                <div class="streak-hero-legend">
+                  <span><i class="streak-legend-dot done"></i> Done</span>
+                  <span><i class="streak-legend-dot today"></i> Today</span>
+                  <span><i class="streak-legend-dot missed"></i> Missed</span>
+                  <span><i class="streak-legend-dot future"></i> Upcoming</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card reports-card daily-progress-card" id="reports-daily-progress-card">
+            <div class="daily-progress-card-accent" aria-hidden="true"></div>
+            <div class="panel-head">
+              <div>
+                <p class="reports-photos-kicker daily-progress-kicker" id="daily-progress-kicker">Premium</p>
+                <h2 class="card-title" id="daily-progress-title">Daily progress</h2>
+              </div>
+              <span class="panel-meta daily-progress-meta" id="daily-progress-meta">CARVE Plus</span>
+            </div>
+            <p class="muted reports-photos-lead daily-progress-lead" id="daily-progress-lead">
+              Build a private daily log — locked until you upgrade.
+            </p>
+            <button type="button" class="daily-progress-box" id="btn-daily-progress">
+              <span class="daily-progress-lock-wrap" id="daily-progress-lock-wrap" aria-hidden="true">
+                <span class="daily-progress-lock">🔒</span>
+              </span>
+              <span class="daily-progress-box-icon" id="daily-progress-box-icon" aria-hidden="true"></span>
+              <span class="daily-progress-box-main">
+                <strong id="daily-progress-box-title">Daily voice log</strong>
+                <span id="daily-progress-box-sub">Record every day · your private progress profile</span>
+              </span>
+              <span class="daily-progress-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <div class="card reports-card reports-photos-hero" id="reports-photos-card" hidden>
+            <div class="panel-head">
+              <div>
+                <p class="reports-photos-kicker">Visual progress</p>
+                <h2 class="card-title">Progress photos</h2>
+              </div>
+              <span class="panel-meta" id="reports-photos-meta">On-device only</span>
+            </div>
+            <p class="muted reports-photos-lead">
+              Capture the same angle and light each week. Photos stay on this device — never uploaded.
+            </p>
+            <div id="reports-photos-grid-wrap">
+              <div class="reports-photos reports-photos-lg" id="reports-photos"></div>
+              <div class="reports-progress-actions" id="reports-progress-actions">
+                <button type="button" class="reports-photo-cta" id="btn-reports-add-photo">
+                  Capture this week’s photo
+                </button>
+                <button type="button" class="reports-photo-cta reports-photo-cta-secondary" id="btn-reports-add-voice" hidden>
+                  Record this week’s voice
+                </button>
+              </div>
+            </div>
+            <div id="reports-photos-camera" hidden>
+              <p class="reports-photos-slot-label" id="reports-photos-slot-label">Week 1</p>
+              <div class="face-analysis-video-wrap">
+                <video id="reports-photo-video" playsinline autoplay muted></video>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-reports-photo-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-reports-photo-capture">
+                  Capture photo
+                </button>
+              </div>
+            </div>
+            <div id="reports-voice-recorder" hidden>
+              <p class="reports-photos-slot-label" id="reports-voice-slot-label">Week 1</p>
+              <div class="reports-voice-stage">
+                <div class="reports-voice-ring" id="reports-voice-ring" aria-hidden="true">
+                  <span class="reports-voice-mic">🎙️</span>
+                </div>
+                <div class="reports-voice-meter" id="reports-voice-meter" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="reports-voice-timer" id="reports-voice-timer">0:00</p>
+                <p class="reports-voice-status" id="reports-voice-status">Find a quiet spot · speak naturally</p>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-reports-voice-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-reports-voice-record">
+                  Start recording
+                </button>
+              </div>
+            </div>
+            <p id="reports-photos-error" class="face-analysis-error" hidden></p>
+            <canvas id="reports-photo-canvas" hidden></canvas>
+          </div>
+
+          <div id="reports-presence-analysis-section" hidden>
+            <p class="me-section-label reports-section-label">Presence analysis</p>
+            <div class="card reports-card presence-analysis-hub" id="presence-analysis-hub">
+              <div class="panel-head">
+                <div>
+                  <p class="reports-photos-kicker">Face + voice</p>
+                  <h2 class="card-title">Combined analysis</h2>
+                </div>
+                <span class="panel-meta" id="presence-analysis-meta">On-device</span>
+              </div>
+              <p class="muted reports-photos-lead" id="presence-analysis-lead">
+                Complete both check-ins to establish your personal baseline — trends compare to your own history, never anyone else’s.
+              </p>
+              <div class="presence-analysis-status" id="presence-analysis-status">
+                <button type="button" class="presence-analysis-status-item presence-box-face" id="presence-status-face" aria-expanded="false" aria-label="Face analysis">
+                  <span class="presence-analysis-status-icon" aria-hidden="true">🪞</span>
+                  <strong>Face analysis</strong>
+                  <span class="presence-analysis-check" id="presence-status-face-check" hidden aria-hidden="true">✓</span>
+                </button>
+                <button type="button" class="presence-analysis-status-item presence-box-voice" id="presence-status-voice" aria-expanded="false" aria-label="Voice analysis">
+                  <span class="presence-analysis-status-icon" aria-hidden="true">🎙️</span>
+                  <strong>Voice analysis</strong>
+                  <span class="presence-analysis-check" id="presence-status-voice-check" hidden aria-hidden="true">✓</span>
+                </button>
+              </div>
+              <p class="presence-analysis-free-note" id="presence-analysis-free-note">One free face scan and one free voice scan on this device.</p>
+            </div>
+          </div>
+
+          <div id="reports-analysis-cards">
+          <div class="card reports-card" id="reports-face-analysis-card" hidden>
+            <div class="panel-head">
+              <h2 class="card-title">Face analysis</h2>
+              <span class="panel-meta" id="face-analysis-meta">On-device</span>
+            </div>
+            <div id="face-analysis-idle">
+              <p class="muted reports-photos-lead">
+                Front-facing capture to track jaw outline and balance trends against your own check-ins.
+              </p>
+              <p class="analysis-free-note" id="face-analysis-free-note">Includes 1 free on-device scan.</p>
+              <button type="button" class="reports-photo-cta" id="btn-face-analysis-start">
+                Open camera
+              </button>
+            </div>
+            <div id="face-analysis-camera" hidden>
+              <div class="face-analysis-video-wrap">
+                <video id="face-analysis-video" playsinline autoplay muted></video>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-face-analysis-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-face-analysis-capture">
+                  Capture photo
+                </button>
+              </div>
+            </div>
+            <div id="face-analysis-loading" hidden>
+              <div class="face-analysis-photo-wrap face-analysis-photo-loading" id="face-analysis-loading-wrap" hidden>
+                <img id="face-analysis-loading-photo" alt="Analyzing capture" />
+                <div class="face-analysis-scan-shine" aria-hidden="true"></div>
+              </div>
+              <p class="face-analysis-loading-text">Analyzing your face...</p>
+            </div>
+            <div id="face-analysis-error" class="face-analysis-error" hidden></div>
+            <div id="face-analysis-results" hidden>
+              <div class="face-analysis-photo-wrap" id="face-analysis-photo-wrap" hidden>
+                <img id="face-analysis-photo" alt="Captured face" />
+                <svg class="face-analysis-overlay" id="face-analysis-overlay" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"></svg>
+              </div>
+              <div class="face-analysis-writeup">
+                <p class="face-analysis-writeup-kicker">Your analysis</p>
+                <h3 class="face-analysis-writeup-title" id="face-analysis-headline">—</h3>
+                <div class="analysis-summary" id="face-analysis-summary"></div>
+              </div>
+              <div class="face-analysis-scores-block" id="face-analysis-scores-block">
+                <p class="face-analysis-scores-label" id="face-analysis-scores">Your trends</p>
+                <div class="face-analysis-metrics" id="face-analysis-metrics">
+                <div class="face-analysis-metric analysis-metric tint-blue" id="face-metric-score">
+                  <span class="face-analysis-metric-label">Overall</span>
+                  <strong id="face-analysis-score">—</strong>
+                </div>
+                <div class="face-analysis-metric analysis-metric tint-red" id="face-metric-ratio">
+                  <span class="face-analysis-metric-label">Jaw outline</span>
+                  <strong id="face-analysis-ratio">—</strong>
+                </div>
+                <div class="face-analysis-metric analysis-metric tint-green" id="face-metric-symmetry">
+                  <span class="face-analysis-metric-label">Balance</span>
+                  <strong id="face-analysis-symmetry">—</strong>
+                </div>
+                </div>
+              </div>
+              <button type="button" class="face-analysis-reanalyze" id="btn-face-analysis-reanalyze">
+                Capture new photo
+              </button>
+            </div>
+            <canvas id="face-analysis-canvas" hidden></canvas>
+          </div>
+
+          <div class="card reports-card" id="reports-voice-analysis-card" hidden>
+            <div class="panel-head">
+              <h2 class="card-title">Voice analysis</h2>
+              <span class="panel-meta" id="voice-analysis-meta">On-device</span>
+            </div>
+            <div id="voice-analysis-idle">
+              <p class="muted reports-photos-lead">
+                Short recording to track resonance, clarity, and pitch stability against your own sessions.
+              </p>
+              <p class="analysis-free-note" id="voice-analysis-free-note">Includes 1 free on-device scan.</p>
+              <button type="button" class="reports-photo-cta" id="btn-voice-analysis-start">
+                Start recording
+              </button>
+            </div>
+            <div id="voice-analysis-recorder" hidden>
+              <div class="reports-voice-stage">
+                <div class="reports-voice-ring" id="voice-analysis-ring" aria-hidden="true">
+                  <span class="reports-voice-mic">🎙️</span>
+                </div>
+                <div class="reports-voice-meter" id="voice-analysis-meter" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+                <p class="reports-voice-timer" id="voice-analysis-timer">0:00</p>
+                <p class="reports-voice-status" id="voice-analysis-status">Find a quiet spot · say a steady phrase for 5–8 seconds</p>
+              </div>
+              <div class="face-analysis-camera-actions">
+                <button type="button" class="face-analysis-reanalyze" id="btn-voice-analysis-cancel">
+                  Cancel
+                </button>
+                <button type="button" class="reports-photo-cta face-analysis-capture-btn" id="btn-voice-analysis-record">
+                  Start recording
+                </button>
+              </div>
+            </div>
+            <div id="voice-analysis-loading" hidden>
+              <div class="voice-analysis-wave-loading" id="voice-analysis-wave-loading" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+              </div>
+              <p class="face-analysis-loading-text">Analyzing your voice...</p>
+            </div>
+            <div id="voice-analysis-error" class="face-analysis-error" hidden></div>
+            <div id="voice-analysis-results" hidden>
+              <div class="voice-analysis-wave-wrap" id="voice-analysis-wave-wrap" hidden>
+                <div class="voice-analysis-wave" id="voice-analysis-wave" aria-hidden="true"></div>
+              </div>
+              <div class="face-analysis-writeup voice-analysis-writeup">
+                <p class="face-analysis-writeup-kicker">Your analysis</p>
+                <h3 class="face-analysis-writeup-title" id="voice-analysis-headline">—</h3>
+                <div class="analysis-summary" id="voice-analysis-summary"></div>
+              </div>
+              <div class="face-analysis-scores-block" id="voice-analysis-scores-block">
+                <p class="face-analysis-scores-label" id="voice-analysis-scores">Your trends</p>
+                <div class="face-analysis-metrics voice-analysis-metrics" id="voice-analysis-metrics">
+                <div class="face-analysis-metric analysis-metric tint-blue" id="voice-metric-score">
+                  <span class="face-analysis-metric-label">Overall</span>
+                  <strong id="voice-analysis-score">—</strong>
+                </div>
+                <div class="face-analysis-metric analysis-metric tint-red" id="voice-metric-resonance">
+                  <span class="face-analysis-metric-label">Resonance</span>
+                  <strong id="voice-analysis-resonance">—</strong>
+                </div>
+                <div class="face-analysis-metric analysis-metric tint-green" id="voice-metric-clarity">
+                  <span class="face-analysis-metric-label">Clarity</span>
+                  <strong id="voice-analysis-clarity">—</strong>
+                </div>
+                </div>
+              </div>
+              <p class="voice-analysis-pitch-line" id="voice-analysis-pitch-line">Pitch —</p>
+              <button type="button" class="face-analysis-reanalyze" id="btn-voice-analysis-reanalyze">
+                Record again
+              </button>
+            </div>
+          </div>
+          </div>
+
+          <div class="card reports-card" id="reports-badges-card">
+            <div class="panel-head">
+              <h2 class="card-title">Badges</h2>
+              <span class="panel-meta" id="reports-badges-meta">0 / 8 earned</span>
+            </div>
+            <p class="badge-next-hint" id="reports-badges-next">Complete 3 days in a row to earn 3-Day Spark.</p>
+            <div class="badge-grid" id="reports-badges"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== MY PROGRESS ========== -->
+      <section id="view-my-progress" class="view view-stack" hidden>
+        <div class="stack-hero compact my-progress-hero">
+          <button type="button" class="icon-btn light" data-back aria-label="Back">‹</button>
+          <p class="hero-diff light" id="my-progress-kicker">My progress</p>
+          <h1 class="stack-title" id="my-progress-title">Daily log</h1>
+          <p class="my-progress-hero-lead" id="my-progress-hero-lead">Your private timeline on this device.</p>
+        </div>
+        <div class="stack-sheet my-progress-sheet">
+          <div class="my-progress-scroll">
+            <div class="my-progress-gate card reports-card" id="my-progress-analysis-gate" hidden>
+              <h2 class="card-title">Complete your analysis first</h2>
+              <p class="muted reports-photos-lead" id="my-progress-gate-lead">
+                Run your one-time analysis scan before starting daily check-ins.
+              </p>
+              <button type="button" class="reports-photo-cta" id="btn-my-progress-go-analysis">
+                Go to analysis
+              </button>
+            </div>
+
+            <div id="my-progress-main" hidden>
+              <div class="my-progress-today card reports-card" id="my-progress-today-card">
+                <div class="panel-head">
+                  <h2 class="card-title">Today</h2>
+                  <span class="panel-meta" id="my-progress-today-meta">—</span>
+                </div>
+                <p class="muted reports-photos-lead" id="my-progress-today-lead">Your analysis scans save here automatically.</p>
+                <div class="my-progress-today-preview" id="my-progress-today-preview"></div>
+                <div class="my-progress-today-actions" id="my-progress-today-actions"></div>
+              </div>
+
+              <div class="my-progress-timeline-head">
+                <p class="me-section-label reports-section-label">Your timeline</p>
+                <span class="my-progress-timeline-meta" id="my-progress-timeline-meta">—</span>
+              </div>
+              <div class="my-progress-timeline" id="my-progress-grid" aria-label="Daily progress timeline"></div>
+            </div>
+
+            <p id="my-progress-error" class="face-analysis-error" hidden></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== ME ========== -->
+      <section id="view-me" class="view me-view" data-tab="me" hidden>
+        <div class="scroll me-scroll">
+          <p class="me-section-label">Me</p>
+          <div class="me-card me-profile-card">
+            <div class="me-profile-row">
+              <div class="me-avatar" id="profile-avatar" aria-hidden="true">P</div>
+              <div class="me-profile-main">
+                <div class="me-name-row">
+                  <h1 class="me-name" id="profile-name">Priya</h1>
+                  <button type="button" class="me-edit-btn" id="btn-edit-name" aria-label="Edit name">✎</button>
+                </div>
+                <p class="me-email" id="profile-email" hidden></p>
+                <p class="me-program-line" id="me-program-line">Face Form · Day 1 of 30</p>
+              </div>
+              <div class="me-streak-wrap">
+                <div class="me-streak-badge" id="me-streak-badge" aria-label="1 day streak">
+                  <div class="me-streak-flame-icon" aria-hidden="true">
+                    <svg class="me-streak-flame-svg" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <linearGradient id="me-flame-outer-grad" x1="32" y1="2" x2="32" y2="68" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stop-color="#ff9a3c" />
+                          <stop offset="40%" stop-color="#e85a20" />
+                          <stop offset="100%" stop-color="#a83808" />
+                        </linearGradient>
+                        <linearGradient id="me-flame-mid-grad" x1="32" y1="14" x2="32" y2="62" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stop-color="#ffd54a" />
+                          <stop offset="50%" stop-color="#ff8c00" />
+                          <stop offset="100%" stop-color="#d94f0f" />
+                        </linearGradient>
+                        <linearGradient id="me-flame-core-grad" x1="32" y1="24" x2="32" y2="52" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stop-color="#fffde7" />
+                          <stop offset="50%" stop-color="#ffca28" />
+                          <stop offset="100%" stop-color="#ff8f00" />
+                        </linearGradient>
+                        <linearGradient id="me-flame-shine-grad" x1="24" y1="10" x2="40" y2="36" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6" />
+                          <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+                        </linearGradient>
+                      </defs>
+                      <g class="me-streak-flame-body">
+                        <path class="me-streak-flame-outer" d="M32 68C21 68 13 58 12 46C11 36 14 28 18 22C16 18 15 13 17 9C19 13 21 17 23 13C22 9 25 5 27 3C29 1 30 5 32 1C34 5 35 1 37 3C39 5 42 9 41 13C43 17 45 13 47 9C49 13 48 18 46 22C50 28 53 36 52 46C51 58 43 68 32 68Z" fill="url(#me-flame-outer-grad)" stroke="#ffc07a" stroke-width="1.3" stroke-linejoin="round" />
+                        <path class="me-streak-flame-tongue me-streak-flame-tongue-l" d="M20 24C18 20 17 15 19 11C21 15 22 19 20 24Z" fill="#ff8c00" opacity="0.85" />
+                        <path class="me-streak-flame-tongue me-streak-flame-tongue-r" d="M44 24C46 20 47 15 45 11C43 15 42 19 44 24Z" fill="#ff8c00" opacity="0.85" />
+                        <path class="me-streak-flame-mid" d="M32 60C24 60 19 52 18 44C17 36 20 30 24 25C26 22 28 18 27 15C28 18 30 21 32 18C34 21 36 18 37 15C36 18 38 22 40 25C44 30 47 36 46 44C45 52 40 60 32 60Z" fill="url(#me-flame-mid-grad)" stroke="#ffe082" stroke-width="0.7" stroke-linejoin="round" />
+                        <path class="me-streak-flame-core" d="M32 48C28 48 25 43 24 37C23 33 26 29 29 26C30 24 31 22 32 22C33 22 34 24 35 26C38 29 41 33 40 37C39 43 36 48 32 48Z" fill="url(#me-flame-core-grad)" />
+                        <path class="me-streak-flame-shine" d="M32 42C29 42 27 37 26 32C25 28 27 24 30 21C31 20 32 19 32 19C32 19 33 20 34 21C37 24 39 28 38 32C37 37 35 42 32 42Z" fill="url(#me-flame-shine-grad)" />
+                      </g>
+                    </svg>
+                  </div>
+                  <span class="me-streak-num" id="me-streak-num">1</span>
+                </div>
+                <span class="me-streak-caption">day streak</span>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="me-plus-card" id="btn-carve-plus">
+            <span class="me-plus-gem carve-mark" aria-hidden="true">
+              <svg class="carve-mark-svg" viewBox="0 0 24 24" width="28" height="28" fill="none" aria-hidden="true">
+                <path d="M12 21.5c3.8-2.8 6.5-6.4 6.5-10.7C18.5 7.4 15.4 4.5 12 4.5c-1.1 0-2.2.35-3.1 1C7.6 3.8 6 3 4.5 3 4.5 7.8 7.2 12.5 12 21.5Z" fill="currentColor"/>
+                <path d="M12 21.5c-2-1.6-3.2-3.6-3.2-6.1 0-2.4 1.5-3.9 3.2-3.9s3.2 1.5 3.2 3.9c0 2.5-1.2 4.5-3.2 6.1Z" fill="#fff" fill-opacity=".4"/>
+              </svg>
+            </span>
+            <span class="me-plus-main">
+              <span class="me-plus-head">
+                <strong>CARVE Plus</strong>
+                <span class="me-plus-chip" id="me-plus-chip">Upgrade</span>
+              </span>
+              <span class="me-plus-detail" id="me-plus-detail">
+                Unlock unlimited face &amp; voice scans
+              </span>
+              <span class="me-plus-price-line" id="me-plus-price-line"><em id="me-plus-price-amount">₹1500</em><span id="me-plus-price-interval">/mo</span></span>
+            </span>
+            <span class="me-plus-chevron" aria-hidden="true">›</span>
+          </button>
+
+          <p class="me-section-label blue">Preferences</p>
+          <div class="me-card me-prefs">
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🎙</span>
+              <span class="me-pref-text">Coach voice cues</span>
+              <input type="checkbox" id="set-coach-voice" checked />
+            </label>
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🎵</span>
+              <span class="me-pref-text">Background music <small>Calm music during sessions</small></span>
+              <input type="checkbox" id="set-music" checked />
+            </label>
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🔊</span>
+              <span class="me-pref-text">Sound effects <small>Countdown ticks and chimes</small></span>
+              <input type="checkbox" id="set-sfx" checked />
+            </label>
+            <label class="me-pref">
+              <span class="me-pref-icon" aria-hidden="true">🔔</span>
+              <span class="me-pref-text">
+                Daily reminders
+                <small>
+                  Every day at
+                  <button type="button" class="me-inline-link" id="btn-reminder-time">
+                    <span id="reminder-time-label">7:30 PM</span> ›
+                  </button>
+                </small>
+              </span>
+              <input type="checkbox" id="set-reminders" checked />
+            </label>
+            <input type="time" id="reminder-time-input" hidden aria-hidden="true" tabindex="-1" />
+          </div>
+
+          <p class="me-section-label blue">Account &amp; data</p>
+          <div class="me-card me-list">
+            <button type="button" class="me-row" id="btn-replay-tour">
+              <span class="me-row-icon" aria-hidden="true">🧭</span>
+              <span>Replay app tour</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row" id="btn-export-data">
+              <span class="me-row-icon" aria-hidden="true">📤</span>
+              <span>Export my data</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row danger" id="btn-delete-data">
+              <span class="me-row-icon" aria-hidden="true">🗑</span>
+              <span>Delete my data</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row" id="btn-sign-out">
+              <span class="me-row-icon" aria-hidden="true">↩</span>
+              <span>Sign out</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <p class="me-section-label blue">Support</p>
+          <div class="me-card me-list">
+            <button type="button" class="me-row" id="btn-help">
+              <span class="me-row-icon" aria-hidden="true">❓</span>
+              <span>Help &amp; FAQ</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+            <button type="button" class="me-row" id="btn-feedback">
+              <span class="me-row-icon" aria-hidden="true">💬</span>
+              <span>Send feedback</span>
+              <span class="me-chevron" aria-hidden="true">›</span>
+            </button>
+          </div>
+
+          <p class="me-section-label blue">Privacy &amp; claims</p>
+          <div class="me-card me-privacy">
+            <span class="me-lock" aria-hidden="true">🔒</span>
+            <p>
+              Photos and voice recordings never leave this device. CARVE trains soft tissue tone,
+              posture, and vocal habits — it makes no claim to change bone structure.
+            </p>
+            <button type="button" class="me-policy" id="btn-evidence">Read our evidence policy ›</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PLAN DETAIL ========== -->
+      <section id="view-plan" class="view view-stack" hidden>
+        <div class="stack-hero compact plan-hero">
+          <button type="button" class="icon-btn light" data-back aria-label="Back">‹</button>
+          <p class="hero-diff light" id="plan-diff"><span>⚡</span> Beginner</p>
+          <h1 class="stack-title" id="plan-title">Sculpted Jaw in 30 Days</h1>
+          <p class="stack-tags" id="plan-tags">Jawline · Puffiness · Symmetry</p>
+          <span class="stack-art" id="plan-art" aria-hidden="true">🪞</span>
+        </div>
+        <div class="stack-sheet plan-sheet">
+          <div class="plan-scroll">
+            <p class="day-kicker">One day at a time — progress unlocks the next.</p>
+            <p class="days-left"><span id="days-left">30</span> days left</p>
+            <div class="bar"><div class="bar-fill" id="plan-bar" style="width:0%"></div></div>
+            <div class="day-list" id="day-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== DAY DETAIL ========== -->
+      <section id="view-day" class="view view-stack" hidden>
+        <div class="stack-hero compact day-hero">
+          <div class="row-between">
+            <button type="button" class="icon-btn light" data-back aria-label="Back">‹</button>
+            <button type="button" class="icon-btn ghost" id="btn-day-more" aria-label="More">⋮</button>
+          </div>
+          <h1 class="stack-title" id="day-title">Day 1</h1>
+          <p class="hero-diff light" id="day-diff"><span>⚡</span><span>⚡</span> Beginner</p>
+          <p class="day-hero-lead">Small wins stack</p>
+          <span class="stack-art" id="day-art" aria-hidden="true">🪞</span>
+        </div>
+        <div class="stack-sheet day-sheet">
+          <div class="day-scroll">
+            <p class="day-kicker">Keep it gentle — tone, posture, and habit.</p>
+            <div class="stats stats-split">
+              <div><strong id="stat-ex">11</strong><span>Exercises</span></div>
+              <div class="stats-divider" aria-hidden="true"></div>
+              <div><strong id="stat-time">5 min</strong><span>Time</span></div>
+              <div class="stats-divider" aria-hidden="true"></div>
+              <div><strong id="stat-focus-val">Face</strong><span>Focus</span></div>
+            </div>
+            <div class="day-progress-wrap">
+              <div class="bar"><div class="bar-fill" id="day-bar" style="width:0%"></div></div>
+            </div>
+            <div class="row-between exercise-head">
+              <h2>Today’s sequence</h2>
+              <span class="muted" id="ex-progress">0/11</span>
+            </div>
+            <div id="exercise-list" class="exercise-list"></div>
+          </div>
+          <div class="day-footer">
+            <button type="button" class="adjust-btn" id="btn-adjust" aria-label="Adjust sequence">
+              <span aria-hidden="true">📋</span> Adjust
+            </button>
+            <button type="button" class="pill pill-gradient" id="btn-start-session">
+              <span id="start-label">START</span>
+              <small id="start-sub">Easy pace · a few minutes</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== PLAYER ========== -->
+      <section id="view-player" class="view view-player" hidden>
+        <div class="player">
+          <div class="seg-bar" id="seg-bar"></div>
+          <div class="player-top">
+            <button type="button" class="icon-btn" data-back aria-label="Back">‹</button>
+            <div class="player-tools">
+              <button type="button" class="icon-btn sm" id="btn-player-settings" aria-label="Settings">⚙</button>
+              <button type="button" class="icon-btn sm" id="btn-player-mirror" aria-label="Mirror">📷</button>
+            </div>
+          </div>
+          <div class="player-body">
+            <div class="player-stage">
+              <div class="coach-player stage" id="player-coach" data-coach-set="jaw_release"></div>
+              <span class="countdown" id="countdown" hidden>3</span>
+            </div>
+            <div id="player-ready" class="player-ready">
+              <p class="ready-label">READY WHEN YOU ARE</p>
+              <div class="name-row">
+                <h2 id="ready-name">JAW RELEASE</h2>
+                <button type="button" class="help" id="btn-detail-ready" aria-label="Details">?</button>
+              </div>
+              <p class="player-hint">Match the coach · breathe easy</p>
+              <button type="button" class="pill pill-muted" id="btn-skip">Skip intro</button>
+            </div>
+            <div id="player-active" class="player-active" hidden>
+              <div class="active-row">
+                <div>
+                  <p class="timer" id="timer">00:20</p>
+                  <div class="name-row left">
+                    <h2 id="active-name">JAW RELEASE</h2>
+                    <button type="button" class="help" id="btn-detail-active" aria-label="Details">?</button>
+                  </div>
+                </div>
+              </div>
+              <div class="controls">
+                <button type="button" class="icon-btn" id="btn-prev" aria-label="Previous">⏮</button>
+                <button type="button" class="pause-pill" id="btn-pause">
+                  <span class="pause-progress" id="pause-progress"></span>
+                  <span id="pause-icon">⏸</span>
+                </button>
+                <button type="button" class="icon-btn" id="btn-next" aria-label="Next">⏭</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bottom tabs (home-level only) -->
+      <nav class="tabbar" id="tabbar" aria-label="Main">
+        <button type="button" class="tab active" data-tab="training">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/>
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/>
+              <rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/>
+            </svg>
+          </span>
+          <span>Training</span>
+        </button>
+        <button type="button" class="tab" data-tab="reports">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+              <path d="M4.5 19.5V12.5"/>
+              <path d="M10 19.5V7.5"/>
+              <path d="M15.5 19.5V10.5"/>
+              <path d="M21 19.5V4.5"/>
+            </svg>
+          </span>
+          <span>Reports</span>
+        </button>
+        <button type="button" class="tab" data-tab="me">
+          <span class="tab-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="3.2"/>
+              <path d="M5.5 19c1.2-3.2 3.5-4.8 6.5-4.8S16.8 15.8 18 19" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span>Me</span>
+        </button>
+      </nav>
+
+      <div class="modal auth-modal" id="auth-modal" hidden>
+        <div class="modal-backdrop" data-close-auth></div>
+        <div class="auth-dialog" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+          <span class="auth-dialog-glow" aria-hidden="true"></span>
+          <div class="auth-dialog-mark" aria-hidden="true"></div>
+          <p class="auth-dialog-kicker">Welcome to practice</p>
+          <h2 id="auth-title" class="auth-dialog-title">CARVE</h2>
+          <p class="auth-dialog-copy">Sign in to unlock today’s session and keep your streak on this device.</p>
+          <button type="button" class="google-btn" id="btn-google-signin">
+            <span class="google-btn-icon" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="22" height="22">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 16 19 12 24 12c3.1 0 5.8 1.2 8 3.1l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.1-3.5 5.5-6.6 6.5l6.3 5.3C37.5 41.3 44 36.5 44 24c0-1.2-.1-2.3-.4-3.5z"/>
+              </svg>
+            </span>
+            <span>Continue with Google</span>
+          </button>
+          <p class="auth-status" id="auth-status" hidden></p>
+        </div>
+      </div>
+
+      <div class="modal carve-plus-modal" id="carve-plus-modal" hidden>
+        <div class="modal-backdrop" data-close-carve-plus></div>
+        <div class="sheet carve-plus-sheet" role="dialog" aria-modal="true" aria-labelledby="carve-plus-title">
+          <div class="sheet-handle"></div>
+          <header class="carve-plus-sheet-head">
+            <span class="carve-plus-sheet-gem carve-mark" aria-hidden="true">
+              <svg class="carve-mark-svg" viewBox="0 0 24 24" width="26" height="26" fill="none" aria-hidden="true">
+                <path d="M12 21.5c3.8-2.8 6.5-6.4 6.5-10.7C18.5 7.4 15.4 4.5 12 4.5c-1.1 0-2.2.35-3.1 1C7.6 3.8 6 3 4.5 3 4.5 7.8 7.2 12.5 12 21.5Z" fill="currentColor"/>
+                <path d="M12 21.5c-2-1.6-3.2-3.6-3.2-6.1 0-2.4 1.5-3.9 3.2-3.9s3.2 1.5 3.2 3.9c0 2.5-1.2 4.5-3.2 6.1Z" fill="#fff" fill-opacity=".4"/>
+              </svg>
+            </span>
+            <div>
+              <p class="carve-plus-sheet-kicker">Membership</p>
+              <h2 id="carve-plus-title">CARVE Plus</h2>
+            </div>
+          </header>
+          <div class="sheet-body carve-plus-sheet-body">
+            <div class="carve-plus-price-block">
+              <strong class="carve-plus-price" id="carve-plus-price">₹1500</strong>
+              <span class="carve-plus-price-unit" id="carve-plus-price-unit">/ month</span>
+            </div>
+            <ul class="carve-plus-features">
+              <li>Unlimited face analysis scans</li>
+              <li>Unlimited voice analysis scans</li>
+              <li>Full Presence combined check-ins</li>
+              <li>Shareable streak and before/after story cards</li>
+              <li>New card styles unlocked at 3, 7, 14, 21 and 30-day streaks</li>
+            </ul>
+            <p class="carve-plus-note muted">Cancel anytime · billed securely with Dodo Payments</p>
+            <p class="carve-plus-pay-status" id="carve-plus-pay-status" hidden></p>
+          </div>
+          <footer class="carve-plus-sheet-foot">
+            <button type="button" class="pill pill-gradient" id="btn-carve-plus-subscribe">Subscribe — ₹1500/mo</button>
+            <button type="button" class="carve-plus-dismiss" data-close-carve-plus>Not now</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="modal reminder-clock-modal" id="reminder-clock-modal" hidden>
+        <div class="modal-backdrop" data-close-reminder-clock></div>
+        <div class="sheet reminder-clock-sheet" role="dialog" aria-modal="true" aria-labelledby="reminder-clock-title">
+          <div class="sheet-handle"></div>
+          <header class="reminder-clock-head">
+            <p class="reminder-clock-kicker">Daily reminder</p>
+            <h2 class="reminder-clock-display" id="reminder-clock-title">
+              <span id="reminder-clock-display">7:30 PM</span>
+            </h2>
+            <p class="reminder-clock-sub">Tap the clock to set your hour, then minutes</p>
+          </header>
+          <div class="reminder-clock-body">
+            <div class="clock-stage">
+              <div class="clock-face" id="clock-face" role="application" aria-label="Choose reminder time">
+                <div class="clock-face-glow" aria-hidden="true"></div>
+                <div class="clock-ticks" aria-hidden="true"></div>
+                <div class="clock-numbers" id="clock-numbers"></div>
+                <div class="clock-hand clock-hand-minute" id="clock-hand-minute" aria-hidden="true"></div>
+                <div class="clock-hand clock-hand-hour" id="clock-hand-hour" aria-hidden="true"></div>
+                <div class="clock-hub" aria-hidden="true"></div>
+              </div>
+            </div>
+            <div class="reminder-clock-controls">
+              <div class="clock-mode-tabs" role="tablist" aria-label="Hour or minute">
+                <button type="button" class="clock-mode-tab active" data-clock-mode="hour" role="tab" aria-selected="true">Hour</button>
+                <button type="button" class="clock-mode-tab" data-clock-mode="minute" role="tab" aria-selected="false">Minute</button>
+              </div>
+              <div class="clock-ampm" role="group" aria-label="AM or PM">
+                <button type="button" class="clock-ampm-btn" data-ampm="AM">AM</button>
+                <button type="button" class="clock-ampm-btn active" data-ampm="PM">PM</button>
+              </div>
+            </div>
+          </div>
+          <footer class="reminder-clock-foot">
+            <button type="button" class="pill pill-muted" data-close-reminder-clock>Cancel</button>
+            <button type="button" class="pill pill-gradient" id="btn-reminder-clock-save">Set reminder</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="modal delete-data-modal" id="delete-data-modal" hidden>
+        <div class="modal-backdrop" data-close-delete-data></div>
+        <div class="sheet delete-data-sheet" role="dialog" aria-modal="true" aria-labelledby="delete-data-title">
+          <div class="sheet-handle"></div>
+          <header class="delete-data-head">
+            <span class="delete-data-icon" aria-hidden="true">🗑</span>
+            <div>
+              <p class="delete-data-kicker">Account &amp; data</p>
+              <h2 id="delete-data-title">Delete my data</h2>
+            </div>
+          </header>
+          <div class="sheet-body delete-data-body">
+            <p id="delete-data-message-premium" class="delete-data-message" hidden>
+              Are you sure you want to clear your data? This removes all Face Form, Voice Grain, and Full Presence analysis from this device.
+            </p>
+            <p id="delete-data-message-free" class="delete-data-message" hidden>
+              This clears your Face Form, Voice Grain, and Full Presence analysis on this device. You will not be able to scan again unless you upgrade to CARVE Plus.
+            </p>
+          </div>
+          <footer class="delete-data-foot" id="delete-data-foot-premium" hidden>
+            <button type="button" class="pill pill-muted" data-close-delete-data>No</button>
+            <button type="button" class="pill pill-danger" id="btn-delete-data-confirm">Yes, clear data</button>
+          </footer>
+          <footer class="delete-data-foot delete-data-foot-free" id="delete-data-foot-free" hidden>
+            <button type="button" class="pill pill-muted" data-close-delete-data>Cancel</button>
+            <button type="button" class="pill pill-danger" id="btn-delete-data-clear">Clear data</button>
+            <button type="button" class="pill pill-gradient" id="btn-delete-data-plus">Get CARVE Plus</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="modal support-modal" id="help-faq-modal" hidden>
+        <div class="modal-backdrop" data-close-help-faq></div>
+        <div class="sheet support-sheet" role="dialog" aria-modal="true" aria-labelledby="help-faq-title">
+          <div class="sheet-handle"></div>
+          <header class="support-head">
+            <span class="support-icon" aria-hidden="true">❓</span>
+            <div>
+              <p class="support-kicker">Support</p>
+              <h2 id="help-faq-title">Help &amp; FAQ</h2>
+            </div>
+          </header>
+          <div class="sheet-body support-body">
+            <div class="support-faq-list">
+              <details class="support-faq-item" open>
+                <summary>Do my photos and recordings leave this device?</summary>
+                <p>No. Face analysis, voice recordings, and progress photos are processed and stored only on this device.</p>
+              </details>
+              <details class="support-faq-item">
+                <summary>What are Face Form, Voice Grain, and Full Presence?</summary>
+                <p>
+                  <strong>Face Form</strong> focuses on jawline, symmetry, and facial posture drills.
+                  <strong>Voice Grain</strong> trains resonance, clarity, and vocal habits.
+                  <strong>Full Presence</strong> combines both in one program.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>How do face and voice scans work?</summary>
+                <p>
+                  Free accounts include one face scan and one voice scan. CARVE Plus unlocks unlimited re-scans and daily progress logging.
+                  Scans run on-device — no upload required.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>What is My Progress?</summary>
+                <p>
+                  With CARVE Plus, each scan syncs to your daily timeline on My Progress so you can track Face Form and Voice Grain scores over time.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>Can CARVE change my bone structure?</summary>
+                <p>
+                  No. CARVE trains soft tissue tone, posture, and vocal habits. It does not claim to alter bone structure.
+                </p>
+              </details>
+              <details class="support-faq-item">
+                <summary>How do I export or delete my data?</summary>
+                <p>
+                  Go to <strong>Me → Account &amp; data</strong>. Export downloads a PDF of your daily progress. Delete clears all analysis from this device.
+                </p>
+              </details>
+            </div>
+          </div>
+          <footer class="support-foot">
+            <button type="button" class="pill pill-gradient" data-close-help-faq>Got it</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="modal support-modal" id="feedback-modal" hidden>
+        <div class="modal-backdrop" data-close-feedback></div>
+        <div class="sheet support-sheet" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+          <div class="sheet-handle"></div>
+          <header class="support-head">
+            <span class="support-icon support-icon-feedback" aria-hidden="true">💬</span>
+            <div>
+              <p class="support-kicker">Support</p>
+              <h2 id="feedback-title">Send feedback</h2>
+            </div>
+          </header>
+          <form class="sheet-body support-body" id="feedback-form">
+            <p class="support-lead">Tell us what’s working, what isn’t, or what you’d like to see next.</p>
+            <label class="support-field">
+              <span class="support-label">Topic</span>
+              <select class="support-select" id="feedback-topic">
+                <option value="bug">Something isn’t working</option>
+                <option value="idea">Feature idea</option>
+                <option value="general">General feedback</option>
+              </select>
+            </label>
+            <label class="support-field">
+              <span class="support-label">Your message</span>
+              <textarea class="support-textarea" id="feedback-message" rows="5" maxlength="2000" placeholder="Share your thoughts…" required></textarea>
+            </label>
+            <p class="support-note muted">Saved on this device only — nothing is sent to a server.</p>
+            <footer class="support-foot support-foot-form">
+              <button type="button" class="pill pill-muted" data-close-feedback>Cancel</button>
+              <button type="submit" class="pill pill-gradient" id="btn-feedback-submit">Send feedback</button>
+            </footer>
+          </form>
+        </div>
+      </div>
+
+      <div class="modal support-modal" id="evidence-policy-modal" hidden>
+        <div class="modal-backdrop" data-close-evidence></div>
+        <div class="sheet support-sheet" role="dialog" aria-modal="true" aria-labelledby="evidence-policy-title">
+          <div class="sheet-handle"></div>
+          <header class="support-head">
+            <span class="support-icon support-icon-evidence" aria-hidden="true">🔒</span>
+            <div>
+              <p class="support-kicker">Privacy &amp; claims</p>
+              <h2 id="evidence-policy-title">Evidence policy</h2>
+            </div>
+          </header>
+          <div class="sheet-body support-body">
+            <p class="support-lead">
+              CARVE is a habit-training app. Everything below explains what we measure, what we claim, and what stays on your device.
+            </p>
+            <div class="evidence-policy-list">
+              <section class="evidence-policy-block">
+                <h3>What CARVE trains</h3>
+                <p>Soft tissue tone, facial posture, jaw-release habits, breathing patterns, and vocal resonance through guided daily drills.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>What we do not claim</h3>
+                <p>CARVE does not claim to change bone structure, skull shape, or genetics. Scores reflect on-device estimates for tracking your own progress — not medical diagnoses.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>How analysis works</h3>
+                <p>Face and voice scans run entirely on this device. Photos and recordings are not uploaded to CARVE servers. Your data stays in local storage unless you export or delete it.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>Interpreting your scores</h3>
+                <p>Trends over time matter more than any single number. Use scores to stay consistent with drills — not as proof of permanent structural change.</p>
+              </section>
+              <section class="evidence-policy-block">
+                <h3>When to seek professional advice</h3>
+                <p>CARVE is not a substitute for dental, medical, or speech therapy care. Consult a qualified professional for pain, TMJ concerns, or voice disorders.</p>
+              </section>
+            </div>
+          </div>
+          <footer class="support-foot">
+            <button type="button" class="pill pill-gradient" data-close-evidence>Understood</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="modal" id="modal" hidden>
+        <div class="modal-backdrop" data-close-modal></div>
+        <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <div class="sheet-handle"></div>
+          <header class="sheet-head">
+            <h2 id="modal-title">JAW RELEASE</h2>
+            <button type="button" class="replace-btn" id="btn-replace" aria-label="Swap exercise" hidden>
+              <span>↻</span>
+              Replace
+            </button>
+          </header>
+          <div class="sheet-body">
+            <div class="media" id="modal-media">
+              <div class="coach-player card" id="modal-coach" data-coach-set="jaw_release"></div>
+              <p class="muted" id="modal-media-hint">Copy this person — looping demo</p>
+            </div>
+            <div class="tabs-pill" role="tablist">
+              <button type="button" class="tab-pill active" data-mtab="animation">Animation</button>
+              <button type="button" class="tab-pill" data-mtab="muscle">Muscle</button>
+              <button type="button" class="tab-pill" data-mtab="howto">How to do</button>
+            </div>
+            <div id="modal-content"></div>
+          </div>
+          <footer class="sheet-foot">
+            <div class="pager">
+              <button type="button" class="icon-btn blue" id="modal-prev">‹</button>
+              <span id="modal-pager">1/7</span>
+              <button type="button" class="icon-btn blue" id="modal-next">›</button>
+            </div>
+            <button type="button" class="pill pill-gradient" data-close-modal>CLOSE</button>
+          </footer>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    </div>
+  </div>
+
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dodopayments-checkout@1.9.9/dist/index.js"></script>
+  <script src="auth-config.js"></script>
+  <script src="payments-config.js?v=dodoPay8"></script>
+  <script src="data.js?v=landing9"></script>
+  <script src="faceAnalysis.js?v=trends1"></script>
+  <script src="voiceAnalysis.js?v=trends1"></script>
+  <script src="app.js?v=app2"></script>
+  <script src="engagement.js?v=app1"></script>
+  <script src="tour.js?v=app1"></script>
+  <script src="script.js?v=app1"></script>
+</body>
+</html>

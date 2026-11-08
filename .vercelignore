@@ -1,0 +1,16 @@
+.env*
+.claude
+dodo-secrets.json
+server-data
+__pycache__
+tests
+app
+carve
+android-twa
+docs
+node_modules
+www
+android
+scripts
+capacitor.config.json
+dist

@@ -1,0 +1,14 @@
+{
+  "functions": {
+    "api/dodo/*.py": {
+      "includeFiles": "dodo_backend.py",
+      "excludeFiles": "{videos/**,coach/**,assets/**,vendor/**}",
+      "maxDuration": 30
+    },
+    "api/auth/*.py": {
+      "includeFiles": "dodo_backend.py",
+      "excludeFiles": "{videos/**,coach/**,assets/**,vendor/**}",
+      "maxDuration": 30
+    }
+  }
+}

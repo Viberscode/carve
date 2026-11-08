@@ -1,0 +1,23 @@
+{
+  "name": "carve",
+  "private": true,
+  "scripts": {
+    "dev": "python serve.py",
+    "start": "python serve.py",
+    "test": "python -m unittest discover -s tests -v",
+    "app": "npm --prefix app start",
+    "build:www": "node scripts/build-www.mjs",
+    "android:sync": "node scripts/build-www.mjs && cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/share": "^8.0.3",
+    "@capgo/capacitor-social-login": "^8.7.7"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.0"
+  }
+}

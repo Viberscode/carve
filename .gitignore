@@ -1,0 +1,13 @@
+dodo-secrets.json
+server-data/
+__pycache__/
+*.pyc
+
+.vercel
+.env*
+!.env.example
+android-twa/
+node_modules/
+www/
+android/
+dist/
