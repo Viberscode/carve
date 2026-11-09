@@ -524,18 +524,16 @@ const VOICE_GRAIN_VIDEO_RULES = [
   ["chin drop hum", "humming_chin_to_sky"],
   ["lip trill", "lip_trills"],
   ["motorboat", "lip_trills"],
-  // pitch_glides.mp4 actually shows the pen-in-mouth drill.
-  ["pen-in-mouth", "pitch_glides"],
+  ["pen-in-mouth", "pen_in_mouth"],
   ["tongue twister speed", "tongue_twister_speed_ladder"],
   ["tongue twister", "tongue_twisters"],
   ["yawn-sigh", "yawn_sigh"],
   ["straw phonation", "straw_phonation"],
   ["vocal fry", "vocal_fry"],
-  // No clip shows pitch glides; gargling.mp4 shows a straw, not gargling.
-  ["pitch glide", null],
-  ["siren", null],
-  ["ng slide", null],
-  ["gargling", null],
+  ["pitch glide", "pitch_glides"],
+  ["siren", "pitch_glides"],
+  ["ng slide", "pitch_glides"],
+  ["gargling", "gargling"],
   ["vowel stretch", "vowel_stretching"],
   ["neck & jaw", "neck_jaw_massage"],
   ["neck and jaw", "neck_jaw_massage"],
@@ -558,7 +556,7 @@ function voiceGrainSlugForExercise(ex) {
   for (const [needle, slug] of VOICE_GRAIN_VIDEO_RULES) {
     if (name.includes(needle)) return slug;
   }
-  return null;
+  return "diaphragmatic_breathing";
 }
 
 function isVoiceExerciseName(name) {
@@ -579,48 +577,54 @@ function voiceGrainVideoUrl(slug) {
   return `videos/voice-grain/${slug}.mp4?v=${VOICE_VIDEO_VER}`;
 }
 
-/*
- * Face clips, matched to what each video actually shows (checked frame by frame).
- * null = no clip matches; the player shows a static card instead of a wrong demo.
- * Some filenames don't match their content:
- *   chin_tucks.mp4      shows a puckered-lips hold, not a chin tuck (unused)
- *   facial_gua_sha.mp4  shows a kiss-face hold
- *   big_smile.mp4       shows hands massaging the cheeks and jaw
- */
+/* Face demo clips, matched by exercise name. Same mapping as app/data/coachVideos.ts. */
 const FACE_VIDEO_RULES = [
-  ["mewing", "mewing"],
-  ["tongue posture", "mewing"],
-  ["tongue stretch", null],
-  ["chin tuck", null],
-  ["collarbone", null],
-  ["big smile", null],
-  ["jaw circle", null],
-  ["lion", null],
-  ["platysma", "cobra_stretch"],
-  ["cobra", "cobra_stretch"],
+  ["chin tuck", "chin_tucks"],
   ["cheek puff", "cheek_puffs"],
+  ["cobra", "cobra_stretch"],
   ["eyebrow", "eyebrow_lift"],
   ["jaw resist", "jaw_resistance"],
   ["neck curl", "neck_curl_ups"],
   ["fish face", "fish_face"],
-  ["o-e", "vowel"],
   ["vowel", "vowel"],
   ["neck rotat", "neck_rotation"],
   ["straw", "straw_pull"],
-  ["pucker", "facial_gua_sha"],
-  ["kiss", "facial_gua_sha"],
-  ["gua", "big_smile"],
-  ["thumb pulling", "big_smile"],
-  ["de-puff", "eye_de_puff"],
+  ["mewing", "mewing"],
+  ["tongue posture", "mewing"],
+  ["tongue stretch", "mewing_alt"],
+  ["gua", "facial_gua_sha"],
   ["eye de", "eye_de_puff"],
+  ["de-puff", "eye_de_puff"],
+  ["depuff", "eye_de_puff"],
+  ["big smile", "big_smile"],
+  ["smile", "big_smile"],
   ["jaw stretch", "jaw_stretch"],
+  ["jaw circle", "jaw_stretch"],
   ["silent scream", "jaw_stretch"],
   ["chew", "jaw_stretch"],
-  // Older built-in library names.
+  ["thumb", "jaw_resistance"],
+  ["bite", "jaw_resistance"],
+  ["pucker", "straw_pull"],
+  ["kiss", "straw_pull"],
+  ["o-e", "vowel"],
+  ["lion", "fish_face"],
+  ["collarbone", "cobra_stretch"],
+  ["platysma", "neck_curl_ups"],
   ["jaw release", "jaw_stretch"],
-  ["eye brightener", "eye_de_puff"],
-  ["neck glide", "neck_rotation"],
+  ["cheek lift", "big_smile"],
+  ["eye brightener", "eyebrow_lift"],
   ["lip seal", "mewing"],
+  ["neck glide", "neck_rotation"],
+  ["humming", "vowel"],
+  ["diaphrag", "generic"],
+  ["breath", "generic"],
+  ["neck", "neck_rotation"],
+  ["eye", "eyebrow_lift"],
+  ["cheek", "cheek_puffs"],
+  ["jaw", "jaw_stretch"],
+  ["lip", "straw_pull"],
+  ["tongue", "mewing"],
+  ["massage", "facial_gua_sha"],
 ];
 
 function videoSlugForName(name) {
@@ -628,11 +632,11 @@ function videoSlugForName(name) {
   for (const [needle, slug] of FACE_VIDEO_RULES) {
     if (n.includes(needle)) return slug;
   }
-  return null;
+  return "generic";
 }
 
 function videoSlugForExercise(ex) {
-  if (!ex) return null;
+  if (!ex) return "generic";
   if (typeof ex === "string") return videoSlugForName(ex);
   return videoSlugForName(ex.displayName || ex.name || ex.id || "");
 }
@@ -737,7 +741,7 @@ function startCoachPlayer(el, ex) {
   v.src = videoUrl(slug);
   v.onerror = () => {
     v.onerror = null;
-    renderVoiceCoachStatic(el, ex);
+    v.src = videoUrl("generic");
   };
   el.appendChild(v);
   const play = () => v.play().catch(() => {});

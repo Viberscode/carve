@@ -1,45 +1,40 @@
-# Exercise media audit
+# Exercise demo clips
 
-Every exercise in the Face Form and Voice Grain roadmaps, checked against what its demo video actually shows. Full Presence uses the same exercises.
+Every exercise plays the demo clip from the team's original mapping. That mapping is `FACE_VIDEO_RULES` and `VOICE_GRAIN_VIDEO_RULES` in `script.js`, the same as `app/data/coachVideos.ts`. Rules are matched in order against the exercise name, and the first match wins.
 
-The mapping lives in `FACE_VIDEO_RULES` and `VOICE_GRAIN_VIDEO_RULES` in `script.js`. An exercise with no matching clip shows a "Demo coming soon · follow the steps" card. It no longer shows a wrong video.
+All clips are 16:9 (1280×720), and the voice clips are narrated. Judge a clip from its full frame with sound. A square crop hides parts of the demonstration.
 
-## Clips whose filename doesn't match their content
+## Face Form
 
-| File | What it actually shows | Now used for |
-|---|---|---|
-| `videos/chin_tucks.mp4` | Puckered-lips hold | Unused |
-| `videos/facial_gua_sha.mp4` | Kiss-face (pucker) hold | Puckered Lips Hold |
-| `videos/big_smile.mp4` | Hands massaging cheeks and jaw | Facial Gua Sha Massage, Thumb Pulling |
-| `videos/voice-grain/pitch_glides.mp4` | Pen held in the mouth | Pen-in-Mouth Articulation Drill |
-| `videos/voice-grain/pen_in_mouth.mp4` | Speaking, no pen | Unused |
-| `videos/voice-grain/gargling.mp4` | Straw in the mouth | Unused |
+| Exercise | Clip (`videos/`) |
+|---|---|
+| Mewing | `mewing.mp4` |
+| Chin Tucks | `chin_tucks.mp4` |
+| Vowel Exercise, O-E Hold | `vowel.mp4` |
+| Fish Face, Lion Pose | `fish_face.mp4` |
+| Neck Curl-Ups, Platysma Stretch | `neck_curl_ups.mp4` |
+| Jaw Resistance Push, Thumb Pulling | `jaw_resistance.mp4` |
+| Cheek Puffs | `cheek_puffs.mp4` |
+| Jaw Stretch & Hold, Jaw Circles, Silent Scream, Chewing Exercise | `jaw_stretch.mp4` |
+| Cobra Stretch, Collarbone Backup | `cobra_stretch.mp4` |
+| Tongue Stretch | `mewing_alt.mp4` |
+| Big Smile Hold | `big_smile.mp4` |
+| Straw Pull, Puckered Lips Hold | `straw_pull.mp4` |
+| Neck Rotation Stretch | `neck_rotation.mp4` |
+| Eyebrow Lift Hold | `eyebrow_lift.mp4` |
+| Eye De-Puff Massage | `eye_de_puff.mp4` |
+| Facial Gua Sha Massage | `facial_gua_sha.mp4` |
 
-## Missing demos: clips the team needs to source
+`generic.mp4` is the fallback for an unmatched name, or for a clip that fails to load.
 
-The 8 exercises below currently show the "coming soon" card.
+## Voice Grain
 
-| Exercise | Mode | What the clip should show |
-|---|---|---|
-| Chin Tucks | Face | Side view: head glides straight back, eyes level |
-| Collarbone Backup | Face | Side view: head drawn back over the collarbones |
-| Tongue Stretch | Face | Tongue out, reaching up toward the nose |
-| Big Smile Hold | Face | Wide smile held still |
-| Jaw Circles | Face | Jaw sliding side to side in small circles |
-| Lion Pose | Face | Mouth wide, tongue out, eyes wide |
-| Pitch Glides / Sirens | Voice | Narrated slide from low to high pitch and back |
-| Gargling Exercise | Voice | Head tilted back, gargling a small sip of water |
+Each of the 25 voice exercises has its own narrated clip in `videos/voice-grain/`, named after the exercise. Examples are `lip_trills.mp4`, `pitch_glides.mp4`, `gargling.mp4` and `pen_in_mouth.mp4`.
 
-When a clip arrives, add it to the `videos/` folder, or `videos/voice-grain/` for voice. Then set its slug in the matching rules list in place of `null`.
+## Full Presence
 
-## Approximate matches, worth replacing later
+Full Presence mixes both lists. Each face exercise plays its face clip and each voice exercise plays its narrated voice clip, the same as in its own mode.
 
-| Exercise | Clip used | Gap |
-|---|---|---|
-| Chewing Exercise | `jaw_stretch.mp4` | Shows mouth opening, not chewing |
-| Silent Scream | `jaw_stretch.mp4` | No wide-eyes part |
-| Platysma Stretch | `cobra_stretch.mp4` | Head tilts up, but no lower-lip push |
-| Thumb Pulling | `big_smile.mp4` | Hands massage the jaw, but don't glide along it with thumbs |
-| Eyebrow Lift Hold | `eyebrow_lift.mp4` | Arrows only; the brow lift is barely visible |
+## Exercises sharing a clip
 
-Voice clips were checked at their mid-point. Pitch glides, pen-in-mouth and gargling were checked frame by frame.
+Some exercises reuse a related clip, such as Lion Pose with `fish_face.mp4`. A dedicated clip can be added later. Put the file in `videos/`, then add a rule for that exercise above the shared rule in `FACE_VIDEO_RULES`.
