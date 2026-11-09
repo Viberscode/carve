@@ -114,9 +114,17 @@ function startTour(steps, flag) {
   tourState.onKey = (e) => {
     if (e.key === "Escape") endTour();
   };
-  tourState.onResize = () => positionTourStep();
+  // Re-measure on anything that moves the target: rotation, browser toolbars
+  // showing or hiding, keyboard, or the user scrolling under the overlay.
+  let frame = 0;
+  tourState.onResize = () => {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => positionTourStep());
+  };
   document.addEventListener("keydown", tourState.onKey);
   window.addEventListener("resize", tourState.onResize);
+  window.addEventListener("scroll", tourState.onResize, true);
+  window.visualViewport?.addEventListener("resize", tourState.onResize);
   showTourStep();
 }
 
@@ -131,7 +139,7 @@ async function showTourStep() {
   }
   el.classList.remove("is-shown");
   target.scrollIntoView({ block: "center", behavior: prefersReducedMotion() ? "auto" : "smooth" });
-  await new Promise((r) => setTimeout(r, prefersReducedMotion() ? 50 : 380));
+  await waitForStillTarget(target);
   if (tourState.el !== el) return;
 
   const last = tourState.index === tourState.steps.length - 1;
@@ -144,8 +152,69 @@ async function showTourStep() {
     .map((_, i) => `<span class="${i === tourState.index ? "on" : ""}"></span>`)
     .join("");
   positionTourStep();
+  // Short screens (small phones, landscape): if the card had to sit on top of the
+  // highlight, scroll the target to the top so the card fits underneath it.
+  if (tourCardCoversSpot(el)) {
+    target.scrollIntoView({ block: "start", behavior: "auto" });
+    await waitForStillTarget(target, 400);
+    if (tourState.el !== el) return;
+    positionTourStep();
+  }
   el.classList.add("is-shown");
   el.querySelector(".tour-next").focus({ preventScroll: true });
+}
+
+/** Smooth scrolling takes longer on slow phones: wait until the target stops moving. */
+function waitForStillTarget(target, maxMs = 1200) {
+  return new Promise((resolve) => {
+    let last = null;
+    let still = 0;
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      resolve();
+    };
+    // Timer, not animation frames: frames pause when the page isn't visible,
+    // which would leave the tour stuck.
+    const fallback = setTimeout(finish, maxMs);
+    const tick = () => {
+      if (done) return;
+      const r = target.getBoundingClientRect();
+      const key = `${Math.round(r.top)}:${Math.round(r.left)}:${Math.round(r.height)}`;
+      still = key === last ? still + 1 : 0;
+      last = key;
+      if (still >= 4) {
+        clearTimeout(fallback);
+        finish();
+      } else setTimeout(tick, 32);
+    };
+    setTimeout(tick, 32);
+  });
+}
+
+function tourCardCoversSpot(el) {
+  const spot = el.querySelector(".tour-spot");
+  const card = el.querySelector(".tour-card");
+  const spotTop = parseFloat(spot.style.top);
+  const spotBottom = spotTop + parseFloat(spot.style.height);
+  const cardTop = parseFloat(card.style.top);
+  const cardBottom = cardTop + card.offsetHeight;
+  return cardBottom > spotTop + 1 && cardTop < spotBottom - 1;
+}
+
+/** The visible screen area, minus notches, status bar and gesture bar. */
+function tourSafeArea(el) {
+  const cs = getComputedStyle(el);
+  const vv = window.visualViewport;
+  const width = vv ? vv.width : window.innerWidth;
+  const height = vv ? vv.height : window.innerHeight;
+  return {
+    top: parseFloat(cs.paddingTop) || 0,
+    left: parseFloat(cs.paddingLeft) || 0,
+    right: width - (parseFloat(cs.paddingRight) || 0),
+    bottom: height - (parseFloat(cs.paddingBottom) || 0),
+  };
 }
 
 function positionTourStep() {
@@ -153,25 +222,40 @@ function positionTourStep() {
   const step = tourState.steps[tourState.index];
   const target = step && visibleTarget(step.sel);
   if (!el || !target) return;
-  const pad = 8;
+  const area = tourSafeArea(el);
+  const edge = 4; // keep the spotlight ring off the screen edges
+  const gap = 12; // space between spotlight and card
   const r = target.getBoundingClientRect();
-  const spot = el.querySelector(".tour-spot");
-  spot.style.top = `${r.top - pad}px`;
-  spot.style.left = `${r.left - pad}px`;
-  spot.style.width = `${r.width + pad * 2}px`;
-  spot.style.height = `${r.height + pad * 2}px`;
+  // Less padding on narrow phones so the ring doesn't run past the screen edge.
+  const pad = Math.max(4, Math.min(8, r.left - area.left - edge, area.right - r.right - edge));
 
+  const top = Math.max(area.top + edge, r.top - pad);
+  const left = Math.max(area.left + edge, r.left - pad);
+  const right = Math.min(area.right - edge, r.right + pad);
+  const bottom = Math.min(area.bottom - edge, r.bottom + pad);
+  const radius = Math.min(28, (parseFloat(getComputedStyle(target).borderTopLeftRadius) || 12) + pad);
+
+  const spot = el.querySelector(".tour-spot");
+  spot.style.top = `${top}px`;
+  spot.style.left = `${left}px`;
+  spot.style.width = `${Math.max(0, right - left)}px`;
+  spot.style.height = `${Math.max(0, bottom - top)}px`;
+  spot.style.borderRadius = `${radius}px`;
+
+  // Place the card where it fits: below, else above, else over the bottom of a tall target.
   const card = el.querySelector(".tour-card");
-  const vh = window.innerHeight;
-  const below = vh - r.bottom;
-  card.classList.toggle("above", below < 220 && r.top > below);
-  if (card.classList.contains("above")) {
-    card.style.top = "";
-    card.style.bottom = `${Math.max(16, vh - r.top + pad + 12)}px`;
-  } else {
-    card.style.bottom = "";
-    card.style.top = `${Math.min(vh - 200, r.bottom + pad + 12)}px`;
-  }
+  card.style.maxHeight = `${Math.max(160, area.bottom - area.top - 24)}px`;
+  const ch = card.offsetHeight;
+  const spaceBelow = area.bottom - bottom - gap - 12;
+  const spaceAbove = top - area.top - gap - 12;
+  let cardTop;
+  if (ch <= spaceBelow) cardTop = bottom + gap;
+  else if (ch <= spaceAbove) cardTop = top - gap - ch;
+  else cardTop = area.bottom - ch - 12;
+  cardTop = Math.max(area.top + 12, cardTop);
+  card.classList.toggle("above", cardTop < top);
+  card.style.bottom = "";
+  card.style.top = `${cardTop}px`;
 }
 
 function nextTourStep() {
@@ -187,6 +271,8 @@ function endTour() {
   if (tourState.flag) markTourSeen(tourState.flag);
   document.removeEventListener("keydown", tourState.onKey);
   window.removeEventListener("resize", tourState.onResize);
+  window.removeEventListener("scroll", tourState.onResize, true);
+  window.visualViewport?.removeEventListener("resize", tourState.onResize);
   tourState.el?.remove();
   tourState.el = null;
   tourState.steps = [];
